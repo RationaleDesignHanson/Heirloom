@@ -111,15 +111,6 @@ struct OnboardingDiscoverScreen: View {
                             .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                     }
 
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onExploreDiscover()
-                    }) {
-                        Text("Explore Discover")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.bottom, 4)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 20)

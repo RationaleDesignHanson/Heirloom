@@ -17,13 +17,23 @@ import FirebaseStorage
 @MainActor
 protocol PublicRecipeServiceProtocol {
     /// Publish a recipe to public discovery
-    func publishRecipe(_ recipe: Recipe) async throws -> String
+    /// - Parameters:
+    ///   - recipe: The recipe to publish
+    ///   - sanitizeDemoUsers: If true, remove demo users from lineage before publishing
+    func publishRecipe(_ recipe: Recipe, sanitizeDemoUsers: Bool) async throws -> String
 
     /// Unpublish a recipe from public discovery
     func unpublishRecipe(_ recipe: Recipe) async throws
 
     /// Check if a recipe can be published (with detailed reason if not)
     func validatePublishing(_ recipe: Recipe) -> (canPublish: Bool, reason: String?)
+}
+
+// Default parameter extension
+extension PublicRecipeServiceProtocol {
+    func publishRecipe(_ recipe: Recipe) async throws -> String {
+        try await publishRecipe(recipe, sanitizeDemoUsers: false)
+    }
 }
 
 // MARK: - Errors
@@ -90,10 +100,18 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
     // MARK: - Public Methods
 
     /// Publish a recipe to public discovery
-    /// - Parameter recipe: The recipe to publish
+    /// - Parameters:
+    ///   - recipe: The recipe to publish
+    ///   - sanitizeDemoUsers: If true, remove demo users from lineage before publishing
     /// - Returns: The publicRecipeId (Firestore document ID)
     /// - Throws: PublishError if validation fails or upload errors occur
-    func publishRecipe(_ recipe: Recipe) async throws -> String {
+    func publishRecipe(_ recipe: Recipe, sanitizeDemoUsers: Bool = false) async throws -> String {
+        // Log sanitization preference (actual implementation in document creation below)
+        if sanitizeDemoUsers {
+            Log.info("Publishing with demo user sanitization enabled", category: .social, metadata: [
+                "recipeId": recipe.id.uuidString
+            ])
+        }
         // Check authentication
         guard let userId = auth.currentUser?.uid else {
             Log.error("Publish failed: Not authenticated", category: .social)

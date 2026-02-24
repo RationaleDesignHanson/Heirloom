@@ -415,7 +415,7 @@ final class CommentService {
 
         // Set origin provenance hash if not already set
         if comment.originProvenanceHash == nil {
-            comment.originProvenanceHash = recipe.provenance?.rootProvenanceHash
+            comment.originProvenanceHash = recipe.provenance.rootProvenanceHash
         }
 
         try context.save()

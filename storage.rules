@@ -39,36 +39,22 @@ service firebase.storage {
     }
 
     // ========================================
-    // USER RECIPE IMAGES (User-Scoped)
-    // User-owned recipe images for Firebase sync
-    //
-    // NOTE: Storage Rules cannot query Firestore to check sharing permissions.
-    // Images are readable by all authenticated users to enable recipe sharing.
-    // Security is enforced by:
-    // 1. Recipe image paths contain recipe UUIDs (unguessable)
-    // 2. Users need the share link to know the image path
-    // 3. Only authenticated users can read
+    // USER FOLDER (Parent Path for Account Deletion)
+    // Allows users to list/delete their entire folder during account deletion
     // ========================================
-    match /users/{userId}/recipes/{recipeId}/{imageFile} {
-      // Authenticated users can read recipe images (for sharing)
-      // Image paths contain UUIDs, preventing enumeration
+    match /users/{userId}/{allPaths=**} {
+      // Authenticated users can read their own files or others' shared recipe images
       allow read: if request.auth != null;
+      // Only owner can write/delete
       allow write: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
+      // Owner can list their folder contents (for account deletion)
+      allow list: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ========================================
-    // USER AVATARS (Social Layer)
-    // Profile avatars for social features
-    // Stored as: users/{userId}/profile/avatar.jpg
-    // ========================================
-    match /users/{userId}/profile/{fileName} {
-      // Public read - avatars are shown to connections and in lineage views
-      allow read: if true;
-      // Only owner can upload/update their avatar
-      allow write: if request.auth != null && request.auth.uid == userId;
-      allow delete: if request.auth != null && request.auth.uid == userId;
-    }
+    // Note: User avatars (users/{userId}/profile/*) are covered by the
+    // users/{userId}/{allPaths=**} rule above. Avatars are readable by
+    // all authenticated users via that rule.
 
     // ========================================
     // OG PROFILE IMAGES (Social Layer)

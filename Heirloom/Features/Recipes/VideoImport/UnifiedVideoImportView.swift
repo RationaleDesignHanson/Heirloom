@@ -476,7 +476,7 @@ struct UnifiedVideoImportView: View {
                 .font(.headline)
 
             if let recipe = importedRecipe,
-               let attribution = recipe.provenance?.sourceAttribution {
+               let attribution = recipe.provenance.sourceAttribution {
                 Text("From \(attribution)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -804,6 +804,18 @@ struct UnifiedVideoImportView: View {
                 try userCredits.deductCredits(analyzedCreditCost)
                 try modelContext.save()
 
+                // Track credit analytics
+                let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                let operationType: CreditOperationType = analyzedMode == "ASMR" ? .videoASMR : .videoRegular
+                CreditAnalytics.trackDeduction(
+                    analytics: analytics,
+                    userCredits: userCredits,
+                    operationType: operationType,
+                    amount: analyzedCreditCost,
+                    subscriptionManager: subscriptionManager
+                )
+
                 Log.info("Credits deducted for video import", category: .video, metadata: [
                     "credits": analyzedCreditCost,
                     "mode": analyzedMode
@@ -826,6 +838,10 @@ struct UnifiedVideoImportView: View {
                     context: modelContext,
                     dishNameHint: analyzedMode == "ASMR" && !dishNameHint.isEmpty ? dishNameHint : nil
                 )
+
+                // Mark credits as already charged to prevent double-deduction in chargeCredits()
+                job.creditsCharged = analyzedCreditCost
+                try modelContext.save()
 
                 // Get queue position for user feedback
                 let descriptor = FetchDescriptor<VideoProcessingJob>(

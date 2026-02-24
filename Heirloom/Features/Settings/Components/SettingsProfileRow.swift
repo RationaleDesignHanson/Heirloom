@@ -7,16 +7,26 @@
 //
 
 import SwiftUI
+import SwiftData
 import FirebaseAuth
 
 struct SettingsProfileRow: View {
     @Environment(\.firebaseAuth) private var firebaseAuth
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allUserCredits: [UserCredits]
 
     private var profileService: ProfileServiceProtocol {
         ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
     }
 
     @State private var userProfile: UserProfile?
+    @State private var showCreditsStore = false
+
+    /// Current user's credits
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
+    }
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
@@ -34,6 +44,8 @@ struct SettingsProfileRow: View {
                 Text(authDisplayName)
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
 
                 // Show profile display name if different from auth name
                 if let profileName = userProfile?.displayName,
@@ -41,10 +53,29 @@ struct SettingsProfileRow: View {
                     Text(profileName)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
+                        .lineLimit(1)
                 }
             }
 
             Spacer()
+
+            // Credits badge - tappable to open credits store
+            Button {
+                showCreditsStore = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "giftcard.fill")
+                        .font(.caption2)
+                    Text("\(userCredits?.availableCredits ?? 0)")
+                        .font(HeirloomFonts.caption1.weight(.medium))
+                }
+                .foregroundStyle(HeirloomColors.familyGreen)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(HeirloomColors.familyGreen.opacity(0.12))
+                .cornerRadius(12)
+            }
+            .buttonStyle(.plain)
 
             // Chevron
             Image(systemName: "chevron.right")
@@ -54,6 +85,17 @@ struct SettingsProfileRow: View {
         .padding(.vertical, HeirloomSpacing.xs)
         .task {
             await loadProfile()
+        }
+        .sheet(isPresented: $showCreditsStore) {
+            if let userId = firebaseAuth.currentUserId {
+                let storeManager = CreditStoreManager(
+                    logger: ServiceContainer.shared.resolve(LoggingService.self),
+                    analytics: ServiceContainer.shared.resolve(AnalyticsService.self),
+                    modelContext: modelContext,
+                    userId: userId
+                )
+                CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
+            }
         }
     }
 

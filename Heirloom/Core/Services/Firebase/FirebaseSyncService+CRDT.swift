@@ -32,7 +32,7 @@ extension FirebaseSyncService {
 
             do {
                 // Download remote to compare (with timeout protection)
-                let recipeRef = try recipeDocument(id: recipe.id.uuidString)
+                let recipeRef = try recipeDocument(id: recipe.id.firebaseString)
                 let remoteDoc = try await recipeRef.getDocument()
 
                 if remoteDoc.exists, let remoteData = remoteDoc.data() {
@@ -91,7 +91,7 @@ extension FirebaseSyncService {
                 Log.debug("Operation committed with vector clock", category: .crdt, metadata: [
                     "fieldPath": op.fieldPath,
                     "clockValue": crdt.operationLog.vectorClock.value(for: op.deviceId),
-                    "operationId": op.id.uuidString
+                    "operationId": op.id.firebaseString
                 ])
             }
 
@@ -100,7 +100,7 @@ extension FirebaseSyncService {
         }
 
         // Serialize CRDT to Firestore
-        let recipeRef = try recipeDocument(id: recipe.id.uuidString)
+        let recipeRef = try recipeDocument(id: recipe.id.firebaseString)
 
         var recipeData = convertToFirestoreData(recipe)
         recipeData["crdtData"] = crdt.toFirestoreData()
@@ -122,9 +122,9 @@ extension FirebaseSyncService {
             // Upload all operations
             Log.info("Uploading operations to subcollection", category: .crdt, metadata: ["count": crdt.operationLog.operations.count])
             for operation in crdt.operationLog.operations {
-                let opDoc = operationsRef.document(operation.id.uuidString)
+                let opDoc = operationsRef.document(operation.id.firebaseString)
                 let opData = operation.toFirestoreData()
-                Log.debug("Uploading operation", category: .crdt, metadata: ["operationId": operation.id.uuidString, "fieldPath": operation.fieldPath])
+                Log.debug("Uploading operation", category: .crdt, metadata: ["operationId": operation.id.firebaseString, "fieldPath": operation.fieldPath])
                 try await opDoc.setData(opData)
             }
         }
@@ -347,7 +347,7 @@ extension FirebaseSyncService {
 
             // Upload new
             for ingredient in ingredients {
-                let ingredientDoc = ingredientsRef.document(ingredient.id.uuidString)
+                let ingredientDoc = ingredientsRef.document(ingredient.id.firebaseString)
                 let ingredientData = convertIngredientToFirestoreData(ingredient)
                 try await ingredientDoc.setData(ingredientData)
             }
@@ -358,7 +358,7 @@ extension FirebaseSyncService {
             let commentsRef = recipeRef.collection("comments")
 
             for comment in comments {
-                let commentDoc = commentsRef.document(comment.id.uuidString)
+                let commentDoc = commentsRef.document(comment.id.firebaseString)
                 let commentData = convertCommentToFirestoreData(comment)
                 try await commentDoc.setData(commentData)
             }
@@ -513,6 +513,7 @@ extension FirebaseSyncService {
         }
 
         lastSyncDate = Date()
+        hasCompletedInitialSync = true
         Log.info("CRDT sync complete", category: .crdt)
 
         // Clean up old tombstones after successful sync
@@ -528,12 +529,12 @@ extension FirebaseSyncService {
         // Batch fetch ALL local recipes and collections once, build lookup dictionaries
         let allLocalRecipes = try context.fetch(FetchDescriptor<Recipe>())
         let recipeLookup = Dictionary(allLocalRecipes.map {
-            ($0.id.uuidString.lowercased(), $0)
+            ($0.id.firebaseString.lowercased(), $0)
         }, uniquingKeysWith: { first, _ in first })
 
         let allLocalCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
         let collectionLookup = Dictionary(allLocalCollections.map {
-            ($0.id.uuidString.lowercased(), $0)
+            ($0.id.firebaseString.lowercased(), $0)
         }, uniquingKeysWith: { first, _ in first })
 
         // Build name+type fallback lookup for collections whose Firebase UUID was remapped

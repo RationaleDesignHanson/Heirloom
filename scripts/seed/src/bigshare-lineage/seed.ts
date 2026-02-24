@@ -17,11 +17,12 @@ import { initializeFirebase, getDb, toTimestamp, daysAgo } from '../utils/fireba
 import { v4 as uuidv4 } from 'uuid';
 
 // Stable UUIDs for the lineage tree (must match DemoSocialBehaviorService.swift)
-const ROOT_UUID = 'A1B2C3D4-E5F6-7890-ABCD-EF1234567890';
-const UUID_B = 'B2C3D4E5-F6A7-8901-BCDE-F12345678901';
-const UUID_C = 'C3D4E5F6-A7B8-9012-CDEF-123456789012';
-const UUID_D = 'D4E5F6A7-B8C9-0123-DEFA-234567890123';
-const UUID_E = 'E5F6A7B8-C9D0-1234-EFAB-345678901234';
+// NOTE: Use lowercase to match Swift's UUID.firebaseString convention
+const ROOT_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const UUID_B = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
+const UUID_C = 'c3d4e5f6-a7b8-9012-cdef-123456789012';
+const UUID_D = 'd4e5f6a7-b8c9-0123-defa-234567890123';
+const UUID_E = 'e5f6a7b8-c9d0-1234-efab-345678901234';
 
 const ROOT_OWNER = 'demo_grandmazing';
 

@@ -29,7 +29,8 @@ struct SoftWallView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: HeirloomSpacing.xl) {
-                // ⭐ Auto Premium debug banner
+                // Auto Premium debug banner (DEBUG BUILDS ONLY)
+                #if DEBUG
                 if subscriptionManager.isAutoPremiumEnabled {
                     VStack(spacing: 8) {
                         HStack {
@@ -67,6 +68,7 @@ struct SoftWallView: View {
                     }
                     .padding(.top, 16)
                 }
+                #endif
 
                 Spacer()
 

@@ -12,11 +12,14 @@ import StoreKit
 /// - Shows available credit packs
 /// - Current balance
 /// - Purchase flow
+/// - Option to subscribe for users with expired subscriptions
 struct CreditsStoreView: View {
 
     // MARK: - Properties
 
     @State private var storeManager: CreditStoreManager
+    @State private var subscriptionStoreManager: StoreManager
+    @State private var subscriptionManager: SubscriptionManager
     let userCredits: UserCredits?
     @Environment(\.dismiss) private var dismiss
 
@@ -24,11 +27,19 @@ struct CreditsStoreView: View {
     @State private var showError = false
     @State private var errorMessage: String?
     @State private var showSuccess = false
+    @State private var showPaywall = false
+
+    /// Whether to show the subscription upsell (for non-premium users)
+    private var showSubscriptionOption: Bool {
+        !subscriptionManager.isPremium
+    }
 
     // MARK: - Initialization
 
     init(storeManager: CreditStoreManager, userCredits: UserCredits? = nil) {
         _storeManager = State(initialValue: storeManager)
+        _subscriptionStoreManager = State(initialValue: ServiceContainer.shared.resolve(StoreManager.self))
+        _subscriptionManager = State(initialValue: ServiceContainer.shared.resolve(SubscriptionManager.self))
         self.userCredits = userCredits
     }
 
@@ -37,32 +48,37 @@ struct CreditsStoreView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 28) {
+                VStack(spacing: 20) {
 
-                    // Header Icon
-                    Image(systemName: "giftcard.fill")
-                        .font(.system(size: 70))
-                        .foregroundStyle(HeirloomColors.familyGreen.gradient)
-                        .padding(.top, 20)
+                    // Compact Header: Icon + Title inline
+                    HStack(spacing: 12) {
+                        Image(systemName: "giftcard.fill")
+                            .font(.system(size: 36))
+                            .foregroundStyle(HeirloomColors.familyGreen.gradient)
 
-                    // Title & Description
-                    VStack(spacing: 8) {
-                        Text("Purchase Credits")
-                            .font(.title.bold())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Purchase Credits")
+                                .font(.title2.bold())
 
-                        Text("Import more cookbooks without waiting for your monthly tier credits to reset")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                            Text("Import without waiting")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
                     }
+                    .padding(.top, 16)
+                    .padding(.horizontal, 4)
 
                     // Current Balance Card
-                    CurrentBalanceCard(balance: userCredits?.availableCredits ?? 0)
+                    CurrentBalanceCard(
+                        balance: userCredits?.availableCredits ?? 0,
+                        subscriptionCredits: userCredits?.tierCreditsRemaining ?? 0,
+                        purchasedCredits: userCredits?.creditsBalance ?? 0
+                    )
 
                     // Purchase Options
-                    VStack(spacing: 16) {
-
+                    VStack(spacing: 12) {
                         ForEach(CreditProductIdentifier.allCases, id: \.self) { productID in
                             CreditPurchaseButton(
                                 productID: productID,
@@ -74,27 +90,60 @@ struct CreditsStoreView: View {
                         }
                     }
 
-                    // Info Section
-                    VStack(spacing: 12) {
-                        InfoRow(
-                            icon: "checkmark.circle.fill",
-                            text: "Credits never expire"
-                        )
+                    // Subscription Upsell (for non-premium users) - moved ABOVE info section
+                    if showSubscriptionOption {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "crown.fill")
+                                    .foregroundStyle(HeirloomColors.tomato)
+                                Text("Or Subscribe for More")
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer()
+                            }
 
-                        InfoRow(
-                            icon: "arrow.clockwise.circle.fill",
-                            text: "Roll over to the next day"
-                        )
+                            Text("Premium: monthly credits, URL import, cookbook scanning & sync")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        InfoRow(
-                            icon: "doc.text.fill",
-                            text: "Text-rich PDFs cost only 1 credit"
-                        )
+                            Button {
+                                showPaywall = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "crown.fill")
+                                    Text("View Premium Plans")
+                                }
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(HeirloomColors.tomato)
+                                .cornerRadius(10)
+                            }
+                        }
+                        .padding()
+                        .background(HeirloomColors.tomato.opacity(0.08))
+                        .cornerRadius(12)
+                    }
 
-                        InfoRow(
-                            icon: "doc.viewfinder.fill",
-                            text: "Scanned PDFs cost 5 credits"
-                        )
+                    // Info Section (collapsed)
+                    DisclosureGroup {
+                        VStack(spacing: 8) {
+                            InfoRow(icon: "checkmark.circle.fill", text: "Credits never expire")
+                            InfoRow(icon: "arrow.clockwise.circle.fill", text: "Roll over to the next day")
+                            InfoRow(icon: "doc.text.fill", text: "Text PDFs: 1 credit")
+                            InfoRow(icon: "doc.viewfinder.fill", text: "Scanned PDFs: 5 credits")
+                            InfoRow(icon: "book.closed.fill", text: "Cookbook scans: 5 credits each")
+                            InfoRow(icon: "video.fill", text: "Video transcription: 5 credits")
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(HeirloomColors.familyGreen)
+                            Text("Credit usage info")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                        }
                     }
                     .padding()
                     .background(Color(.systemGray6))
@@ -131,6 +180,8 @@ struct CreditsStoreView: View {
             .alert("Purchase Successful", isPresented: $showSuccess) {
                 Button("OK") {
                     showSuccess = false
+                    // CRITICAL: Reset paywall state to prevent any lingering sheet issues
+                    showPaywall = false
                     dismiss()
                 }
             } message: {
@@ -142,6 +193,16 @@ struct CreditsStoreView: View {
                 }
             } message: {
                 Text(errorMessage ?? "An unknown error occurred")
+            }
+            .sheet(isPresented: $showPaywall, onDismiss: {
+                // Log when PaywallView is dismissed to track any lingering state issues
+                Log.info("PaywallView dismissed from CreditsStoreView", category: .store)
+            }) {
+                PaywallView(trigger: .urlImport)
+                    .onAppear {
+                        Log.info("PaywallView opened from CreditsStoreView", category: .store)
+                        DeviceLogger.shared.log("💳 [CreditsStore] PaywallView sheet opened", level: .info)
+                    }
             }
             .task {
                 // Load products when view appears
@@ -196,27 +257,35 @@ struct CreditsStoreView: View {
 
 struct CurrentBalanceCard: View {
     let balance: Int
+    var subscriptionCredits: Int = 0
+    var purchasedCredits: Int = 0
 
     var body: some View {
-        VStack(spacing: 8) {
-            Text("CURRENT BALANCE")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            HStack(spacing: 8) {
-                Image(systemName: "giftcard.fill")
-                    .foregroundColor(HeirloomColors.familyGreen)
-                Text("\(balance)")
-                    .font(.system(size: 48, weight: .bold))
-                Text("credits")
-                    .font(.title3)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("BALANCE")
+                    .font(.caption2)
                     .foregroundColor(.secondary)
+
+                HStack(spacing: 6) {
+                    Text("\(balance)")
+                        .font(.system(size: 32, weight: .bold))
+                    Text("credits")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
             }
+
+            Spacer()
+
+            Image(systemName: "giftcard.fill")
+                .font(.system(size: 28))
+                .foregroundColor(HeirloomColors.familyGreen)
         }
         .padding()
         .frame(maxWidth: .infinity)
         .background(Color(.systemGray6))
-        .cornerRadius(16)
+        .cornerRadius(12)
     }
 }
 
@@ -228,13 +297,11 @@ struct CreditPurchaseButton: View {
     let isProcessing: Bool
     let onPurchase: () async -> Void
 
-    @State private var isPurchasing = false
+    @State private var showConfirmation = false
 
     var body: some View {
         Button {
-            Task {
-                await onPurchase()
-            }
+            showConfirmation = true
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -276,6 +343,20 @@ struct CreditPurchaseButton: View {
         }
         .disabled(isProcessing)
         .opacity(isProcessing ? 0.6 : 1.0)
+        .confirmationDialog(
+            "Purchase \(productID.displayName)",
+            isPresented: $showConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Buy for \(product?.displayPrice ?? productID.displayPrice)") {
+                Task {
+                    await onPurchase()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You'll receive \(productID.creditAmount) credits to use for importing cookbooks.")
+        }
     }
 }
 

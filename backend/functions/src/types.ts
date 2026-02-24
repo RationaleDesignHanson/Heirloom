@@ -287,3 +287,19 @@ export interface TranslateTextResponse {
   confidence: number; // Translation confidence 0-1
   engine: 'claude' | 'fallback'; // Which translation engine was used
 }
+
+// ===== Recipe Popularity Tracking Types =====
+
+// Request to increment offline download count
+export interface IncrementDownloadCountRequest {
+  recipeId: string; // Recipe being downloaded
+  sourceRecipeId?: string; // Original theme/shared recipe ID (if different)
+  userId?: string; // User performing the download
+}
+
+// Response from incrementDownloadCount endpoint
+export interface IncrementDownloadCountResponse {
+  success: boolean;
+  newCount?: number; // Updated download count
+  error?: string;
+}

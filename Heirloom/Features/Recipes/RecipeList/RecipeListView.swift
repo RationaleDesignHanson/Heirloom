@@ -1052,6 +1052,18 @@ struct RecipeListView: View {
                     do {
                         try credits.deductCredits(aiImageCost)
                         try? modelContext.save()
+
+                        // Track credit analytics
+                        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                        CreditAnalytics.trackDeduction(
+                            analytics: analytics,
+                            userCredits: credits,
+                            operationType: .aiImage,
+                            amount: aiImageCost,
+                            subscriptionManager: subscriptionManager
+                        )
+
                         DeviceLogger.shared.log("💳 [Credits] Deducted \(aiImageCost) credit for AI recipe image generation", level: .info)
                     } catch {
                         DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)

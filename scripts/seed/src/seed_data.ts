@@ -222,8 +222,8 @@ const GRANDMAZING_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 5,
   },
   {
-    id: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35',
-    sourceRecipeId: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35',
+    id: '5e13b837-1a80-4d22-af8a-c474a6ea5c35',
+    sourceRecipeId: '5e13b837-1a80-4d22-af8a-c474a6ea5c35',
     creatorId: 'demo_grandmazing',
     creatorName: 'Grandmazing',
     creatorProfileSlug: 'grandmazing',
@@ -406,8 +406,8 @@ const GRANDMAZING_RECIPES: SeedRecipe[] = [
 
 const PHILLIP_FRY_RECIPES: SeedRecipe[] = [
   {
-    id: '7EE0A981-0DD2-4105-AA26-AB941C23D688',
-    sourceRecipeId: '7EE0A981-0DD2-4105-AA26-AB941C23D688',
+    id: '7ee0a981-0dd2-4105-aa26-ab941c23d688',
+    sourceRecipeId: '7ee0a981-0dd2-4105-aa26-ab941c23d688',
     creatorId: 'demo_phillipfry',
     creatorName: 'Phillip Fry',
     creatorProfileSlug: 'phillip-fry',
@@ -679,8 +679,8 @@ const CHEF_MARIA_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 10,
   },
   {
-    id: '5D5A16D4-4FC2-483B-9737-7D0451F3C236',
-    sourceRecipeId: '5D5A16D4-4FC2-483B-9737-7D0451F3C236',
+    id: '5d5a16d4-4fc2-483b-9737-7d0451f3c236',
+    sourceRecipeId: '5d5a16d4-4fc2-483b-9737-7d0451f3c236',
     creatorId: 'demo_chef_maria',
     creatorName: 'Maria Santos',
     creatorProfileSlug: 'maria-santos',
@@ -909,8 +909,8 @@ const CHEF_MARIA_RECIPES: SeedRecipe[] = [
 
 const FITFOODIE_RECIPES: SeedRecipe[] = [
   {
-    id: 'F3890DC5-F51A-455A-8BF2-EB4BB089C5A9',
-    sourceRecipeId: 'F3890DC5-F51A-455A-8BF2-EB4BB089C5A9',
+    id: 'f3890dc5-f51a-455a-8bf2-eb4bb089c5a9',
+    sourceRecipeId: 'f3890dc5-f51a-455a-8bf2-eb4bb089c5a9',
     creatorId: 'demo_fitfoodie',
     creatorName: 'Alex Chen',
     creatorProfileSlug: 'alex-chen',
@@ -1256,8 +1256,8 @@ const BAKINGBELLE_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 14,
   },
   {
-    id: 'FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF',
-    sourceRecipeId: 'FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF',
+    id: 'fceb840f-6acb-49f3-a7f0-e1da3de286ff',
+    sourceRecipeId: 'fceb840f-6acb-49f3-a7f0-e1da3de286ff',
     creatorId: 'demo_bakingbelle',
     creatorName: 'Belle Thompson',
     creatorProfileSlug: 'belle-thompson',
@@ -1482,8 +1482,8 @@ const GRILLMASTER_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 7,
   },
   {
-    id: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F',
-    sourceRecipeId: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F',
+    id: '1de8ec4c-7629-466d-b39b-87d97b48ec9f',
+    sourceRecipeId: '1de8ec4c-7629-466d-b39b-87d97b48ec9f',
     creatorId: 'demo_grillmaster',
     creatorName: 'Marcus Johnson',
     creatorProfileSlug: 'marcus-johnson',

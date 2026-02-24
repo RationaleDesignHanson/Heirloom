@@ -188,7 +188,7 @@ enum LineageLayoutAlgorithm {
 
     var icon: String {
         switch self {
-        case .hierarchical: return "chart.tree"
+        case .hierarchical: return "rectangle.3.group"
         case .timeline: return "calendar"
         case .force: return "circle.hexagongrid"
         }
@@ -278,4 +278,33 @@ struct LineageLayoutEngine {
 
         return positions
     }
+}
+
+// MARK: - Cached Lineage Data (Offline Storage)
+
+/// Serializable lineage data for offline viewing (Netflix-style download)
+struct CachedLineageData: Codable {
+    let recipeId: UUID
+    let cachedAt: Date
+    let nodes: [CachedLineageNode]
+    let edges: [CachedLineageEdge]
+}
+
+/// Lightweight node for offline cache
+struct CachedLineageNode: Codable {
+    let recipeId: UUID
+    let title: String
+    let generation: Int
+    let contributorName: String?
+    let contributorId: String?
+    let isCurrentUser: Bool
+    let cookCount: Int
+    let shareCount: Int
+}
+
+/// Lightweight edge for offline cache
+struct CachedLineageEdge: Codable {
+    let fromId: UUID
+    let toId: UUID
+    let createdAt: Date
 }

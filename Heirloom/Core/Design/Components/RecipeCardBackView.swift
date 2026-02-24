@@ -3,6 +3,7 @@
 //  Heirloom
 //
 //  Created by Claude on 1/5/26.
+//  Redesigned for elegant typography on 2/19/26.
 //
 
 import SwiftUI
@@ -20,21 +21,21 @@ struct RecipeCardBackView: View {
             // Background
             backgroundView
 
-            // Content
-            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-                // Render visible sections in order
-                ForEach(cardBack.visibleSections, id: \.self) { section in
-                    sectionView(for: section)
+            // Content with scroll protection
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 14) {
+                    // Render visible sections in order
+                    ForEach(cardBack.visibleSections, id: \.self) { section in
+                        sectionView(for: section)
+                    }
                 }
-
-                Spacer()
+                .padding(18)
             }
-            .padding(20)
 
             // Border
             if cardBack.showBorder {
                 RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                    .stroke(Color(hex: cardBack.borderColor) ?? Color(.systemGray4), lineWidth: 2)
+                    .stroke(Color(hex: cardBack.borderColor) ?? Color(.systemGray4), lineWidth: 1.5)
             }
         }
         .frame(width: cardSize.width, height: cardSize.height)
@@ -114,7 +115,7 @@ struct RecipeCardBackView: View {
             }
 
         case .historicalText:
-            if recipe.isThemeRecipe, let historicalText = recipe.historicalText {
+            if let historicalText = recipe.historicalText, !historicalText.isEmpty {
                 HistoricalTextView(text: historicalText, cardBack: cardBack)
             }
         }
@@ -130,14 +131,14 @@ struct VintageBackgroundView: View {
             LinearGradient(
                 colors: [
                     Color(hex: "#F5E6D3") ?? .white,
-                    Color(hex: "#E8D7C3") ?? .white
+                    Color(hex: "#EBD9C6") ?? .white
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
             // Subtle texture overlay
-            Color.black.opacity(0.02)
+            Color.brown.opacity(0.02)
         }
     }
 }
@@ -150,9 +151,9 @@ struct LinedPaperBackgroundView: View {
             Color(hex: "#FFFEF0") ?? .white
 
             VStack(spacing: HeirloomSpacing.lg) {
-                ForEach(0..<15) { _ in
+                ForEach(0..<15, id: \.self) { _ in
                     Divider()
-                        .background(Color.blue.opacity(0.2))
+                        .background(Color.blue.opacity(0.15))
                 }
             }
             .padding(.top, 40)
@@ -169,18 +170,18 @@ struct GridPaperBackgroundView: View {
 
             // Horizontal lines
             VStack(spacing: 20) {
-                ForEach(0..<15) { _ in
+                ForEach(0..<15, id: \.self) { _ in
                     Divider()
-                        .background(Color.gray.opacity(0.15))
+                        .background(Color.gray.opacity(0.12))
                 }
             }
 
             // Vertical lines
             HStack(spacing: 20) {
-                ForEach(0..<10) { _ in
+                ForEach(0..<10, id: \.self) { _ in
                     Rectangle()
-                        .fill(Color.gray.opacity(0.15))
-                        .frame(width: 1)
+                        .fill(Color.gray.opacity(0.12))
+                        .frame(width: 0.5)
                 }
             }
         }
@@ -194,16 +195,17 @@ struct AttributionView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-            if let attribution = cardBack.customAttributionText ?? recipe.attribution {
-                Text("From:")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundColor(.secondary)
+        if let attribution = cardBack.customAttributionText ?? recipe.attribution {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("FROM")
+                    .font(HeirloomFonts.CardBack.metadata)
+                    .tracking(HeirloomSpacing.Tracking.label)
+                    .foregroundColor(.secondary.opacity(0.7))
 
                 Text(attribution)
-                    .font(HeirloomFonts.subheadline)
-                    .fontWeight(.medium)
+                    .font(HeirloomFonts.CardBack.bodyEmphasis)
                     .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
+                    .lineLimit(2)
             }
         }
     }
@@ -216,22 +218,36 @@ struct NoteToFriendsView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
-                Image(systemName: "heart.text.square")
-                    .foregroundColor(.red)
-                Text("A Note From Me")
-                    .font(HeirloomFonts.title3)
+        VStack(alignment: .leading, spacing: 8) {
+            // Header
+            HStack(spacing: 6) {
+                Image(systemName: "quote.opening")
+                    .font(.system(size: 12))
+                    .foregroundColor(HeirloomColors.tomato.opacity(0.7))
+
+                Text("A Note")
+                    .font(HeirloomFonts.CardBack.sectionHeader)
+                    .tracking(HeirloomSpacing.Tracking.header)
+                    .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
             }
 
+            // Body text with elegant italic serif
             Text(note)
-                .font(HeirloomFonts.body)
-                .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(HeirloomFonts.CardBack.personalNote)
+                .lineSpacing(HeirloomSpacing.LineHeight.relaxed)
+                .foregroundColor(Color(hex: cardBack.textColor)?.opacity(0.85) ?? .primary.opacity(0.85))
+                .lineLimit(5)
+                .truncationMode(.tail)
         }
         .padding(12)
-        .background(Color.white.opacity(0.3))
-        .cornerRadius(8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white.opacity(0.4))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.brown.opacity(0.1), lineWidth: 0.5)
+        )
     }
 }
 
@@ -242,22 +258,34 @@ struct UserTipsView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
-                Image(systemName: "lightbulb")
-                    .foregroundColor(.yellow)
-                Text("My Tips")
-                    .font(HeirloomFonts.title3)
+        VStack(alignment: .leading, spacing: 8) {
+            // Header
+            HStack(spacing: 6) {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.yellow.opacity(0.9))
+
+                Text("Tips")
+                    .font(HeirloomFonts.CardBack.sectionHeader)
+                    .tracking(HeirloomSpacing.Tracking.header)
+                    .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
             }
 
-            ForEach(Array(tips.prefix(3).enumerated()), id: \.offset) { _, tip in
-                HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
-                    Text("•")
-                        .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
-                    Text(tip)
-                        .font(HeirloomFonts.subheadline)
-                        .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
-                        .fixedSize(horizontal: false, vertical: true)
+            // Tips list
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(Array(tips.prefix(3).enumerated()), id: \.offset) { _, tip in
+                    HStack(alignment: .top, spacing: 8) {
+                        Text("•")
+                            .font(HeirloomFonts.CardBack.bodyText)
+                            .foregroundColor(Color(hex: cardBack.textColor)?.opacity(0.5) ?? .secondary)
+
+                        Text(tip)
+                            .font(HeirloomFonts.CardBack.bodyText)
+                            .lineSpacing(HeirloomSpacing.LineHeight.standard)
+                            .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
+                            .lineLimit(2)
+                            .truncationMode(.tail)
+                    }
                 }
             }
         }
@@ -271,11 +299,11 @@ struct UserRatingView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        HStack(spacing: HeirloomSpacing.xs) {
+        HStack(spacing: 3) {
             ForEach(1...5, id: \.self) { star in
                 Image(systemName: star <= rating ? "star.fill" : "star")
-                    .foregroundColor(star <= rating ? .yellow : .gray)
-                    .font(HeirloomFonts.caption1)
+                    .foregroundColor(star <= rating ? .yellow : .gray.opacity(0.3))
+                    .font(.system(size: 14))
             }
         }
     }
@@ -289,15 +317,15 @@ struct UserTagsView: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: HeirloomSpacing.sm) {
-                ForEach(tags, id: \.self) { tag in
+            HStack(spacing: 6) {
+                ForEach(tags.prefix(4), id: \.self) { tag in
                     Text(tag)
-                        .font(HeirloomFonts.caption1)
-                        .padding(.horizontal, 10)
+                        .font(HeirloomFonts.CardBack.metadata)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.accentColor.opacity(0.2))
-                        .foregroundColor(.accentColor)
-                        .cornerRadius(12)
+                        .background(HeirloomColors.tomato.opacity(0.1))
+                        .foregroundColor(HeirloomColors.tomato)
+                        .cornerRadius(10)
                 }
             }
         }
@@ -311,16 +339,20 @@ struct PinnedCommentsView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
-                Image(systemName: "pin")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 11))
                     .foregroundColor(.orange)
-                Text("Pinned Comments")
-                    .font(HeirloomFonts.title3)
+
+                Text("Pinned")
+                    .font(HeirloomFonts.CardBack.sectionHeader)
+                    .tracking(HeirloomSpacing.Tracking.header)
+                    .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
             }
 
-            Text("\(commentIDs.count) comment(s) pinned")
-                .font(HeirloomFonts.caption1)
+            Text("\(commentIDs.count) comment\(commentIDs.count == 1 ? "" : "s")")
+                .font(HeirloomFonts.CardBack.metadata)
                 .foregroundColor(.secondary)
         }
     }
@@ -333,12 +365,14 @@ struct CookingHistoryView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+        VStack(alignment: .leading, spacing: 4) {
             Text("Cooking History")
-                .font(HeirloomFonts.title3)
+                .font(HeirloomFonts.CardBack.sectionHeader)
+                .tracking(HeirloomSpacing.Tracking.header)
+                .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
 
             Text("Made this recipe 3 times")
-                .font(HeirloomFonts.caption1)
+                .font(HeirloomFonts.CardBack.metadata)
                 .foregroundColor(.secondary)
         }
     }
@@ -351,39 +385,41 @@ struct HeritageCollectionBadgeView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             // Heritage badge icon
             Image(systemName: "book.closed.fill")
-                .font(.title2)
-                .foregroundColor(.brown)
-                .padding(HeirloomSpacing.sm)
+                .font(.system(size: 18))
+                .foregroundColor(.brown.opacity(0.8))
+                .padding(8)
                 .background(
                     Circle()
-                        .fill(Color.brown.opacity(0.1))
+                        .fill(Color.brown.opacity(0.08))
                 )
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Heritage Recipe")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundColor(.secondary)
+                Text("HERITAGE RECIPE")
+                    .font(HeirloomFonts.CardBack.metadata)
+                    .tracking(HeirloomSpacing.Tracking.label)
+                    .foregroundColor(.brown.opacity(0.6))
 
                 if let collection = recipe.heritageCollection {
                     Text(collection)
-                        .font(HeirloomFonts.title3)
+                        .font(HeirloomFonts.CardBack.sectionHeader)
                         .foregroundColor(.brown)
+                        .lineLimit(1)
                 }
             }
 
             Spacer()
         }
-        .padding(12)
+        .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.brown.opacity(0.05))
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.brown.opacity(0.04))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.brown.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.brown.opacity(0.15), lineWidth: 0.5)
         )
     }
 }
@@ -395,25 +431,28 @@ struct HeritageProvenanceView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
                 Image(systemName: "arrow.triangle.branch")
-                    .foregroundColor(.brown)
+                    .font(.system(size: 11))
+                    .foregroundColor(.brown.opacity(0.7))
+
                 Text("Provenance")
-                    .font(HeirloomFonts.title3)
+                    .font(HeirloomFonts.CardBack.sectionHeader)
+                    .tracking(HeirloomSpacing.Tracking.header)
                     .foregroundColor(.brown)
             }
 
             // Show provenance chain
-            if let originalRecipe = recipe.originalHeritageRecipeId {
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+            if recipe.originalHeritageRecipeId != nil {
+                VStack(alignment: .leading, spacing: 4) {
                     provenanceRow(
                         icon: "doc.text",
                         text: "Original Heritage Recipe",
                         isFirst: true
                     )
 
-                    if let parentId = recipe.parentRecipeId {
+                    if recipe.parentRecipeId != nil {
                         provenanceRow(
                             icon: "arrow.down",
                             text: "Shared Copy",
@@ -429,19 +468,20 @@ struct HeritageProvenanceView: View {
                 }
             }
         }
-        .padding(12)
-        .background(Color.brown.opacity(0.05))
-        .cornerRadius(8)
+        .padding(10)
+        .background(Color.brown.opacity(0.03))
+        .cornerRadius(10)
     }
 
     private func provenanceRow(icon: String, text: String, isFirst: Bool) -> some View {
-        HStack(spacing: HeirloomSpacing.sm) {
+        HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(HeirloomFonts.caption1)
-                .foregroundColor(isFirst ? .brown : .secondary)
+                .font(.system(size: 10))
+                .foregroundColor(isFirst ? .brown : .secondary.opacity(0.6))
+                .frame(width: 14)
 
             Text(text)
-                .font(HeirloomFonts.caption1)
+                .font(HeirloomFonts.CardBack.metadata)
                 .foregroundColor(isFirst ? .brown : .secondary)
         }
     }
@@ -454,30 +494,35 @@ struct HistoricalTextView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
-                Image(systemName: "scroll")
-                    .foregroundColor(.brown)
+        VStack(alignment: .leading, spacing: 8) {
+            // Header
+            HStack(spacing: 6) {
+                Image(systemName: "scroll.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(.brown.opacity(0.7))
+
                 Text("Historical Note")
-                    .font(HeirloomFonts.title3)
+                    .font(HeirloomFonts.CardBack.sectionHeader)
+                    .tracking(HeirloomSpacing.Tracking.header)
                     .foregroundColor(.brown)
             }
 
+            // Historical text with elegant serif italic
             Text(text)
-                .font(HeirloomFonts.subheadline)
-                .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
-                .italic()
-                .fixedSize(horizontal: false, vertical: true)
-                .lineLimit(nil)
+                .font(HeirloomFonts.CardBack.heritageText)
+                .lineSpacing(HeirloomSpacing.LineHeight.relaxed)
+                .foregroundColor(.brown.opacity(0.8))
+                .lineLimit(6)
+                .truncationMode(.tail)
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.brown.opacity(0.05))
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.brown.opacity(0.04))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.brown.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.brown.opacity(0.12), lineWidth: 0.5)
         )
     }
 }

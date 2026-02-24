@@ -5,6 +5,7 @@ import SwiftData
 /// Note: Uses VideoImportMode enum defined in RecipeListView.swift
 struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @EnvironmentObject private var syncService: FirebaseSyncService
@@ -22,6 +23,9 @@ struct CollectionDetailView: View {
     @State private var showSettings = false
     @EnvironmentObject private var unlockTracker: ThemeUnlockTracker
     @State private var isGeneratingBackground = false
+    @State private var showNeedCreditsSheet = false
+    @State private var showCreditsStore = false
+    @State private var showPaywall = false
 
     // Services
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
@@ -35,6 +39,7 @@ struct CollectionDetailView: View {
     @State private var recipeToDelete: Recipe?
     @State private var recipeForCollectionPicker: Recipe?
     @State private var recipeGeneratingImage: Recipe?
+    @State private var pendingImageRecipe: Recipe?
 
     // Batch selection state (for non-theme collections)
     @State private var isSelectionMode = false
@@ -47,7 +52,23 @@ struct CollectionDetailView: View {
 
     @Query private var allRecipes: [Recipe]
     @Query private var allCollections: [RecipeCollection]
+    @Query private var allUserCredits: [UserCredits]
     @ObservedObject private var screenRecordingService = ScreenRecordingResetService.shared
+
+    /// Cost for generating one AI background image
+    private let aiBackgroundCost = 1
+
+    /// Current user's credits
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
+    }
+
+    /// Whether user can afford AI background generation
+    private var canAffordAIGeneration: Bool {
+        guard let credits = userCredits else { return false }
+        return credits.availableCredits >= aiBackgroundCost
+    }
 
     init(collection: RecipeCollection) {
         self.collection = collection
@@ -194,6 +215,7 @@ struct CollectionDetailView: View {
         } else if recipe.isProcessing || recipe.isProcessingFailed {
             // Processing placeholders - no navigation, just show card
             RecipeCardView(recipe: recipe, collection: collection)
+                .contentShape(Rectangle())
                 .contextMenu {
                     processingRecipeContextMenu(for: recipe)
                 }
@@ -206,6 +228,7 @@ struct CollectionDetailView: View {
                 RecipeCardView(recipe: recipe, collection: collection)
             }
             .buttonStyle(.plain)
+            .contentShape(Rectangle())
             .contextMenu {
                 recipeContextMenu(for: recipe)
             }
@@ -356,11 +379,15 @@ struct CollectionDetailView: View {
                 }
 
                 Button {
-                    Task {
-                        await generateBackgroundForCollection()
+                    if canAffordAIGeneration {
+                        Task {
+                            await generateBackgroundForCollection()
+                        }
+                    } else {
+                        showNeedCreditsSheet = true
                     }
                 } label: {
-                    Label("Generate with AI", systemImage: "sparkles")
+                    Label("Generate with AI (\(aiBackgroundCost) credit)", systemImage: "sparkles")
                 }
                 .disabled(isGeneratingBackground)
 
@@ -419,9 +446,14 @@ struct CollectionDetailView: View {
         Divider()
 
         Button {
-            generateAIImage(for: recipe)
+            if canAffordAIGeneration {
+                generateAIImage(for: recipe)
+            } else {
+                pendingImageRecipe = recipe
+                showNeedCreditsSheet = true
+            }
         } label: {
-            Label("Generate AI Image", systemImage: "sparkles")
+            Label("Generate AI Image (\(aiBackgroundCost) credit)", systemImage: "sparkles")
         }
 
         Divider()
@@ -443,6 +475,30 @@ struct CollectionDetailView: View {
         Task {
             do {
                 try await recipeImageGenerator.generateAndSaveImage(for: recipe)
+
+                // Deduct credits for successful generation
+                if let credits = userCredits {
+                    do {
+                        try credits.deductCredits(aiBackgroundCost)
+                        try? modelContext.save()
+
+                        // Track credit analytics
+                        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                        CreditAnalytics.trackDeduction(
+                            analytics: analytics,
+                            userCredits: credits,
+                            operationType: .aiImage,
+                            amount: aiBackgroundCost,
+                            subscriptionManager: subscriptionManager
+                        )
+
+                        DeviceLogger.shared.log("💳 [Credits] Deducted \(aiBackgroundCost) credit for AI recipe image generation", level: .info)
+                    } catch {
+                        DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)
+                    }
+                }
+
                 toastManager.success(title: "Image Generated", message: recipe.title)
             } catch {
                 toastManager.error(title: "Generation Failed", message: error.localizedDescription)
@@ -514,6 +570,46 @@ struct CollectionDetailView: View {
                 onImportJobTap: { _ in showProcessingQueue = false },
                 onGenerationJobTap: { _ in showProcessingQueue = false }
             )
+        }
+        .sheet(isPresented: $showNeedCreditsSheet) {
+            NeedCreditsSheet(
+                creditsNeeded: aiBackgroundCost,
+                currentCredits: userCredits?.availableCredits ?? 0,
+                featureName: "AI Image Generation",
+                onBuyCredits: {
+                    showNeedCreditsSheet = false
+                    showCreditsStore = true
+                },
+                onCancel: {
+                    showNeedCreditsSheet = false
+                    pendingImageRecipe = nil
+                },
+                onViewSubscription: {
+                    showNeedCreditsSheet = false
+                    showPaywall = true
+                }
+            )
+            .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showCreditsStore, onDismiss: {
+            // User might have purchased credits - if they now have credits and had a pending recipe, generate
+            if canAffordAIGeneration, let recipe = pendingImageRecipe {
+                generateAIImage(for: recipe)
+                pendingImageRecipe = nil
+            }
+        }) {
+            if let userId = firebaseAuth.currentUserId {
+                let storeManager = CreditStoreManager(
+                    logger: ServiceContainer.shared.resolve(LoggingService.self),
+                    analytics: ServiceContainer.shared.resolve(AnalyticsService.self),
+                    modelContext: modelContext,
+                    userId: userId
+                )
+                CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
+            }
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(trigger: .urlImport)
         }
         .confirmationDialog(
             "Add Recipe",
@@ -769,6 +865,29 @@ struct CollectionDetailView: View {
                 collection.lastImageGenerationDate = Date()
                 collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
                 collection.useCustomBackground = true
+
+                // Deduct credits for successful generation
+                if let credits = userCredits {
+                    do {
+                        try credits.deductCredits(aiBackgroundCost)
+
+                        // Track credit analytics
+                        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                        CreditAnalytics.trackDeduction(
+                            analytics: analytics,
+                            userCredits: credits,
+                            operationType: .aiBackground,
+                            amount: aiBackgroundCost,
+                            subscriptionManager: subscriptionManager
+                        )
+
+                        DeviceLogger.shared.log("💳 [Credits] Deducted \(aiBackgroundCost) credit for AI background generation", level: .info)
+                    } catch {
+                        DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)
+                    }
+                }
+
                 try? modelContext.save()
 
                 isGeneratingBackground = false

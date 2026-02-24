@@ -31,10 +31,10 @@ struct OnboardingContainerView: View {
 
     enum OnboardingScreen {
         case welcome           // Screen 1: Recipe box vision
-        case premiumTrial      // Screen 2: Early premium upsell
-        case shareSheetAha     // Screen 3: One-tap save tutorial
-        case shareAndAccept    // Screen 4: Intentional sharing model
-        case discover          // Screen 5: Optional community
+        case shareSheetAha     // Screen 2: One-tap save tutorial
+        case shareAndAccept    // Screen 3: Intentional sharing model
+        case discover          // Screen 4: Optional community
+        case premiumTrial      // Screen 5: Premium upsell (moved later - less aggressive)
         case profileSetup      // Screen 6: Profile setup (display name + optional photo)
         case completing        // Final: Saving profile and finishing up
     }
@@ -46,28 +46,13 @@ struct OnboardingContainerView: View {
                 OnboardingWelcomeScreen(
                     onContinue: {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .premiumTrial
-                        }
-                    }
-                )
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-
-            case .premiumTrial:
-                OnboardingSubscriptionScreen(
-                    onStartTrial: {
-                        // User started trial - continue to next screen
-                        withAnimation(.easeInOut(duration: 0.3)) {
                             currentScreen = .shareSheetAha
                         }
                     },
-                    onSkip: {
-                        // User chose to continue free - continue to next screen
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .shareSheetAha
-                        }
+                    onRestoreFromBackup: {
+                        // Restore completed - skip rest of onboarding
+                        Log.info("Restore from backup completed - skipping onboarding", category: .onboarding)
+                        finalizeOnboarding()
                     }
                 )
                 .transition(.asymmetric(
@@ -100,14 +85,32 @@ struct OnboardingContainerView: View {
             case .discover:
                 OnboardingDiscoverScreen(
                     onStartSaving: {
-                        // Navigate to profile setup
+                        // Navigate to premium trial before profile setup
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .premiumTrial
+                        }
+                    },
+                    onExploreDiscover: {
+                        // Navigate to Discover tab after onboarding completes
+                        selectedTab = 1 // Discover tab
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .premiumTrial
+                        }
+                    }
+                )
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .premiumTrial:
+                OnboardingSubscriptionScreen(
+                    onStartTrial: {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentScreen = .profileSetup
                         }
                     },
-                    onExploreDiscover: {
-                        // Navigate to Discover tab after profile setup
-                        selectedTab = 1 // Discover tab
+                    onSkip: {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentScreen = .profileSetup
                         }
@@ -367,8 +370,25 @@ struct OnboardingContainerView: View {
     }
 
     private func finalizeOnboarding() {
-        // Mark onboarding as complete
+        // Mark onboarding as complete (local)
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+
+        Log.info("Finalizing onboarding - set hasCompletedOnboarding=true in UserDefaults", category: .onboarding)
+
+        // Sync profile to Firebase (sets hasCompletedOnboarding: true remotely)
+        // This ensures returning users skip onboarding after sign-out/sign-in
+        Task {
+            if let profileService = ServiceContainer.shared.resolveOptional(FirebaseUserProfileService.self) {
+                do {
+                    try await profileService.syncCurrentUserProfile()
+                    Log.info("Profile sync completed after onboarding", category: .onboarding)
+                } catch {
+                    Log.error("Profile sync FAILED after onboarding", category: .onboarding, error: error)
+                }
+            } else {
+                Log.error("ProfileService not available for onboarding sync", category: .onboarding)
+            }
+        }
 
         // Navigate to Collections tab (now index 0 after removing Recipes tab)
         selectedTab = 0

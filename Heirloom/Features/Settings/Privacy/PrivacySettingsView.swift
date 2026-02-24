@@ -1,264 +1,133 @@
 import SwiftUI
 
-/// Privacy settings and consent management
+/// Simplified Privacy settings - Export/Import, Delete Account, Privacy Policy
 struct PrivacySettingsView: View {
-    @ObservedObject private var consentService: PrivacyConsentService
-    private let toastManager: ToastManager
-
-    init() {
-        self.consentService = ServiceContainer.shared.resolve(PrivacyConsentService.self)
-        self.toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-    }
-
-    @State private var showPrivacyPolicy = false
     @State private var showDataExport = false
-    @State private var showDeleteConfirmation = false
+    @State private var showAccountDeletion = false
 
     var body: some View {
         List {
-            // Status Section
-            consentStatusSection
+            // Data Export
+            dataExportSection
 
-            // Consent Controls
-            consentControlsSection
+            // Account Deletion (Apple Compliance 5.1.1v)
+            accountDeletionSection
 
-            // Data Management
-            dataManagementSection
-
-            // Privacy Policy
-            privacyPolicySection
+            // Legal (Privacy Policy, Terms)
+            legalSection
         }
         .navigationTitle("Privacy & Data")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showPrivacyPolicy) {
-            PrivacyPolicyView()
-        }
         .sheet(isPresented: $showDataExport) {
             DataExportView()
         }
-        .alert("Delete All Shared Data?", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
-                deleteAllSharedData()
-            }
-        } message: {
-            Text("This will delete all recipes and comments you've shared to CloudKit. This cannot be undone. Your local recipes will not be affected.")
+        .sheet(isPresented: $showAccountDeletion) {
+            AccountDeletionView()
         }
     }
 
-    // MARK: - Consent Status Section
+    // MARK: - Data Export/Import Section
 
-    private var consentStatusSection: some View {
+    private var dataExportSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                HStack {
-                    Image(systemName: "checkmark.shield.fill")
-                        .foregroundStyle(consentService.getConsentStatus().hasAnyConsent ? HeirloomColors.tomato : HeirloomColors.warmGray)
-                        .font(.system(size: 24))
-
-                    Text("Privacy Status")
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(HeirloomColors.primaryText)
-                }
-
-                Text(consentService.getConsentStatus().description)
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-
-                if let date = consentService.getConsentStatus().formattedConsentDate {
-                    Text("Last updated: \(date)")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            }
-            .padding(.vertical, HeirloomSpacing.xs)
-        } header: {
-            Text("Status")
-        }
-    }
-
-    // MARK: - Consent Controls Section
-
-    private var consentControlsSection: some View {
-        Section {
-            // Sharing Consent
-            Toggle(isOn: $consentService.hasSharingConsent) {
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                    HStack {
-                        Image(systemName: "person.2.fill")
-                            .foregroundStyle(HeirloomColors.tomato)
-                        Text("Recipe Sharing")
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(HeirloomColors.primaryText)
-                    }
-
-                    Text("Share recipes and comments with family")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            }
-            .tint(HeirloomColors.tomato)
-            .onChange(of: consentService.hasSharingConsent) { _, newValue in
-                if newValue {
-                    consentService.grantSharingConsent()
-                } else {
-                    consentService.revokeSharingConsent()
-                }
-            }
-
-            // Analytics Consent
-            Toggle(isOn: $consentService.hasAnalyticsConsent) {
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                    HStack {
-                        Image(systemName: "chart.bar.fill")
-                            .foregroundStyle(.blue)
-                        Text("Anonymous Analytics")
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(HeirloomColors.primaryText)
-                    }
-
-                    Text("Help improve the app with usage data")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            }
-            .tint(.blue)
-            .onChange(of: consentService.hasAnalyticsConsent) { _, newValue in
-                if newValue {
-                    consentService.grantAnalyticsConsent()
-                } else {
-                    consentService.revokeAnalyticsConsent()
-                }
-            }
-        } header: {
-            Text("Consent Settings")
-        } footer: {
-            Text("You can change these settings at any time. Disabling sharing won't affect recipes you've already shared.")
-        }
-    }
-
-    // MARK: - Data Management Section
-
-    private var dataManagementSection: some View {
-        Section {
-            // Export Data
             Button {
                 showDataExport = true
             } label: {
                 HStack {
-                    Image(systemName: "square.and.arrow.up")
+                    Image(systemName: "arrow.up.arrow.down.circle.fill")
                         .foregroundStyle(HeirloomColors.tomato)
 
-                    Text("Export My Data")
+                    VStack(alignment: .leading) {
+                        Text("Export / Import Data")
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        Text("Backup or restore your recipes and data")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                        .foregroundStyle(HeirloomColors.warmGray)
+                }
+            }
+        } header: {
+            Text("Your Data")
+        } footer: {
+            Text("GDPR and CCPA compliant. Export your data anytime or restore from a backup.")
+        }
+    }
+
+    // MARK: - Account Deletion Section (Apple Compliance)
+
+    private var accountDeletionSection: some View {
+        Section {
+            Button(role: .destructive) {
+                showAccountDeletion = true
+            } label: {
+                HStack {
+                    Image(systemName: "person.crop.circle.badge.minus")
+                        .foregroundStyle(.red)
+
+                    VStack(alignment: .leading) {
+                        Text("Delete Account")
+                            .foregroundStyle(.red)
+
+                        Text("Permanently delete your account and all data")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                }
+            }
+        } header: {
+            Text("Account")
+        } footer: {
+            Text("This will permanently delete your Heirloom account and all associated data. This action cannot be undone.")
+        }
+    }
+
+    // MARK: - Legal Section
+
+    private var legalSection: some View {
+        Section {
+            Link(destination: URL(string: "https://heirloomrecipebox.app/privacy")!) {
+                HStack {
+                    Image(systemName: "hand.raised.fill")
+                        .foregroundStyle(HeirloomColors.tomato)
+
+                    Text("Privacy Policy")
                         .foregroundStyle(HeirloomColors.primaryText)
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14))
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 12))
                         .foregroundStyle(HeirloomColors.warmGray)
                 }
             }
 
-            // View Shared Recipes
-            NavigationLink {
-                SharedRecipesListView()
-            } label: {
-                HStack {
-                    Image(systemName: "list.bullet.rectangle")
-                        .foregroundStyle(HeirloomColors.tomato)
-
-                    VStack(alignment: .leading) {
-                        Text("My Shared Recipes")
-                            .foregroundStyle(HeirloomColors.primaryText)
-
-                        Text("View recipes you've shared to CloudKit")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                }
-            }
-
-            // Delete Shared Data
-            Button(role: .destructive) {
-                showDeleteConfirmation = true
-            } label: {
-                HStack {
-                    Image(systemName: "trash")
-                        .foregroundStyle(.red)
-
-                    Text("Delete All Shared Data")
-                        .foregroundStyle(.red)
-                }
-            }
-            .disabled(!consentService.hasSharingConsent)
-        } header: {
-            Text("Data Management")
-        } footer: {
-            Text("GDPR and CCPA compliant. You have the right to export and delete your data.")
-        }
-    }
-
-    // MARK: - Privacy Policy Section
-
-    private var privacyPolicySection: some View {
-        Section {
-            Button {
-                showPrivacyPolicy = true
-            } label: {
+            Link(destination: URL(string: "https://heirloomrecipebox.app/terms")!) {
                 HStack {
                     Image(systemName: "doc.text.fill")
                         .foregroundStyle(HeirloomColors.tomato)
 
-                    VStack(alignment: .leading) {
-                        Text("Privacy Policy")
-                            .foregroundStyle(HeirloomColors.primaryText)
-
-                        Text("Last updated: \(consentService.getCurrentPolicyVersion())")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
+                    Text("Terms of Service")
+                        .foregroundStyle(HeirloomColors.primaryText)
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14))
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 12))
                         .foregroundStyle(HeirloomColors.warmGray)
                 }
             }
-        }
-    }
-
-    // MARK: - Actions
-
-    private func deleteAllSharedData() {
-        Task {
-            // Delete all shared recipes from CloudKit
-            // This would require implementing a method in PublicShareService
-            // For now, just show success message
-
-            toastManager.success(
-                title: "Shared Data Deleted",
-                message: "All your shared recipes have been removed from CloudKit"
-            )
+        } header: {
+            Text("Legal")
         }
     }
 }
-
-// MARK: - Shared Recipes List View
-
-struct SharedRecipesListView: View {
-    var body: some View {
-        List {
-            Text("Feature coming soon")
-                .foregroundStyle(HeirloomColors.secondaryText)
-        }
-        .navigationTitle("Shared Recipes")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-// MARK: - Preview
 
 #Preview {
     NavigationStack {

@@ -194,6 +194,7 @@ struct DinnerPartyListView: View {
             .padding(.horizontal)
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .contextMenu {
             Button(role: .destructive) {
                 deleteParty(party)

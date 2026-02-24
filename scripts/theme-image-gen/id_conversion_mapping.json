@@ -1,7 +1,7 @@
 {
   "conversion_date": "2026-01-27T01:01:02.874Z",
   "total_themes": 14,
-  "total_recipes": 234,
+  "total_recipes": 240,
   "dry_run": false,
   "conversions": [
     {
@@ -1875,6 +1875,54 @@
       "new_id": "american-foundation-025",
       "title": "Spider Corn Cake",
       "sort_order": 25
+    },
+    {
+      "theme_id": "railroad-dining",
+      "theme_name": "Railroad Dining",
+      "old_id": "013",
+      "new_id": "railroad-dining-013",
+      "title": "Empire Builder Wild Rice Soup",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "railroad-dining",
+      "theme_name": "Railroad Dining",
+      "old_id": "014",
+      "new_id": "railroad-dining-014",
+      "title": "California Zephyr Baked Alaska",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "old_id": "013",
+      "new_id": "scandinavian-heritage-013",
+      "title": "Finnish Karelian Pies (Karjalanpiirakat)",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "old_id": "014",
+      "new_id": "scandinavian-heritage-014",
+      "title": "Swedish Hasselback Potatoes",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "old_id": "013",
+      "new_id": "sunday-suppers-013",
+      "title": "Yorkshire Pudding",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "old_id": "014",
+      "new_id": "sunday-suppers-014",
+      "title": "Honey-Glazed Carrots",
+      "sort_order": 14
     }
   ]
 }

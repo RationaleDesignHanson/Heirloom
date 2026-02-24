@@ -54,6 +54,9 @@ struct HeirloomExportV2: Codable {
     /// Privacy settings (v2 only, optional)
     let privacySettings: PrivacySettingsExportData?
 
+    /// Theme unlock progress (v2 only, optional)
+    let themeProgress: ThemeProgressExportData?
+
     // MARK: - Initialization
 
     init(
@@ -65,7 +68,8 @@ struct HeirloomExportV2: Codable {
         userProfile: UserProfileExportData? = nil,
         connections: [ConnectionExportData]? = nil,
         kitchenTables: [KitchenTableExportData]? = nil,
-        privacySettings: PrivacySettingsExportData? = nil
+        privacySettings: PrivacySettingsExportData? = nil,
+        themeProgress: ThemeProgressExportData? = nil
     ) {
         self.version = version
         self.exportDate = ISO8601DateFormatter().string(from: exportDate)
@@ -79,6 +83,7 @@ struct HeirloomExportV2: Codable {
         self.connections = connections
         self.kitchenTables = kitchenTables
         self.privacySettings = privacySettings
+        self.themeProgress = themeProgress
     }
 }
 
@@ -112,11 +117,16 @@ struct RecipeExportDataV2: Codable {
     let historicalContext: String?
 
     // V2 additions (social layer)
-    let sharedBy: String?
+    let sharedBy: String? // Sharer's display name
+    let sharedByUserId: String? // Sharer's Firebase user ID
+    let sharedFromRecipeId: String? // UUID of the recipe in sharer's collection (lowercase)
     let sharedDate: String? // ISO8601
     let generation: Int?
     let rootRecipeId: String?
+    let rootProvenanceHash: String? // SHA256 hash identifying the lineage root (cryptographic lineage)
     let heritageChain: [String]? // Array of user IDs in lineage
+    let heritageChainNames: [String]? // Display names for offline viewing (parallel to heritageChain)
+    let isDemoRecipe: Bool? // Whether recipe was received from demo user (cannot be shared)
     let tags: [String]? // Tag names
     let collections: [String]? // Collection names
 
@@ -124,6 +134,9 @@ struct RecipeExportDataV2: Codable {
     let cardBackText: String?
     let comments: [CommentExportData]?
     let annotations: [AnnotationExportData]?
+
+    // V2 image preservation
+    let firebaseImageURL: String? // Firebase Storage download URL for image restoration
 
     enum CodingKeys: String, CodingKey {
         case id, title, ingredients, instructions, servings
@@ -133,9 +146,10 @@ struct RecipeExportDataV2: Codable {
         case isFavorite, timesCooked, lastCooked
         case isThemeRecipe, sourceThemeId, historicalText, historicalContext
         // V2 fields
-        case sharedBy, sharedDate, generation, rootRecipeId, heritageChain
+        case sharedBy, sharedByUserId, sharedFromRecipeId, sharedDate, generation, rootRecipeId, rootProvenanceHash, heritageChain, heritageChainNames, isDemoRecipe
         case tags, collections
         case cardBackText, comments, annotations
+        case firebaseImageURL
     }
 }
 
@@ -196,6 +210,24 @@ struct PrivacySettingsExportData: Codable {
     let allowRecipeResharing: Bool
     let allowMentions: Bool
     let hasPublicProfile: Bool
+}
+
+// MARK: - Theme Progress Export Data (v2)
+
+/// Theme unlock progress for export/backup
+/// Allows users to resume their theme unlock schedule after restore
+struct ThemeProgressExportData: Codable {
+    /// IDs of themes the user selected during onboarding
+    let selectedThemeIds: [String]
+
+    /// When the trial started (ISO8601)
+    let trialStartDate: String
+
+    /// The last unlock day that was processed (1-14)
+    let lastUnlockDay: Int
+
+    /// Current trial day at time of export (for reference)
+    let currentTrialDay: Int
 }
 
 // MARK: - Comment Export Data (v2)

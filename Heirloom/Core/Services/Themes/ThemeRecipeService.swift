@@ -100,7 +100,52 @@ class ThemeRecipeService {
             "recipeCount": recipes.count
         ])
 
+        // Link recipes to their theme collection
+        linkRecipesToThemeCollection(recipes: recipes, themeId: themeId, context: context)
+
         return recipes
+    }
+
+    /// Link downloaded recipes to their matching theme collection
+    private func linkRecipesToThemeCollection(recipes: [Recipe], themeId: String, context: ModelContext) {
+        guard !recipes.isEmpty else { return }
+
+        // Find the theme collection for this themeId
+        let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate<RecipeCollection> { collection in
+                collection.sourceThemeId == themeId && collection.collectionType == "theme"
+            }
+        )
+
+        guard let collection = try? context.fetch(collectionDescriptor).first else {
+            Log.warning("No theme collection found for linking", category: .onboarding, metadata: [
+                "themeId": themeId
+            ])
+            return
+        }
+
+        var linkedCount = 0
+        for recipe in recipes {
+            let alreadyLinked = collection.recipes?.contains(where: { $0.id == recipe.id }) ?? false
+            if !alreadyLinked {
+                if collection.recipes == nil { collection.recipes = [] }
+                collection.recipes?.append(recipe)
+                linkedCount += 1
+            }
+        }
+
+        if linkedCount > 0 {
+            do {
+                try context.save()
+                Log.info("Linked recipes to theme collection", category: .onboarding, metadata: [
+                    "themeId": themeId,
+                    "collection": collection.name,
+                    "linkedCount": linkedCount
+                ])
+            } catch {
+                Log.error("Failed to save recipe-collection links", category: .onboarding, error: error)
+            }
+        }
     }
 
     /// Update existing recipe with fresh data from Firestore

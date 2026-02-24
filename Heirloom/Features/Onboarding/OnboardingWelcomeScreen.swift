@@ -8,15 +8,25 @@
 //
 
 import SwiftUI
+import SwiftData
+import UniformTypeIdentifiers
 
 /// Welcome screen - Screen 1 of 5
 /// Shows the "3 inputs → 1 recipe" transformation visual
 struct OnboardingWelcomeScreen: View {
+    @Environment(\.modelContext) private var modelContext
+
     let onContinue: () -> Void
+    /// Callback when user restores from backup (skips rest of onboarding)
+    var onRestoreFromBackup: (() -> Void)?
 
     @State private var showSources = false
     @State private var showArrow = false
     @State private var showResult = false
+    @State private var showRestoreFilePicker = false
+    @State private var showRestorePreview = false
+    @State private var restoreFileURL: URL?
+    @State private var restorePreviewData: ImportPreviewData?
 
     var body: some View {
         ZStack {
@@ -86,6 +96,22 @@ struct OnboardingWelcomeScreen: View {
                             .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                     }
 
+                    // Restore from backup option
+                    if onRestoreFromBackup != nil {
+                        Button(action: {
+                            showRestoreFilePicker = true
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.system(size: 14))
+                                Text("Restore from Backup")
+                                    .font(HeirloomFonts.subheadline)
+                            }
+                            .foregroundColor(HeirloomColors.secondaryText)
+                        }
+                        .padding(.top, 4)
+                    }
+
                     // Microcopy
                     Text("Private by default")
                         .font(HeirloomFonts.caption2)
@@ -102,6 +128,27 @@ struct OnboardingWelcomeScreen: View {
                         startPoint: .top,
                         endPoint: .bottom
                     )
+                )
+            }
+        }
+        .fileImporter(
+            isPresented: $showRestoreFilePicker,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            handleRestoreFileSelection(result)
+        }
+        .sheet(isPresented: $showRestorePreview) {
+            if let fileURL = restoreFileURL, let previewData = restorePreviewData {
+                ImportPreviewSheet(
+                    previewData: previewData,
+                    fileURL: fileURL,
+                    modelContext: modelContext,
+                    cleanRestore: true,
+                    onRestoreComplete: {
+                        showRestorePreview = false
+                        onRestoreFromBackup?()
+                    }
                 )
             }
         }
@@ -255,6 +302,76 @@ struct OnboardingWelcomeScreen: View {
         .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
         .opacity(showResult ? 1 : 0)
         .offset(x: showResult ? 0 : 30)
+    }
+
+    // MARK: - Restore File Handling
+
+    private func handleRestoreFileSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+
+            // Start security-scoped access
+            guard url.startAccessingSecurityScopedResource() else {
+                Log.error("Failed to access security-scoped resource", category: .storage)
+                return
+            }
+
+            // Parse the file to get preview data
+            do {
+                let data = try Data(contentsOf: url)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+
+                let exportWrapper = try decoder.decode(HeirloomExportV2.self, from: data)
+
+                let previewData = ImportPreviewData(
+                    version: exportWrapper.version,
+                    recipeCount: exportWrapper.recipeCount,
+                    hasProfile: exportWrapper.userProfile != nil,
+                    connectionCount: exportWrapper.connectionCount ?? 0,
+                    hasPrivacySettings: exportWrapper.privacySettings != nil,
+                    warnings: buildWarnings(for: exportWrapper)
+                )
+
+                restoreFileURL = url
+                restorePreviewData = previewData
+                showRestorePreview = true
+
+            } catch {
+                Log.error("Failed to parse restore file", category: .storage, error: error)
+                url.stopAccessingSecurityScopedResource()
+            }
+
+        case .failure(let error):
+            Log.error("File selection failed", category: .storage, error: error)
+        }
+    }
+
+    private func buildWarnings(for export: HeirloomExportV2) -> [String] {
+        var warnings: [String] = []
+
+        if export.themeProgress == nil {
+            warnings.append("No theme progress found - you may need to re-select themes")
+        }
+
+        if export.connectionCount ?? 0 > 0 {
+            warnings.append("Connections will need to be manually re-established")
+        }
+
+        // Check for shared recipes that might have been updated
+        let sharedRecipeCount = export.recipes.filter { $0.sharedBy != nil }.count
+        if sharedRecipeCount > 0 {
+            warnings.append("Shared recipes (\(sharedRecipeCount)) will be restored as they were at backup time")
+        }
+
+        // Theme recipes will be refreshed from Firebase
+        let themeRecipeCount = export.recipes.filter { $0.isThemeRecipe }.count
+        if themeRecipeCount > 0 {
+            // This is informational, not a warning - theme recipes get refreshed automatically
+        }
+
+        return warnings
     }
 }
 

@@ -4,8 +4,8 @@
   "recipes": [
     {
       "id": "scandinavian-heritage-001",
-      "title": "Swedish Meatballs (K\u00f6ttbullar)",
-      "description": "Tender, lightly spiced meatballs in a creamy gravy\u2014the dish that defines Swedish home cooking.",
+      "title": "Swedish Meatballs (Köttbullar)",
+      "description": "Tender, lightly spiced meatballs in a creamy gravy—the dish that defines Swedish home cooking.",
       "ingredients": [
         {
           "name": "ground beef",
@@ -102,7 +102,7 @@
       "cookTime": 30,
       "servings": 6,
       "source": "Swedish-American immigrant tradition",
-      "story": "Swedish immigrants brought k\u00f6ttbullar to the American Midwest in the 1800s. The allspice and nutmeg distinguish these from other meatball traditions, and lingonberry jam is non-negotiable.",
+      "story": "Swedish immigrants brought köttbullar to the American Midwest in the 1800s. The allspice and nutmeg distinguish these from other meatball traditions, and lingonberry jam is non-negotiable.",
       "unlockDay": 1,
       "sortOrder": 1,
       "difficulty": "medium",
@@ -195,7 +195,7 @@
       "servings": 24,
       "source": "Danish-American immigrant tradition",
       "story": "Aebleskiver ('apple slices') were traditionally made with apple pieces inside, though plain versions became common. Danish communities in California and the Midwest hold aebleskiver festivals celebrating this beloved treat.",
-      "unlockDay": 3,
+      "unlockDay": 2,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -207,7 +207,7 @@
     {
       "id": "scandinavian-heritage-003",
       "title": "Norwegian Fish Pudding (Fiskepudding)",
-      "description": "A delicate, silky fish loaf served with shrimp sauce\u2014elegant Scandinavian comfort food.",
+      "description": "A delicate, silky fish loaf served with shrimp sauce—elegant Scandinavian comfort food.",
       "ingredients": [
         {
           "name": "white fish fillets",
@@ -277,7 +277,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C). Butter a 9x5 loaf pan.",
+        "Preheat oven to 350°F (175°C). Butter a 9x5 loaf pan.",
         "Cut fish into chunks. Process in a food processor until very smooth.",
         "Add egg whites and process until incorporated.",
         "With motor running, slowly add cream. Add cornstarch, salt, pepper, and nutmeg.",
@@ -293,7 +293,7 @@
       "servings": 8,
       "source": "Norwegian-American immigrant tradition",
       "story": "Fiskepudding showcases the Scandinavian reverence for fish. This elegant dish graced holiday tables and Sunday dinners, the smooth texture achieved through patient processing and gentle baking.",
-      "unlockDay": 5,
+      "unlockDay": 3,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -305,8 +305,8 @@
     },
     {
       "id": "scandinavian-heritage-004",
-      "title": "Danish Roast Pork with Crackling (Fl\u00e6skesteg)",
-      "description": "Succulent pork roast with impossibly crispy skin\u2014the centerpiece of Danish celebrations.",
+      "title": "Danish Roast Pork with Crackling (Flæskesteg)",
+      "description": "Succulent pork roast with impossibly crispy skin—the centerpiece of Danish celebrations.",
       "ingredients": [
         {
           "name": "bone-in pork loin roast",
@@ -344,11 +344,11 @@
       "instructions": [
         "Score the pork skin in a diamond pattern, cutting through to the fat but not the meat.",
         "Rub salt generously into the cuts. Refrigerate uncovered overnight to dry the skin.",
-        "Preheat oven to 350\u00b0F (175\u00b0C).",
+        "Preheat oven to 350°F (175°C).",
         "Place bay leaves and cloves between some of the cuts.",
         "Place pork skin-side up in a roasting pan. Add water to pan.",
         "Roast for 2 hours.",
-        "Increase temperature to 425\u00b0F (220\u00b0C). Roast 30 minutes more until skin is bubbly and crispy.",
+        "Increase temperature to 425°F (220°C). Roast 30 minutes more until skin is bubbly and crispy.",
         "Let rest 15 minutes before carving.",
         "Serve with pan juices, red cabbage, and boiled potatoes."
       ],
@@ -356,8 +356,8 @@
       "cookTime": 150,
       "servings": 8,
       "source": "Danish-American immigrant tradition",
-      "story": "Fl\u00e6skesteg is the star of Danish Christmas dinner. The crackling (sv\u00e6r) must be absolutely crispy\u2014Danes take this very seriously. Drying the skin overnight is the secret.",
-      "unlockDay": 7,
+      "story": "Flæskesteg is the star of Danish Christmas dinner. The crackling (svær) must be absolutely crispy—Danes take this very seriously. Drying the skin overnight is the secret.",
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -370,7 +370,7 @@
     {
       "id": "scandinavian-heritage-005",
       "title": "Swedish Gravlax",
-      "description": "Sugar-and-salt cured salmon with fresh dill\u2014the elegant appetizer of Scandinavian celebrations.",
+      "description": "Sugar-and-salt cured salmon with fresh dill—the elegant appetizer of Scandinavian celebrations.",
       "ingredients": [
         {
           "name": "salmon fillet",
@@ -449,8 +449,8 @@
       "cookTime": 0,
       "servings": 12,
       "source": "Swedish immigrant tradition",
-      "story": "Gravlax means 'buried salmon'\u2014Vikings preserved fish by burying it in sand. The modern cure of salt, sugar, and dill creates silky, flavorful salmon that's become a festive essential.",
-      "unlockDay": 9,
+      "story": "Gravlax means 'buried salmon'—Vikings preserved fish by burying it in sand. The modern cure of salt, sugar, and dill creates silky, flavorful salmon that's become a festive essential.",
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -463,7 +463,7 @@
     {
       "id": "scandinavian-heritage-006",
       "title": "Swedish Rotmos (Mashed Root Vegetables)",
-      "description": "Creamy mashed rutabaga, carrot, and potato\u2014the essential accompaniment to Swedish meatballs.",
+      "description": "Creamy mashed rutabaga, carrot, and potato—the essential accompaniment to Swedish meatballs.",
       "ingredients": [
         {
           "name": "rutabaga",
@@ -523,8 +523,8 @@
       "cookTime": 35,
       "servings": 6,
       "source": "Swedish-American immigrant tradition",
-      "story": "Rotmos was practical peasant food\u2014root vegetables stored well in cold cellars through Swedish winters. The combination of rutabaga's sweetness with potato's creaminess creates something greater than the sum of parts.",
-      "unlockDay": 11,
+      "story": "Rotmos was practical peasant food—root vegetables stored well in cold cellars through Swedish winters. The combination of rutabaga's sweetness with potato's creaminess creates something greater than the sum of parts.",
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -537,7 +537,7 @@
     {
       "id": "scandinavian-heritage-007",
       "title": "Norwegian Lefse",
-      "description": "Soft, tender potato flatbreads\u2014the heart of Norwegian-American holiday tables.",
+      "description": "Soft, tender potato flatbreads—the heart of Norwegian-American holiday tables.",
       "ingredients": [
         {
           "name": "russet potatoes",
@@ -590,7 +590,7 @@
       "servings": 24,
       "source": "Norwegian-American immigrant tradition",
       "story": "Lefse-making is a cherished tradition in Norwegian-American communities. Families gather around grooved lefse grills, passing down techniques through generations. The potato variety became common in America due to abundant potatoes.",
-      "unlockDay": 1,
+      "unlockDay": 7,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -602,7 +602,7 @@
     {
       "id": "scandinavian-heritage-008",
       "title": "Swedish Cardamom Bread (Kardemummabullar)",
-      "description": "Fragrant, twisted cardamom buns with pearl sugar\u2014the aroma of Swedish bakeries.",
+      "description": "Fragrant, twisted cardamom buns with pearl sugar—the aroma of Swedish bakeries.",
       "ingredients": [
         {
           "name": "warm milk",
@@ -676,7 +676,7 @@
         }
       ],
       "instructions": [
-        "Dissolve yeast in warm milk (110\u00b0F). Let stand 5 minutes.",
+        "Dissolve yeast in warm milk (110°F). Let stand 5 minutes.",
         "Add sugar, cardamom, salt, melted butter, and egg. Mix well.",
         "Gradually add flour to form a soft dough. Knead until smooth.",
         "Let rise in a warm place until doubled, about 1.5 hours.",
@@ -685,14 +685,14 @@
         "Fold in thirds. Cut into 1-inch strips. Twist each strip and form into a knot.",
         "Place on parchment-lined baking sheets. Let rise 30 minutes.",
         "Brush with beaten egg and sprinkle with pearl sugar.",
-        "Bake at 375\u00b0F (190\u00b0C) for 15-18 minutes until golden."
+        "Bake at 375°F (190°C) for 15-18 minutes until golden."
       ],
       "prepTime": 40,
       "cookTime": 18,
       "servings": 20,
       "source": "Swedish-American immigrant tradition",
-      "story": "Cardamom was an exotic spice that Scandinavian traders brought from the East. It became essential to Swedish baking, and the aroma of these buns evokes fika\u2014the Swedish tradition of coffee and pastry.",
-      "unlockDay": 3,
+      "story": "Cardamom was an exotic spice that Scandinavian traders brought from the East. It became essential to Swedish baking, and the aroma of these buns evokes fika—the Swedish tradition of coffee and pastry.",
+      "unlockDay": 8,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -768,8 +768,8 @@
       "cookTime": 20,
       "servings": 12,
       "source": "Swedish-American immigrant tradition",
-      "story": "Swedish pancakes are thinner than American pancakes but thicker than French cr\u00eapes. The tradition of Thursday pancake suppers (pannkakstorsdag) carried over to Swedish-American communities.",
-      "unlockDay": 5,
+      "story": "Swedish pancakes are thinner than American pancakes but thicker than French crêpes. The tradition of Thursday pancake suppers (pannkakstorsdag) carried over to Swedish-American communities.",
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -781,7 +781,7 @@
     {
       "id": "scandinavian-heritage-010",
       "title": "Norwegian Rice Pudding (Riskrem)",
-      "description": "Creamy rice folded with whipped cream and served with raspberry sauce\u2014a Christmas tradition.",
+      "description": "Creamy rice folded with whipped cream and served with raspberry sauce—a Christmas tradition.",
       "ingredients": [
         {
           "name": "short-grain rice",
@@ -855,8 +855,8 @@
       "cookTime": 45,
       "servings": 10,
       "source": "Norwegian-American immigrant tradition",
-      "story": "Riskrem is served at Christmas Eve dinner. The hidden almond tradition means luck for the finder\u2014usually a marzipan pig prize. Children eat slowly, hoping to be the lucky one.",
-      "unlockDay": 7,
+      "story": "Riskrem is served at Christmas Eve dinner. The hidden almond tradition means luck for the finder—usually a marzipan pig prize. Children eat slowly, hoping to be the lucky one.",
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -869,7 +869,7 @@
     {
       "id": "scandinavian-heritage-011",
       "title": "Norwegian Krumkake",
-      "description": "Delicate, crispy cone-shaped cookies baked in a special iron\u2014the taste of Norwegian Christmas.",
+      "description": "Delicate, crispy cone-shaped cookies baked in a special iron—the taste of Norwegian Christmas.",
       "ingredients": [
         {
           "name": "eggs",
@@ -922,7 +922,7 @@
       "servings": 24,
       "source": "Norwegian-American immigrant tradition",
       "story": "Krumkake irons were treasured possessions brought from Norway and passed down through generations. The delicate cookies require practice to perfect, but their crispy, cardamom-scented flavor is worth it.",
-      "unlockDay": 9,
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -935,7 +935,7 @@
     {
       "id": "scandinavian-heritage-012",
       "title": "Danish Butter Cookies",
-      "description": "Crisp, buttery cookies in classic shapes\u2014the famous treats from the blue tin.",
+      "description": "Crisp, buttery cookies in classic shapes—the famous treats from the blue tin.",
       "ingredients": [
         {
           "name": "butter",
@@ -974,7 +974,7 @@
         "Add egg yolk and vanilla; beat well.",
         "Stir in flour and salt until just combined.",
         "Divide dough in half. Refrigerate 30 minutes.",
-        "Preheat oven to 350\u00b0F (175\u00b0C). Line baking sheets with parchment.",
+        "Preheat oven to 350°F (175°C). Line baking sheets with parchment.",
         "Roll dough to 1/4-inch thickness. Cut with decorative cookie cutters.",
         "Alternatively, pipe dough through a cookie press for traditional shapes.",
         "Bake 10-12 minutes until edges are barely golden.",
@@ -985,7 +985,7 @@
       "servings": 48,
       "source": "Danish immigrant tradition",
       "story": "These cookies became world-famous through the iconic blue tins exported from Denmark. Danish-American families made their own versions, piping dough into pretzel, wreath, and S-shapes for the holidays.",
-      "unlockDay": 11,
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -993,6 +993,184 @@
         "cookies",
         "Danish",
         "holiday"
+      ]
+    },
+    {
+      "id": "scandinavian-heritage-013",
+      "title": "Finnish Karelian Pies (Karjalanpiirakat)",
+      "description": "Traditional Finnish rye-crusted pies filled with creamy rice porridge—served with egg butter.",
+      "ingredients": [
+        {
+          "name": "rye flour",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "water",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "short-grain rice",
+          "amount": 0.5,
+          "unit": "cup",
+          "group": "For filling"
+        },
+        {
+          "name": "whole milk",
+          "amount": 2.5,
+          "unit": "cups",
+          "group": "For filling"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "group": "For filling"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "group": "For filling"
+        },
+        {
+          "name": "hard-boiled eggs",
+          "amount": 4,
+          "unit": "large",
+          "group": "For egg butter"
+        },
+        {
+          "name": "butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "notes": "softened",
+          "group": "For egg butter"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "group": "For egg butter"
+        }
+      ],
+      "instructions": [
+        "For filling: Cook rice in milk over low heat, stirring often, until very thick and creamy, about 45 minutes. Stir in butter and salt. Cool.",
+        "For dough: Mix flours and salt. Add water gradually to form a stiff dough. Knead until smooth.",
+        "Divide dough into 20 pieces. Roll each into a thin oval about 6 inches long.",
+        "Place 2 tablespoons filling in center of each oval.",
+        "Fold edges up and crimp, leaving center open. The pies should be boat-shaped.",
+        "Bake at 450°F (230°C) for 15 minutes until edges are golden.",
+        "Brush hot pies generously with melted butter.",
+        "For egg butter: Mash eggs with softened butter and salt.",
+        "Serve warm pies topped with egg butter."
+      ],
+      "prepTime": 45,
+      "cookTime": 60,
+      "servings": 20,
+      "source": "Finnish-American immigrant tradition",
+      "story": "Karjalanpiirakat originated in Karelia, a region divided between Finland and Russia. Finnish immigrants to the Upper Midwest kept this tradition alive, and the pies remain a symbol of Finnish identity.",
+      "unlockDay": 13,
+      "sortOrder": 13,
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "Finnish",
+        "traditional",
+        "savory pastry"
+      ]
+    },
+    {
+      "id": "scandinavian-heritage-014",
+      "title": "Swedish Hasselback Potatoes",
+      "description": "Crispy-edged, accordion-sliced potatoes with butter and herbs—a Swedish steakhouse classic.",
+      "ingredients": [
+        {
+          "name": "medium russet potatoes",
+          "amount": 8
+        },
+        {
+          "name": "butter",
+          "amount": 6,
+          "unit": "tablespoons",
+          "notes": "melted"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "chopped"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Parmesan cheese",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "grated",
+          "isOptional": true
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": "For garnish"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 425°F (220°C).",
+        "Place each potato between two chopsticks or wooden spoon handles. Make thin slices every 3mm, cutting down but not through—the sticks prevent cutting all the way.",
+        "Place potatoes in a baking dish. Fan slices open slightly.",
+        "Mix melted butter, oil, garlic, thyme, salt, and pepper.",
+        "Brush potatoes generously with butter mixture, getting between slices.",
+        "Bake 30 minutes. Brush again with butter mixture.",
+        "Continue baking 25-30 minutes until potatoes are tender inside and crispy outside.",
+        "Sprinkle with Parmesan if using. Bake 5 minutes more.",
+        "Garnish with parsley and serve immediately."
+      ],
+      "prepTime": 20,
+      "cookTime": 65,
+      "servings": 8,
+      "source": "Hasselbacken Restaurant, Stockholm",
+      "story": "These potatoes were invented in the 1950s at Hasselbacken, a restaurant in Stockholm's Djurgården park. The technique creates maximum crispy surface area while keeping the interior creamy.",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "Swedish",
+        "vegetarian",
+        "elegant"
       ]
     }
   ]

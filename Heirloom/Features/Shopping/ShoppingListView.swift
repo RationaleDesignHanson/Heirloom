@@ -175,6 +175,7 @@ struct ShoppingListView: View {
             VStack(spacing: HeirloomSpacing.xs) {
                 ForEach(cartRecipes) { cartRecipe in
                     recipeRow(cartRecipe)
+                        .contentShape(Rectangle())
                         .contextMenu {
                             if let recipe = cartRecipe.recipe {
                                 Button {
@@ -414,6 +415,7 @@ struct ShoppingListView: View {
         .accessibilityLabel("\(combinedIngredient.displayText), \(combinedIngredient.isCheckedOff ? "Checked off" : "Not checked")\(isAggregated ? ", From \(combinedIngredient.recipeCount) recipes" : "")")
         .accessibilityHint("Toggles item as checked or unchecked")
         .accessibilityAddTraits(combinedIngredient.isCheckedOff ? .isSelected : [])
+        .contentShape(Rectangle())
         .contextMenu {
             Button {
                 toggleCombinedIngredient(combinedIngredient)

@@ -51,29 +51,41 @@ struct CookingModeView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Version Selector (if multiple versions exist)
-                if recipe.hasMultipleVersions {
-                    VersionSelectorView(
-                        recipe: recipe,
-                        selectedVersionID: Binding(
-                            get: { selectedVersionID ?? recipe.selectedVersionID },
-                            set: { selectedVersionID = $0 }
+            ZStack {
+                // Elegant warm background
+                LinearGradient(
+                    colors: [
+                        Color(hex: "#FFFBF5"),
+                        Color(hex: "#FFF8F0")
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Version Selector (if multiple versions exist)
+                    if recipe.hasMultipleVersions {
+                        VersionSelectorView(
+                            recipe: recipe,
+                            selectedVersionID: Binding(
+                                get: { selectedVersionID ?? recipe.selectedVersionID },
+                                set: { selectedVersionID = $0 }
+                            )
                         )
-                    )
-                    .padding(.top, HeirloomSpacing.sm)
+                        .padding(.top, HeirloomSpacing.sm)
+                    }
+
+                    // Progress Bar
+                    progressBar
+
+                    // Step Content
+                    stepContent
+
+                    // Navigation Controls
+                    navigationControls
                 }
-
-                // Progress Bar
-                progressBar
-
-                // Step Content
-                stepContent
-
-                // Navigation Controls
-                navigationControls
             }
-            .background(HeirloomColors.appBackground)
             .navigationTitle(recipe.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -85,6 +97,7 @@ struct CookingModeView: View {
                             dismiss()
                         }
                     }
+                    .foregroundColor(HeirloomColors.secondaryText)
                 }
             }
             .confirmationDialog(
@@ -108,7 +121,7 @@ struct CookingModeView: View {
     // MARK: - Progress Bar
 
     private var progressBar: some View {
-        VStack(spacing: HeirloomSpacing.sm) {
+        VStack(spacing: 10) {
             HStack {
                 Text("Step \(currentStep + 1) of \(activeInstructions.count)")
                     .font(HeirloomFonts.caption1)
@@ -116,25 +129,38 @@ struct CookingModeView: View {
 
                 Spacer()
 
-                Text("\(completedSteps.count) completed")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.familyGreen)
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                    Text("\(completedSteps.count) done")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                }
             }
             .padding(.horizontal, HeirloomSpacing.lg)
 
+            // Elegant progress bar with rounded ends
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background
-                    Rectangle()
-                        .fill(HeirloomColors.warmGray.opacity(0.2))
+                    // Background track
+                    Capsule()
+                        .fill(Color.black.opacity(0.06))
 
-                    // Progress
-                    Rectangle()
-                        .fill(HeirloomColors.tomato)
-                        .frame(width: geometry.size.width * progress)
+                    // Progress fill
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [HeirloomColors.tomato, HeirloomColors.tomato.opacity(0.85)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: max(8, geometry.size.width * progress))
                 }
             }
-            .frame(height: 4)
+            .frame(height: 6)
+            .padding(.horizontal, HeirloomSpacing.lg)
         }
         .padding(.top, HeirloomSpacing.md)
         .padding(.bottom, HeirloomSpacing.lg)
@@ -149,67 +175,67 @@ struct CookingModeView: View {
 
     private var stepContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: HeirloomSpacing.xl) {
-                // Step Number
-                HStack {
-                    Text("\(currentStep + 1)")
-                        .font(.system(size: 80, weight: .bold, design: .rounded))
-                        .foregroundStyle(HeirloomColors.tomato)
+            VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
+                // Step Number & Completion Toggle
+                HStack(alignment: .center) {
+                    // Elegant step number badge
+                    ZStack {
+                        Circle()
+                            .fill(HeirloomColors.tomato.opacity(0.1))
+                            .frame(width: 72, height: 72)
+
+                        Text("\(currentStep + 1)")
+                            .font(.system(size: 80, weight: .bold, design: .rounded))
+                            .foregroundStyle(HeirloomColors.tomato)
+                            .offset(y: -4)
+                    }
 
                     Spacer()
 
+                    // Completion button with elegant styling
                     Button {
                         toggleStepComplete()
                     } label: {
-                        Image(systemName: isCurrentStepComplete ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 40))
-                            .foregroundStyle(isCurrentStepComplete ? HeirloomColors.familyGreen : HeirloomColors.warmGray)
+                        ZStack {
+                            Circle()
+                                .fill(isCurrentStepComplete ? HeirloomColors.familyGreen.opacity(0.1) : Color.clear)
+                                .frame(width: 56, height: 56)
+
+                            Circle()
+                                .stroke(isCurrentStepComplete ? HeirloomColors.familyGreen : Color.gray.opacity(0.25), lineWidth: 2)
+                                .frame(width: 56, height: 56)
+
+                            if isCurrentStepComplete {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 24, weight: .semibold))
+                                    .foregroundStyle(HeirloomColors.familyGreen)
+                            }
+                        }
                     }
                 }
+                .padding(.bottom, 4)
 
-                // Step Text
-                Text(currentStepText)
-                    .font(.system(size: 24, weight: .regular))
-                    .foregroundStyle(HeirloomColors.primaryText)
-                    .lineSpacing(8)
+                // Step Text with elegant card treatment
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(currentStepText)
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .lineSpacing(8)
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+                )
 
                 // Timer Section
                 timerSection
 
-                Divider()
-                    .padding(.vertical, HeirloomSpacing.md)
-
-                // Ingredients Reference (if any)
+                // Ingredients Reference
                 if let ingredients = recipe.ingredients, !ingredients.isEmpty {
-                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                        Text("Ingredients")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(HeirloomColors.primaryText)
-                            .textCase(.uppercase)
-
-                        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                            ForEach(ingredients.prefix(4)) { ingredient in
-                                HStack(spacing: HeirloomSpacing.sm) {
-                                    Image(systemName: "circle.fill")
-                                        .font(.system(size: 8))
-                                        .foregroundStyle(HeirloomColors.tomato)
-
-                                    Text(scaledIngredientText(ingredient))
-                                        .font(.system(size: 18, weight: .medium))
-                                        .foregroundStyle(HeirloomColors.primaryText)
-                                        .lineLimit(2)
-                                }
-                                .padding(.vertical, HeirloomSpacing.xxs)
-                            }
-
-                            if ingredients.count > 4 {
-                                Text("+ \(ingredients.count - 4) more")
-                                    .font(HeirloomFonts.caption2)
-                                    .foregroundStyle(HeirloomColors.secondaryText)
-                                    .padding(.leading, 8)
-                            }
-                        }
-                    }
+                    ingredientsSection(ingredients: ingredients)
                 }
             }
             .padding(HeirloomSpacing.lg)
@@ -227,17 +253,69 @@ struct CookingModeView: View {
         completedSteps.contains(currentStep)
     }
 
+    // MARK: - Ingredients Section
+
+    private func ingredientsSection(ingredients: [Ingredient]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack(spacing: 6) {
+                Image(systemName: "list.bullet")
+                    .font(.system(size: 14))
+                    .foregroundColor(HeirloomColors.tomato.opacity(0.7))
+
+                Text("INGREDIENTS")
+                    .font(.system(size: 12, weight: .semibold))
+                    .tracking(0.8)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            // Ingredients list with elegant styling
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(ingredients.prefix(4)) { ingredient in
+                    HStack(alignment: .center, spacing: 10) {
+                        Circle()
+                            .fill(HeirloomColors.tomato.opacity(0.2))
+                            .frame(width: 6, height: 6)
+
+                        Text(scaledIngredientText(ingredient))
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .lineLimit(2)
+                    }
+                }
+
+                if ingredients.count > 4 {
+                    Text("+ \(ingredients.count - 4) more ingredients")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .padding(.leading, 16)
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                )
+        )
+    }
+
     // MARK: - Timer Section
 
     private var timerSection: some View {
         VStack(spacing: HeirloomSpacing.md) {
             if let _ = timerEndTime, remainingTime > 0 {
                 // Active Timer Display
-                VStack(spacing: HeirloomSpacing.sm) {
-                    HStack {
+                VStack(spacing: 16) {
+                    // Timer display
+                    HStack(spacing: 12) {
                         Image(systemName: "timer")
-                            .font(.title2)
-                            .foregroundStyle(HeirloomColors.tomato)
+                            .font(.system(size: 24))
+                            .foregroundStyle(HeirloomColors.amber)
 
                         Text(timeString(from: remainingTime))
                             .font(.system(size: 48, weight: .bold, design: .rounded))
@@ -245,39 +323,52 @@ struct CookingModeView: View {
                             .monospacedDigit()
                     }
 
-                    HStack(spacing: HeirloomSpacing.md) {
+                    // Timer controls
+                    HStack(spacing: 12) {
                         Button {
                             cancelTimer()
                         } label: {
-                            Label("Cancel", systemImage: "xmark.circle.fill")
-                                .font(HeirloomFonts.bodyBold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(HeirloomColors.warmGray.opacity(0.2))
-                                .foregroundStyle(HeirloomColors.primaryText)
-                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                            HStack(spacing: 6) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Cancel")
+                                    .font(HeirloomFonts.bodyBold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.white)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                            )
                         }
 
                         Button {
                             addTime(minutes: 1)
                         } label: {
-                            Label("+1 min", systemImage: "plus.circle.fill")
-                                .font(HeirloomFonts.bodyBold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(HeirloomColors.tomato)
-                                .foregroundStyle(HeirloomColors.buttonTextLight)
-                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("1 min")
+                                    .font(HeirloomFonts.bodyBold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(HeirloomColors.tomato)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
+                            .cornerRadius(12)
                         }
                     }
                 }
-                .padding(HeirloomSpacing.lg)
+                .padding(20)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(HeirloomColors.amber.opacity(0.1))
+                        .fill(HeirloomColors.amber.opacity(0.08))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .strokeBorder(HeirloomColors.amber.opacity(0.3), lineWidth: 2)
+                                .stroke(HeirloomColors.amber.opacity(0.2), lineWidth: 1)
                         )
                 )
             } else {
@@ -285,21 +376,22 @@ struct CookingModeView: View {
                 Button {
                     showTimerPicker = true
                 } label: {
-                    HStack {
+                    HStack(spacing: 10) {
                         Image(systemName: "timer")
-                            .font(HeirloomFonts.title2)
+                            .font(.system(size: 20))
                         Text("Set Timer")
                             .font(HeirloomFonts.bodyBold)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(HeirloomColors.warmGray.opacity(0.1))
+                    .padding(.vertical, 16)
+                    .background(Color.white)
                     .foregroundStyle(HeirloomColors.primaryText)
-                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                    .cornerRadius(12)
                     .overlay(
-                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                            .strokeBorder(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.black.opacity(0.08), lineWidth: 1)
                     )
+                    .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
                 }
             }
         }
@@ -310,15 +402,23 @@ struct CookingModeView: View {
 
     private var timerPickerView: some View {
         NavigationStack {
-            VStack(spacing: HeirloomSpacing.xl) {
-                Text("Set Timer")
-                    .font(HeirloomFonts.title1)
-                    .foregroundStyle(HeirloomColors.primaryText)
-                    .padding(.top, HeirloomSpacing.xl)
+            VStack(spacing: HeirloomSpacing.lg) {
+                // Header
+                VStack(spacing: 8) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 32))
+                        .foregroundStyle(HeirloomColors.tomato)
 
+                    Text("Set Timer")
+                        .font(HeirloomFonts.title1)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                }
+                .padding(.top, HeirloomSpacing.xl)
+
+                // Time pickers
                 HStack(spacing: HeirloomSpacing.lg) {
                     // Minutes Picker
-                    VStack {
+                    VStack(spacing: 4) {
                         Picker("Minutes", selection: $timerMinutes) {
                             ForEach(0..<60) { minute in
                                 Text("\(minute)").tag(minute)
@@ -332,8 +432,12 @@ struct CookingModeView: View {
                             .foregroundStyle(HeirloomColors.secondaryText)
                     }
 
+                    Text(":")
+                        .font(.system(size: 32, weight: .light))
+                        .foregroundStyle(HeirloomColors.secondaryText)
+
                     // Seconds Picker
-                    VStack {
+                    VStack(spacing: 4) {
                         Picker("Seconds", selection: $timerSeconds) {
                             ForEach(0..<60) { second in
                                 Text("\(second)").tag(second)
@@ -349,30 +453,38 @@ struct CookingModeView: View {
                 }
 
                 // Quick Time Buttons
-                VStack(spacing: HeirloomSpacing.sm) {
-                    Text("Quick Times")
-                        .font(HeirloomFonts.caption1)
+                VStack(spacing: 10) {
+                    Text("QUICK TIMES")
+                        .font(.system(size: 11, weight: .medium))
+                        .tracking(0.8)
                         .foregroundStyle(HeirloomColors.secondaryText)
-                        .textCase(.uppercase)
 
-                    HStack(spacing: HeirloomSpacing.sm) {
+                    HStack(spacing: 10) {
                         ForEach([1, 5, 10, 15, 30], id: \.self) { minutes in
-                            Button("\(minutes) min") {
+                            Button("\(minutes)") {
                                 timerMinutes = minutes
                                 timerSeconds = 0
                             }
-                            .font(HeirloomFonts.caption1)
-                            .padding(.horizontal, HeirloomSpacing.md)
-                            .padding(.vertical, HeirloomSpacing.sm)
-                            .background(HeirloomColors.warmGray.opacity(0.1))
-                            .foregroundStyle(HeirloomColors.primaryText)
-                            .cornerRadius(8)
+                            .font(.system(size: 15, weight: .medium))
+                            .frame(width: 48, height: 40)
+                            .background(
+                                timerMinutes == minutes && timerSeconds == 0
+                                    ? HeirloomColors.tomato.opacity(0.1)
+                                    : Color.black.opacity(0.03)
+                            )
+                            .foregroundStyle(
+                                timerMinutes == minutes && timerSeconds == 0
+                                    ? HeirloomColors.tomato
+                                    : HeirloomColors.primaryText
+                            )
+                            .cornerRadius(10)
                         }
                     }
                 }
 
                 Spacer()
 
+                // Start button
                 Button {
                     startTimer()
                     showTimerPicker = false
@@ -380,20 +492,22 @@ struct CookingModeView: View {
                     Text("Start Timer")
                         .font(HeirloomFonts.bodyBold)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(timerMinutes == 0 && timerSeconds == 0 ? HeirloomColors.warmGray : HeirloomColors.tomato)
+                        .padding(.vertical, 16)
+                        .background(timerMinutes == 0 && timerSeconds == 0 ? Color.gray.opacity(0.3) : HeirloomColors.tomato)
                         .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                        .cornerRadius(14)
                 }
                 .disabled(timerMinutes == 0 && timerSeconds == 0)
                 .padding(.horizontal, HeirloomSpacing.lg)
                 .padding(.bottom, HeirloomSpacing.lg)
             }
+            .background(Color(hex: "#FFFBF7"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         showTimerPicker = false
                     }
+                    .foregroundColor(HeirloomColors.secondaryText)
                 }
             }
         }
@@ -403,51 +517,66 @@ struct CookingModeView: View {
     // MARK: - Navigation Controls
 
     private var navigationControls: some View {
-        VStack(spacing: HeirloomSpacing.md) {
-            Divider()
+        VStack(spacing: 0) {
+            // Subtle separator
+            Rectangle()
+                .fill(Color.black.opacity(0.04))
+                .frame(height: 1)
 
-            HStack(spacing: HeirloomSpacing.lg) {
+            HStack(spacing: 12) {
                 // Previous Button
                 Button {
-                    withAnimation {
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         currentStep = max(0, currentStep - 1)
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .semibold))
                         Text("Previous")
+                            .font(HeirloomFonts.bodyBold)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(currentStep > 0 ? HeirloomColors.warmGray.opacity(0.2) : Color.clear)
+                    .padding(.vertical, 16)
+                    .background(currentStep > 0 ? Color.white : Color.clear)
                     .foregroundStyle(currentStep > 0 ? HeirloomColors.primaryText : HeirloomColors.warmGray)
-                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                    .cornerRadius(14)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(currentStep > 0 ? Color.black.opacity(0.08) : Color.clear, lineWidth: 1)
+                    )
                 }
                 .disabled(currentStep == 0)
 
                 // Next/Finish Button
                 Button {
                     if currentStep < activeInstructions.count - 1 {
-                        withAnimation {
+                        withAnimation(.easeInOut(duration: 0.2)) {
                             currentStep += 1
                         }
                     } else {
                         showFinishConfirmation = true
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 6) {
                         Text(currentStep < activeInstructions.count - 1 ? "Next" : "Finish")
+                            .font(HeirloomFonts.bodyBold)
                         Image(systemName: currentStep < activeInstructions.count - 1 ? "chevron.right" : "checkmark")
+                            .font(.system(size: 14, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 16)
                     .background(HeirloomColors.tomato)
                     .foregroundStyle(HeirloomColors.buttonTextLight)
-                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                    .cornerRadius(14)
                 }
             }
             .padding(.horizontal, HeirloomSpacing.lg)
-            .padding(.bottom, HeirloomSpacing.lg)
+            .padding(.vertical, 16)
+            .background(
+                Color.white.opacity(0.9)
+                    .background(.ultraThinMaterial)
+            )
         }
     }
 

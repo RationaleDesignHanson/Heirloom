@@ -1,0 +1,1848 @@
+{
+  "themeId": "automat-classics",
+  "themeName": "Automat Classics",
+  "themeData": {
+    "id": "automat-classics",
+    "name": "Automat Classics",
+    "tagline": "Recipes from restaurants that no longer exist",
+    "description": "Horn & Hardart's legendary cafeteria served NYC and Philadelphia from 1902-1991. Their mac and cheese, baked beans, and rice pudding became comfort food icons. These recipes have been adapted from original sources and family archives.",
+    "iconName": "building.columns",
+    "category": "source",
+    "source": "Horn & Hardart Archives",
+    "era": "1902-1991",
+    "region": "New York / Philadelphia",
+    "totalRecipes": 14,
+    "unlockSchedule": [
+      1,
+      2,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 1,
+    "coverImagePrompt": "Warm art deco cafeteria interior with chrome coffee dispensers and glass pie cases, soft lighting, 1950s nostalgia, watercolor illustration style",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/automat-classics.webp",
+    "updatedAt": "2026-01-27T01:51:33.986Z"
+  },
+  "recipes": [
+    {
+      "id": "automat-classics-001",
+      "title": "Horn & Hardart Macaroni and Cheese",
+      "description": "The Automat's most requested recipe, served daily to thousands. Rich, creamy, with a distinctive tang from dry mustard.",
+      "prepTime": 15,
+      "cookTime": 40,
+      "servings": 8,
+      "source": "Horn & Hardart Archives, adapted from 1952 recipe card",
+      "story": "Horn & Hardart's macaroni and cheese was served in thousands of portions daily. The secret was sharp cheddar and dry mustard, giving it a distinctive tang. When the last Automat closed in 1991, this recipe was thought lost until Marianne Hardart discovered it in family papers.",
+      "difficulty": "easy",
+      "tags": [
+        "comfort food",
+        "classic",
+        "kid-friendly",
+        "vegetarian"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-mac-cheese.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:00.910Z",
+      "updatedAt": "2026-02-06T03:53:00.910Z",
+      "ingredients": [
+        {
+          "name": "elbow macaroni",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound elbow macaroni",
+          "order": 0
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For the sauce",
+          "text": "4 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For the sauce",
+          "text": "0.25 cup all-purpose flour",
+          "order": 2
+        },
+        {
+          "name": "whole milk",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For the sauce",
+          "text": "4 cups whole milk",
+          "order": 3
+        },
+        {
+          "name": "sharp cheddar cheese",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": "shredded",
+          "group": null,
+          "text": "4 cups sharp cheddar cheese",
+          "order": 4
+        },
+        {
+          "name": "dry mustard",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon dry mustard",
+          "order": 5
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon white pepper",
+          "order": 7
+        },
+        {
+          "name": "buttered breadcrumbs",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For the topping",
+          "text": "1 cup buttered breadcrumbs",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 375°F (190°C). Butter a 9x13 inch baking dish.",
+        "Cook macaroni according to package directions until just al dente. Drain and set aside.",
+        "In a large saucepan, melt butter over medium heat. Whisk in flour and cook for 1 minute, stirring constantly.",
+        "Gradually whisk in warm milk. Cook, stirring frequently, until sauce thickens and coats the back of a spoon, about 8-10 minutes.",
+        "Remove from heat. Stir in cheese, mustard, salt, and pepper until cheese is completely melted.",
+        "Fold in cooked macaroni until evenly coated.",
+        "Transfer to prepared baking dish. Top with breadcrumbs if using.",
+        "Bake for 25-30 minutes until golden and bubbling. Let rest 5 minutes before serving."
+      ]
+    },
+    {
+      "id": "automat-classics-002",
+      "title": "Creamy Automat Rice Pudding",
+      "description": "Simple, homey, and utterly satisfying. The Automat served this cold in individual glass cups, topped with a dusting of nutmeg.",
+      "prepTime": 10,
+      "cookTime": 50,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "The glass-enclosed compartments of the Automat displayed these puddings like jewels. For a nickel, you'd turn the chrome knob and retrieve a cup of comfort. Many New Yorkers remember this as their introduction to dessert.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "comfort food",
+        "make-ahead"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-rice-pudding.webp",
+      "sortOrder": 1,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:01.215Z",
+      "updatedAt": "2026-02-06T03:53:01.215Z",
+      "ingredients": [
+        {
+          "name": "short-grain rice",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup short-grain rice",
+          "order": 0
+        },
+        {
+          "name": "whole milk",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "4 cups whole milk",
+          "order": 1
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup heavy cream",
+          "order": 2
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup sugar",
+          "order": 3
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons vanilla extract",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "egg yolks",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large egg yolks",
+          "order": 6
+        },
+        {
+          "name": "raisins",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup raisins",
+          "order": 7
+        },
+        {
+          "name": "ground nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": "For serving",
+          "text": "0.25 teaspoon ground nutmeg",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "In a heavy-bottomed saucepan, combine rice, milk, and salt. Bring to a simmer over medium heat.",
+        "Reduce heat to low. Cook, stirring frequently, until rice is very tender and mixture has thickened, about 40-45 minutes.",
+        "In a small bowl, whisk egg yolks with cream and sugar.",
+        "Slowly whisk about 1 cup of hot rice mixture into the egg mixture to temper it.",
+        "Pour tempered eggs back into the pot, stirring constantly.",
+        "Cook over low heat, stirring, until pudding thickens further, about 5 minutes. Do not boil.",
+        "Remove from heat. Stir in vanilla and raisins if using.",
+        "Pour into serving dishes. Press plastic wrap directly onto surface to prevent skin.",
+        "Chill at least 2 hours. Dust with nutmeg before serving."
+      ]
+    },
+    {
+      "id": "automat-classics-003",
+      "title": "Horn & Hardart Chicken Pot Pie",
+      "description": "Individual pot pies with a flaky crust and rich, herb-flecked filling. The Automat's ultimate comfort food.",
+      "prepTime": 30,
+      "cookTime": 60,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "These individual pot pies were assembled by the hundreds each morning. The Automat's version had a perfectly puffed crust you'd crack open to reveal the steaming, fragrant filling inside.",
+      "difficulty": "medium",
+      "tags": [
+        "comfort food",
+        "main dish",
+        "crowd-pleaser"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-chicken-pot-pie.webp",
+      "sortOrder": 1,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:01.574Z",
+      "updatedAt": "2026-02-06T03:53:01.574Z",
+      "ingredients": [
+        {
+          "name": "boneless skinless chicken thighs",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 pounds boneless skinless chicken thighs",
+          "order": 0
+        },
+        {
+          "name": "chicken broth",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "4 cups chicken broth",
+          "order": 1
+        },
+        {
+          "name": "butter",
+          "amount": 6,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For the filling",
+          "text": "6 tablespoons butter",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 3
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced",
+          "group": null,
+          "text": "2 stalks celery",
+          "order": 4
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "2 medium carrots",
+          "order": 5
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup all-purpose flour",
+          "order": 6
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup heavy cream",
+          "order": 7
+        },
+        {
+          "name": "frozen peas",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup frozen peas",
+          "order": 8
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": "minced",
+          "group": null,
+          "text": "1 teaspoon fresh thyme",
+          "order": 9
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 10
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 11
+        },
+        {
+          "name": "puff pastry",
+          "amount": 1,
+          "unit": "sheet",
+          "preparation": null,
+          "group": "For the crust",
+          "text": "1 sheet puff pastry",
+          "order": 12
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": "For the crust",
+          "text": "1 large egg",
+          "order": 13
+        }
+      ],
+      "instructions": [
+        "Poach chicken in broth until cooked through, about 20 minutes. Remove chicken, shred, and set aside. Reserve broth.",
+        "In a large pot, melt butter over medium heat. Add onion, celery, and carrots. Cook until softened, about 8 minutes.",
+        "Sprinkle flour over vegetables and stir to coat. Cook 2 minutes.",
+        "Gradually whisk in reserved broth and cream. Bring to simmer and cook until thickened, about 5 minutes.",
+        "Stir in shredded chicken, peas, thyme, salt, and pepper. Remove from heat and let cool slightly.",
+        "Preheat oven to 400°F (200°C).",
+        "Divide filling among 6 individual ramekins or one 9x13 baking dish.",
+        "Cut puff pastry to fit over dishes. Place pastry on top and crimp edges. Cut small vents. Brush with egg wash.",
+        "Bake until pastry is golden and filling is bubbling, 25-30 minutes.",
+        "Let rest 5 minutes before serving."
+      ]
+    },
+    {
+      "id": "automat-classics-004",
+      "title": "Automat Beef Stew",
+      "description": "Hearty and warming, this stew fed generations of New Yorkers through cold winters.",
+      "prepTime": 20,
+      "cookTime": 120,
+      "servings": 8,
+      "source": "Horn & Hardart Archives",
+      "story": "On winter days, the line for beef stew stretched out the door. The Automat's version was thick, warming, and substantial enough to fuel a long day of work.",
+      "difficulty": "easy",
+      "tags": [
+        "comfort food",
+        "main dish",
+        "make-ahead",
+        "winter"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-beef-stew.webp",
+      "sortOrder": 1,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:01.884Z",
+      "updatedAt": "2026-02-06T03:53:01.884Z",
+      "ingredients": [
+        {
+          "name": "beef chuck",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "cut into 1.5-inch cubes",
+          "group": null,
+          "text": "2 pounds beef chuck",
+          "order": 0
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup all-purpose flour",
+          "order": 1
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons vegetable oil",
+          "order": 2
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "chopped",
+          "group": null,
+          "text": "2 medium onions",
+          "order": 3
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "3 cloves garlic",
+          "order": 4
+        },
+        {
+          "name": "beef broth",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "4 cups beef broth",
+          "order": 5
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons tomato paste",
+          "order": 6
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Worcestershire sauce",
+          "order": 7
+        },
+        {
+          "name": "potatoes",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": "cubed",
+          "group": null,
+          "text": "1.5 pounds potatoes",
+          "order": 8
+        },
+        {
+          "name": "carrots",
+          "amount": 4,
+          "unit": "medium",
+          "preparation": "sliced",
+          "group": null,
+          "text": "4 medium carrots",
+          "order": 9
+        },
+        {
+          "name": "celery",
+          "amount": 3,
+          "unit": "stalks",
+          "preparation": "sliced",
+          "group": null,
+          "text": "3 stalks celery",
+          "order": 10
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2  bay leaves",
+          "order": 11
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon fresh thyme",
+          "order": 12
+        },
+        {
+          "name": "salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "salt and pepper",
+          "order": 13
+        }
+      ],
+      "instructions": [
+        "Season beef with salt and pepper. Toss with flour to coat.",
+        "Heat oil in a large Dutch oven over medium-high heat. Brown beef in batches, about 3 minutes per side. Remove and set aside.",
+        "Add onions to pot and cook until softened, about 5 minutes. Add garlic and cook 1 minute.",
+        "Stir in tomato paste and cook 1 minute.",
+        "Add broth, Worcestershire, bay leaves, and thyme. Scrape up any browned bits.",
+        "Return beef to pot. Bring to boil, then reduce heat and simmer covered for 1 hour.",
+        "Add potatoes, carrots, and celery. Continue simmering until vegetables are tender and beef is very tender, about 45 minutes more.",
+        "Remove bay leaves. Adjust seasoning and serve."
+      ]
+    },
+    {
+      "id": "automat-classics-005",
+      "title": "Automat Meatloaf with Gravy",
+      "description": "The ultimate diner meatloaf, served with rich brown gravy just like at the Automat.",
+      "prepTime": 20,
+      "cookTime": 60,
+      "servings": 8,
+      "source": "Horn & Hardart Archives",
+      "story": "The Automat's meatloaf was comfort food perfection—moist, well-seasoned, and always served with a ladleful of rich gravy. It was the meal that reminded everyone of home.",
+      "difficulty": "easy",
+      "tags": [
+        "comfort food",
+        "main dish",
+        "classic",
+        "family favorite"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-meatloaf.webp",
+      "sortOrder": 1,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:02.170Z",
+      "updatedAt": "2026-02-06T03:53:02.170Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 pounds ground beef",
+          "order": 0
+        },
+        {
+          "name": "ground pork",
+          "amount": 0.5,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 pound ground pork",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "finely diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 2
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup breadcrumbs",
+          "order": 3
+        },
+        {
+          "name": "milk",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup milk",
+          "order": 4
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 5
+        },
+        {
+          "name": "ketchup",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup ketchup",
+          "order": 6
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Worcestershire sauce",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons salt",
+          "order": 8
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 9
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 cups beef broth",
+          "order": 10
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 tablespoons butter",
+          "order": 11
+        },
+        {
+          "name": "flour",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 tablespoons flour",
+          "order": 12
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C).",
+        "Soak breadcrumbs in milk for 5 minutes.",
+        "Combine beef, pork, onion, soaked breadcrumbs, eggs, ketchup, Worcestershire, salt, and pepper. Mix gently until just combined.",
+        "Shape into a loaf on a rimmed baking sheet or in a loaf pan.",
+        "Bake until internal temperature reaches 160°F (71°C), about 1 hour.",
+        "Let rest 10 minutes before slicing.",
+        "For gravy: Melt butter in a saucepan. Whisk in flour and cook 1 minute. Gradually add broth, whisking constantly. Simmer until thickened.",
+        "Serve meatloaf slices with gravy."
+      ]
+    },
+    {
+      "id": "automat-classics-006",
+      "title": "Automat Swedish Meatballs",
+      "description": "Tender meatballs in a silky cream gravy, served over egg noodles.",
+      "prepTime": 30,
+      "cookTime": 30,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "New York's Swedish immigrant population helped make these meatballs an Automat staple. The cream gravy was the key—rich, smooth, and perfect for soaking into egg noodles.",
+      "difficulty": "medium",
+      "tags": [
+        "comfort food",
+        "main dish",
+        "crowd-pleaser"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-swedish-meatballs.webp",
+      "sortOrder": 1,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:02.462Z",
+      "updatedAt": "2026-02-06T03:53:02.462Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 0.75,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 pound ground beef",
+          "order": 0
+        },
+        {
+          "name": "ground pork",
+          "amount": 0.75,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 pound ground pork",
+          "order": 1
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup breadcrumbs",
+          "order": 2
+        },
+        {
+          "name": "milk",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup milk",
+          "order": 3
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 4
+        },
+        {
+          "name": "onion",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "finely grated",
+          "group": null,
+          "text": "0.25 cup onion",
+          "order": 5
+        },
+        {
+          "name": "allspice",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon allspice",
+          "order": 6
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon nutmeg",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 8
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "4 tablespoons butter",
+          "order": 9
+        },
+        {
+          "name": "flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "3 tablespoons flour",
+          "order": 10
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 cups beef broth",
+          "order": 11
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "0.5 cup heavy cream",
+          "order": 12
+        },
+        {
+          "name": "egg noodles",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": "For serving",
+          "text": "1 pound egg noodles",
+          "order": 13
+        }
+      ],
+      "instructions": [
+        "Soak breadcrumbs in milk for 5 minutes.",
+        "Combine beef, pork, soaked breadcrumbs, egg, onion, allspice, nutmeg, and salt. Mix gently.",
+        "Roll into 1-inch meatballs (about 40).",
+        "Melt 2 tablespoons butter in a large skillet. Brown meatballs in batches. Remove and set aside.",
+        "Add remaining butter to skillet. Whisk in flour and cook 1 minute.",
+        "Gradually add broth, whisking constantly. Bring to simmer.",
+        "Stir in cream. Return meatballs to skillet.",
+        "Simmer until meatballs are cooked through and sauce is thickened, about 15 minutes.",
+        "Serve over buttered egg noodles."
+      ]
+    },
+    {
+      "id": "automat-classics-007",
+      "title": "Automat Salisbury Steak",
+      "description": "Seasoned beef patties smothered in rich onion gravy. Classic diner fare at its finest.",
+      "prepTime": 15,
+      "cookTime": 35,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "Named after 19th-century physician James Salisbury who promoted ground beef as health food, this dish became a diner staple. The Automat's version featured deeply caramelized onions.",
+      "difficulty": "easy",
+      "tags": [
+        "comfort food",
+        "main dish",
+        "classic"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-salisbury-steak.webp",
+      "sortOrder": 1,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:02.804Z",
+      "updatedAt": "2026-02-06T03:53:02.804Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 pounds ground beef",
+          "order": 0
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup breadcrumbs",
+          "order": 1
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "minced",
+          "group": null,
+          "text": "0.25 cup onion",
+          "order": 3
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Worcestershire sauce",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 6
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "3 tablespoons butter",
+          "order": 7
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "sliced",
+          "group": "For gravy",
+          "text": "2 large onions",
+          "order": 8
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 cups beef broth",
+          "order": 9
+        },
+        {
+          "name": "flour",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 tablespoons flour",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Combine beef, breadcrumbs, egg, minced onion, Worcestershire, salt, and pepper. Mix gently.",
+        "Form into 6 oval patties, about 3/4 inch thick.",
+        "Cook patties in a large skillet over medium-high heat, about 4 minutes per side. Remove and set aside.",
+        "Add butter to skillet. Cook sliced onions until caramelized, about 15 minutes.",
+        "Sprinkle flour over onions and stir. Cook 1 minute.",
+        "Add broth and stir, scraping up browned bits. Simmer until thickened.",
+        "Return patties to skillet. Simmer in gravy for 10 minutes.",
+        "Serve patties smothered in onion gravy."
+      ]
+    },
+    {
+      "id": "automat-classics-008",
+      "title": "Automat Franks and Beans",
+      "description": "A childhood favorite elevated to Automat standards. Sweet, savory, and utterly satisfying.",
+      "prepTime": 10,
+      "cookTime": 45,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "Sometimes the simplest dishes are the most beloved. Franks and beans was the Automat's answer to the question: what's for lunch when you're nine years old?",
+      "difficulty": "easy",
+      "tags": [
+        "comfort food",
+        "kid-friendly",
+        "quick",
+        "budget-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-franks-beans.webp",
+      "sortOrder": 1,
+      "unlockDay": 14,
+      "createdAt": "2026-02-06T03:53:03.095Z",
+      "updatedAt": "2026-02-06T03:53:03.095Z",
+      "ingredients": [
+        {
+          "name": "hot dogs",
+          "amount": 8,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "8  hot dogs",
+          "order": 0
+        },
+        {
+          "name": "navy beans",
+          "amount": 2,
+          "unit": "cans (15 oz each)",
+          "preparation": null,
+          "group": null,
+          "text": "2 cans (15 oz each) navy beans",
+          "order": 1
+        },
+        {
+          "name": "ketchup",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup ketchup",
+          "order": 2
+        },
+        {
+          "name": "molasses",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons molasses",
+          "order": 3
+        },
+        {
+          "name": "brown sugar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons brown sugar",
+          "order": 4
+        },
+        {
+          "name": "yellow mustard",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon yellow mustard",
+          "order": 5
+        },
+        {
+          "name": "onion",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced",
+          "group": null,
+          "text": "0.5 cup onion",
+          "order": 6
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon Worcestershire sauce",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon salt",
+          "order": 8
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C).",
+        "Cut hot dogs into 1-inch pieces.",
+        "Combine beans, ketchup, molasses, brown sugar, mustard, onion, Worcestershire, salt, and pepper in a baking dish.",
+        "Nestle hot dog pieces into the bean mixture.",
+        "Bake uncovered until bubbling and slightly thickened, about 45 minutes.",
+        "Let rest 5 minutes before serving."
+      ]
+    },
+    {
+      "id": "automat-classics-009",
+      "title": "Automat Boston Baked Beans",
+      "description": "Slow-baked for hours in the Automat's massive ovens, these beans became legendary for their deep, molasses-rich flavor.",
+      "prepTime": 30,
+      "cookTime": 360,
+      "servings": 10,
+      "source": "Horn & Hardart Archives",
+      "story": "The Automat's bean pots held gallons and baked overnight in their massive ovens. Customers lined up early knowing the beans would be sold out by noon. This recipe captures that long, slow bake that made them unforgettable.",
+      "difficulty": "easy",
+      "tags": [
+        "comfort food",
+        "make-ahead",
+        "crowd-pleaser"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-baked-beans.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:03.371Z",
+      "updatedAt": "2026-02-06T03:53:03.371Z",
+      "ingredients": [
+        {
+          "name": "navy beans",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound navy beans",
+          "order": 0
+        },
+        {
+          "name": "salt pork",
+          "amount": 0.5,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 pound salt pork",
+          "order": 1
+        },
+        {
+          "name": "molasses",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup molasses",
+          "order": 2
+        },
+        {
+          "name": "brown sugar",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup brown sugar",
+          "order": 3
+        },
+        {
+          "name": "dry mustard",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon dry mustard",
+          "order": 4
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "quartered",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 5
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 7
+        },
+        {
+          "name": "water",
+          "amount": 6,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "6 cups water",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Rinse beans and place in a large pot. Cover with water by 2 inches. Soak overnight, or quick-soak by boiling 2 minutes then letting stand 1 hour.",
+        "Drain beans. Return to pot with fresh water. Bring to boil, reduce heat, and simmer until beans are just tender, about 45 minutes. Drain, reserving cooking liquid.",
+        "Preheat oven to 300°F (150°C).",
+        "Score salt pork in a crosshatch pattern. Place half at the bottom of a bean pot or Dutch oven.",
+        "Add beans and nestle onion quarters into them.",
+        "Whisk together molasses, brown sugar, mustard, salt, pepper, and 2 cups reserved bean liquid. Pour over beans.",
+        "Top with remaining salt pork. Add enough bean liquid to just cover beans.",
+        "Cover and bake for 5-6 hours, checking hourly and adding liquid if beans look dry.",
+        "Uncover for final 30 minutes to brown the top."
+      ]
+    },
+    {
+      "id": "automat-classics-010",
+      "title": "Automat Creamed Spinach",
+      "description": "Silky smooth and deeply savory, this was the vegetable side that converted spinach skeptics.",
+      "prepTime": 15,
+      "cookTime": 15,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "The Automat's creamed spinach was so popular that it inspired countless steakhouse imitations. The secret was the shallots and fresh nutmeg, elevating a simple vegetable into something memorable.",
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "vegetarian",
+        "quick"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-creamed-spinach.webp",
+      "sortOrder": 2,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:03.645Z",
+      "updatedAt": "2026-02-06T03:53:03.645Z",
+      "ingredients": [
+        {
+          "name": "fresh spinach",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "2 pounds fresh spinach",
+          "order": 0
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "shallots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 medium shallots",
+          "order": 2
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 cloves garlic",
+          "order": 3
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons all-purpose flour",
+          "order": 4
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup heavy cream",
+          "order": 5
+        },
+        {
+          "name": "whole milk",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup whole milk",
+          "order": 6
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon nutmeg",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 8
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon white pepper",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "If using fresh spinach, wash thoroughly and remove tough stems. Blanch in boiling salted water for 1 minute, then plunge into ice water. Drain and squeeze very dry.",
+        "If using frozen, thaw completely and squeeze out all moisture.",
+        "Roughly chop the spinach.",
+        "In a large skillet, melt butter over medium heat. Add shallots and cook until softened, about 3 minutes.",
+        "Add garlic and cook 1 minute more.",
+        "Sprinkle flour over the shallots and stir to combine. Cook 1 minute.",
+        "Gradually whisk in cream and milk. Cook until thickened, about 3-4 minutes.",
+        "Add spinach, nutmeg, salt, and pepper. Stir to combine and heat through.",
+        "Adjust seasoning and serve immediately."
+      ]
+    },
+    {
+      "id": "automat-classics-011",
+      "title": "Automat Cod Fish Cakes",
+      "description": "Crispy on the outside, fluffy within. A Friday staple at the Automat.",
+      "prepTime": 30,
+      "cookTime": 30,
+      "servings": 4,
+      "source": "Horn & Hardart Archives",
+      "story": "Every Friday, the Automat's fish cakes disappeared within hours. Made fresh each morning, they were crispy, flaky, and always served piping hot.",
+      "difficulty": "medium",
+      "tags": [
+        "seafood",
+        "main dish",
+        "classic"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-fish-cakes.webp",
+      "sortOrder": 2,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:03.968Z",
+      "updatedAt": "2026-02-06T03:53:03.968Z",
+      "ingredients": [
+        {
+          "name": "salt cod",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound salt cod",
+          "order": 0
+        },
+        {
+          "name": "russet potatoes",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 pounds russet potatoes",
+          "order": 1
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons butter",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "finely minced",
+          "group": null,
+          "text": "1 small onion",
+          "order": 3
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 4
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 tablespoons fresh parsley",
+          "order": 5
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon white pepper",
+          "order": 6
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For frying",
+          "text": "0.5 cup vegetable oil",
+          "order": 7
+        },
+        {
+          "name": "lemon wedges",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "lemon wedges",
+          "order": 8
+        },
+        {
+          "name": "tartar sauce",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "tartar sauce",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "If using salt cod, soak in cold water for 24-48 hours, changing water several times. Drain.",
+        "Place cod in a pot, cover with cold water, and bring to simmer. Cook until fish flakes easily, about 10 minutes. Drain and flake, removing any bones.",
+        "Boil potatoes until tender. Drain, peel, and mash while hot.",
+        "Melt butter in a small pan. Cook onion until soft but not browned.",
+        "Combine fish, potatoes, onion, egg, parsley, and pepper. Mix well.",
+        "Shape into 8 patties about 3 inches across and 3/4 inch thick.",
+        "Heat oil in a large skillet over medium heat.",
+        "Fry fish cakes until golden brown, about 4 minutes per side.",
+        "Drain on paper towels. Serve hot with lemon and tartar sauce."
+      ]
+    },
+    {
+      "id": "automat-classics-012",
+      "title": "Automat Coconut Custard Pie",
+      "description": "One of the legendary pies displayed in the Automat's glass cases. Silky custard meets toasted coconut.",
+      "prepTime": 20,
+      "cookTime": 50,
+      "servings": 8,
+      "source": "Horn & Hardart Archives",
+      "story": "The pie cases at the Automat were works of art. Behind their gleaming glass, coconut custard pie sat like edible treasure, waiting for someone to drop in their nickels.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pie",
+        "classic"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-coconut-custard-pie.webp",
+      "sortOrder": 2,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:04.253Z",
+      "updatedAt": "2026-02-06T03:53:04.253Z",
+      "ingredients": [
+        {
+          "name": "pie crust",
+          "amount": 1,
+          "unit": "9-inch",
+          "preparation": null,
+          "group": null,
+          "text": "1 9-inch pie crust",
+          "order": 0
+        },
+        {
+          "name": "eggs",
+          "amount": 4,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "4 large eggs",
+          "order": 1
+        },
+        {
+          "name": "sugar",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "whole milk",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups whole milk",
+          "order": 3
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup heavy cream",
+          "order": 4
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla extract",
+          "order": 5
+        },
+        {
+          "name": "sweetened shredded coconut",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups sweetened shredded coconut",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.125,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.125 teaspoon nutmeg",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 425°F (220°C). Place pie crust in pan and crimp edges.",
+        "Toast 0.5 cup coconut in a dry skillet until golden. Set aside for topping.",
+        "Whisk eggs and sugar until smooth.",
+        "Heat milk and cream until steaming (not boiling). Slowly whisk into egg mixture.",
+        "Add vanilla, salt, and nutmeg.",
+        "Scatter remaining 1 cup coconut in pie crust.",
+        "Carefully pour custard over coconut.",
+        "Bake at 425°F for 15 minutes, then reduce to 350°F (175°C) and bake until custard is set but still jiggles slightly, about 30-35 minutes more.",
+        "Cool completely. Top with toasted coconut before serving."
+      ]
+    },
+    {
+      "id": "automat-classics-013",
+      "title": "Old-Fashioned Tapioca Pudding",
+      "description": "Creamy, comforting, and studded with pearl tapioca. A forgotten classic from the Automat dessert case.",
+      "prepTime": 40,
+      "cookTime": 20,
+      "servings": 6,
+      "source": "Horn & Hardart Archives",
+      "story": "Tapioca pudding was comfort in a cup—the kind of old-fashioned dessert that reminded customers of their grandmothers' kitchens.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "comfort food",
+        "classic"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-tapioca-pudding.webp",
+      "sortOrder": 2,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:04.539Z",
+      "updatedAt": "2026-02-06T03:53:04.539Z",
+      "ingredients": [
+        {
+          "name": "small pearl tapioca",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup small pearl tapioca",
+          "order": 0
+        },
+        {
+          "name": "whole milk",
+          "amount": 2.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2.5 cups whole milk",
+          "order": 1
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 3
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla extract",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Soak tapioca in milk for 30 minutes.",
+        "Transfer to a saucepan. Add sugar and salt. Bring to a simmer over medium heat, stirring frequently.",
+        "Cook, stirring constantly, until tapioca is translucent and mixture thickens, about 15 minutes.",
+        "Beat egg yolks in a small bowl. Slowly whisk in about 1 cup of hot tapioca mixture to temper.",
+        "Return tempered yolks to pot. Cook, stirring, for 2 more minutes.",
+        "Remove from heat and stir in vanilla.",
+        "Beat egg whites until stiff peaks form. Fold into warm pudding.",
+        "Pour into serving dishes. Serve warm or chilled."
+      ]
+    },
+    {
+      "id": "automat-classics-014",
+      "title": "Automat Apple Pie",
+      "description": "The pie that launched a thousand nickels. Flaky crust, tender spiced apples, and that unmistakable Automat magic.",
+      "prepTime": 30,
+      "cookTime": 60,
+      "servings": 8,
+      "source": "Horn & Hardart Archives",
+      "story": "The Automat sold more apple pie than any other dessert. The secret was in the spice blend and letting the pie cool completely before cutting—a patience that made each slice perfect.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pie",
+        "classic",
+        "American"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/automat-classics/automat-classics-automat-apple-pie.webp",
+      "sortOrder": 2,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:04.823Z",
+      "updatedAt": "2026-02-06T03:53:04.823Z",
+      "ingredients": [
+        {
+          "name": "pie dough",
+          "amount": 2,
+          "unit": "9-inch rounds",
+          "preparation": null,
+          "group": "For crust",
+          "text": "2 9-inch rounds pie dough",
+          "order": 0
+        },
+        {
+          "name": "Granny Smith apples",
+          "amount": 3,
+          "unit": "pounds",
+          "preparation": "peeled and sliced",
+          "group": null,
+          "text": "3 pounds Granny Smith apples",
+          "order": 1
+        },
+        {
+          "name": "sugar",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "brown sugar",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup brown sugar",
+          "order": 3
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons all-purpose flour",
+          "order": 4
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons cinnamon",
+          "order": 5
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon nutmeg",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "lemon juice",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon lemon juice",
+          "order": 8
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "cut into pieces",
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 9
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1  egg",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 425°F (220°C).",
+        "Line a 9-inch pie plate with one round of dough.",
+        "Toss apples with sugars, flour, cinnamon, nutmeg, salt, and lemon juice.",
+        "Pile apple mixture into crust. Dot with butter.",
+        "Top with second crust. Trim and crimp edges. Cut vents.",
+        "Brush with egg wash. Sprinkle with a little sugar.",
+        "Bake 20 minutes at 425°F, then reduce to 375°F (190°C) and bake until golden and bubbling, about 35-40 minutes more.",
+        "Cool at least 2 hours before slicing."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:30:33.355Z"
+}

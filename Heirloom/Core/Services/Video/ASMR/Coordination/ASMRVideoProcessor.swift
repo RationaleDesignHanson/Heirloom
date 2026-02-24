@@ -30,7 +30,6 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
     private let soundAnalyzer: ASMRSoundAnalysisService
     private let frameExtractor: ASMRFrameExtractionService
     private let structurer: ASMRRecipeStructurer
-    private let usageManager: ASMRUsageManager
     private let cacheService: ASMRCacheService
     private let aiService: (any AIServiceProtocol)?  // For watermark detection
 
@@ -66,7 +65,6 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         soundAnalyzer: ASMRSoundAnalysisService? = nil,
         frameExtractor: ASMRFrameExtractionService? = nil,
         structurer: ASMRRecipeStructurer? = nil,
-        usageManager: ASMRUsageManager? = nil,
         cacheService: ASMRCacheService? = nil,
         aiService: (any AIServiceProtocol)? = nil,
         modelContext: ModelContext? = nil
@@ -74,36 +72,21 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         self.soundAnalyzer = soundAnalyzer ?? ASMRSoundAnalysisService()
         self.frameExtractor = frameExtractor ?? ASMRFrameExtractionService()
         self.structurer = structurer ?? ASMRRecipeStructurer(modelContext: modelContext)
-        self.usageManager = usageManager ?? ASMRUsageManager.shared
         self.cacheService = cacheService ?? ASMRCacheService.shared
         self.aiService = aiService ?? ServiceContainer.shared.resolve((any AIServiceProtocol).self)
     }
 
     // MARK: - Public API
 
+    /// Process ASMR video to extract recipe
+    /// Note: Credit handling is done by callers (VideoProcessingJobManager), not here
     func process(
         videoURL: URL,
         userCaption: String,
         videoHash: String?,
         skipSoundAnalysis: Bool = false,
-        dishNameHint: String? = nil,
-        creditsPreCharged: Bool = false
+        dishNameHint: String? = nil
     ) async throws -> ASMRRecipeExtraction {
-
-        // Skip credit check if credits were already deducted at confirmation time
-        if !creditsPreCharged {
-            // Check credit availability
-            guard usageManager.canStartExtraction() else {
-                throw ASMRUsageError.insufficientCredits(
-                    needed: 5,
-                    available: usageManager.creditsRemaining
-                )
-            }
-
-            // Deduct credits upfront
-            try usageManager.startExtraction()
-        }
-
         do {
             let result = try await processInternal(
                 videoURL: videoURL,
@@ -116,10 +99,6 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         } catch {
             // Disable keep-alive on error
             await disableKeepAlive()
-            // Refund credits on failure (only if we charged them here)
-            if !creditsPreCharged {
-                usageManager.refundExtraction()
-            }
             throw error
         }
     }

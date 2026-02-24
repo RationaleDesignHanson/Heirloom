@@ -10,6 +10,8 @@ struct RecipeDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseSync) private var firebaseSync
     @Environment(\.firebaseAuth) private var firebaseAuth
+    @Environment(\.network) private var networkMonitor
+    @State private var isOffline = false  // Local state for instant UI updates
     @State private var showDeleteConfirmation = false
     @State private var showSignInPrompt = false
     @State private var showFirebaseSignIn = false
@@ -74,6 +76,15 @@ struct RecipeDetailView: View {
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     private var commentService: CommentService { ServiceContainer.shared.resolve(CommentService.self) }
+
+    private var lineageService: RecipeLineageService { ServiceContainer.shared.resolve(RecipeLineageService.self) }
+
+    // Lineage download state
+    @State private var isDownloadingLineage = false
+
+    // Offline download education modal
+    @State private var showOfflineEducationModal = false
+    @AppStorage("hasSeenOfflineDownloadEducation") private var hasSeenOfflineEducation = false
 
     // MARK: - Computed Display Properties
 
@@ -277,12 +288,10 @@ struct RecipeDetailView: View {
         }
 
         // Check provenance first
-        if let provenance = recipe.provenance {
-            if provenance.isOriginal {
-                return "Original"
-            } else if provenance.generation > 0 {
-                return "Gen \(provenance.generation)"
-            }
+        if recipe.provenance.isOriginal {
+            return "Original"
+        } else if recipe.provenance.generation > 0 {
+            return "Gen \(recipe.provenance.generation)"
         }
 
         // Fallback: Check if we have lineage data from versionViewModel
@@ -309,8 +318,8 @@ struct RecipeDetailView: View {
     private var needsAttribution: Bool {
         guard recipe.sourceType == .video else { return false }
         // Check if attribution is missing or empty
-        let hasAttribution = recipe.provenance?.sourceAttribution != nil &&
-                            !recipe.provenance!.sourceAttribution!.isEmpty
+        let attribution = recipe.provenance.sourceAttribution
+        let hasAttribution = attribution != nil && !attribution!.isEmpty
         return !hasAttribution
     }
 
@@ -497,6 +506,9 @@ struct RecipeDetailView: View {
                 showOwnershipVerification: $showOwnershipVerification,
                 showPublishSheet: $showPublishSheet,
                 showUnpublishConfirmation: $showUnpublishConfirmation,
+                showOfflineEducationModal: $showOfflineEducationModal,
+                hasSeenOfflineEducation: $hasSeenOfflineEducation,
+                downloadLineageForOffline: downloadLineageForOffline,
                 handleShareTapped: handleShareTapped,
                 handleEditTapped: handleEditTapped,
                 duplicateRecipe: duplicateRecipe,
@@ -533,7 +545,9 @@ struct RecipeDetailView: View {
                         selectedVersion: $selectedVersion,
                         isDiffExpanded: $isDiffExpanded,
                         changeSummary: changeSummary,
-                        originalVersion: versionViewModel.versions.first(where: { $0.generation == 0 })
+                        originalVersion: versionViewModel.versions.first(where: { $0.generation == 0 }),
+                        heritageChainCount: recipe.heritageChain?.count ?? 0,
+                        isOffline: isOffline
                     )
                     .padding(.horizontal, HeirloomSpacing.lg)
 
@@ -610,6 +624,21 @@ struct RecipeDetailView: View {
         }
         .background(HeirloomColors.cream)
         .navigationBarTitleDisplayMode(.inline)
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            // Poll the main NetworkMonitor's isConnected property
+            // The main monitor is already running and tracking state changes
+            let currentlyOffline = !networkMonitor.isConnected
+            if isOffline != currentlyOffline {
+                isOffline = currentlyOffline
+                Log.debug("Network status poll detected change", category: .network, metadata: [
+                    "isOffline": currentlyOffline
+                ])
+            }
+        }
+        .onAppear {
+            // Initialize from main NetworkMonitor
+            isOffline = !networkMonitor.isConnected
+        }
     }
 }
 
@@ -646,6 +675,9 @@ private struct RecipeDetailModifiers: ViewModifier {
     @Binding var showOwnershipVerification: Bool
     @Binding var showPublishSheet: Bool
     @Binding var showUnpublishConfirmation: Bool
+    @Binding var showOfflineEducationModal: Bool
+    @Binding var hasSeenOfflineEducation: Bool
+    let downloadLineageForOffline: () -> Void
 
     let handleShareTapped: () -> Void
     let handleEditTapped: () -> Void
@@ -927,6 +959,20 @@ private struct RecipeDetailModifiers: ViewModifier {
             FirebaseSignInView()
                 .presentationDetents([.large])
         }
+        .sheet(isPresented: $showOfflineEducationModal) {
+            OfflineDownloadEducationView(
+                onDismiss: {
+                    showOfflineEducationModal = false
+                    hasSeenOfflineEducation = true
+                },
+                onDownloadNow: {
+                    showOfflineEducationModal = false
+                    hasSeenOfflineEducation = true
+                    downloadLineageForOffline()
+                }
+            )
+            .presentationDetents([.medium])
+        }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe, targetServings: targetServings)
         }
@@ -1173,10 +1219,32 @@ extension RecipeDetailView {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            // Title
-            Text(displayTitle)
-                .font(HeirloomFonts.title1)
-                .foregroundStyle(HeirloomColors.charcoal)
+            // Title with offline download affordance
+            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                // Download for offline button (only show for shared recipes with lineage)
+                if recipe.heritageChain != nil || recipe.sharedBy != nil {
+                    Button {
+                        downloadLineageForOffline()
+                    } label: {
+                        if isDownloadingLineage {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .frame(width: 20, height: 20)
+                        } else {
+                            Image(systemName: recipe.lineageCachedAt != nil ? "checkmark.circle.fill" : "arrow.down.circle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(recipe.lineageCachedAt != nil ? HeirloomColors.familyGreen : HeirloomColors.warmGray)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isDownloadingLineage)
+                    .accessibilityLabel(recipe.lineageCachedAt != nil ? "Lineage saved offline" : "Save lineage for offline")
+                }
+
+                Text(displayTitle)
+                    .font(HeirloomFonts.title1)
+                    .foregroundStyle(HeirloomColors.charcoal)
+            }
 
             // Source Badge
             HStack(spacing: HeirloomSpacing.xs) {
@@ -1447,6 +1515,9 @@ extension RecipeDetailView {
     // MARK: - Start Cooking Button
     private var startCookingButton: some View {
         Button {
+            // Show offline education on first cook (if applicable)
+            showOfflineEducationIfNeeded()
+
             showCookingMode = true
             analytics.track(event: .cookingStarted, properties: [
                 "recipe_id": recipe.id.uuidString,
@@ -1815,55 +1886,72 @@ extension RecipeDetailView {
     private var sourceSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Provenance information
-            if let provenance = recipe.provenance {
-                HStack(spacing: HeirloomSpacing.sm) {
-                    Image(systemName: provenance.sourceType.iconName)
-                        .foregroundStyle(HeirloomColors.tomato)
-                        .font(.callout)
+            HStack(spacing: HeirloomSpacing.sm) {
+                Image(systemName: recipe.provenance.sourceType.iconName)
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .font(.callout)
 
-                    Text(provenance.displaySource)
-                        .font(HeirloomFonts.callout)
-                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.8))
+                Text(recipe.provenance.displaySource)
+                    .font(HeirloomFonts.callout)
+                    .foregroundStyle(HeirloomColors.charcoal.opacity(0.8))
 
-                    // Version/Generation badge
-                    if let badgeText = versionBadgeText {
-                        Text(badgeText)
+                // Version/Generation badge
+                if let badgeText = versionBadgeText {
+                    Text(badgeText)
+                        .font(HeirloomFonts.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(versionViewModel.versions.count > 1 ? HeirloomColors.familyGreen : (recipe.provenance.isOriginal ? HeirloomColors.tomato : HeirloomColors.familyGreen))
+                        )
+                }
+            }
+
+            // View Lineage Button - show when online and has lineage
+            if !isOffline && (versionViewModel.versions.count > 1 || (recipe.heritageChain?.count ?? 0) > 0) {
+                Button {
+                    showLineageView = true
+                } label: {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "network")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.tomato)
+
+                        Text("View Family Tree")
+                            .font(HeirloomFonts.callout)
+                            .foregroundStyle(HeirloomColors.tomato)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
                             .font(HeirloomFonts.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(HeirloomColors.buttonTextLight)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(
-                                Capsule()
-                                    .fill(versionViewModel.versions.count > 1 ? HeirloomColors.familyGreen : (provenance.isOriginal ? HeirloomColors.tomato : HeirloomColors.familyGreen))
-                            )
+                            .foregroundStyle(HeirloomColors.tomato.opacity(0.6))
                     }
                 }
+                .buttonStyle(.plain)
+                .padding(.top, HeirloomSpacing.xs)
+            }
+            // Offline indicator when offline and has lineage data
+            else if isOffline && (versionViewModel.versions.count > 1 || (recipe.heritageChain?.count ?? 0) > 0) {
+                HStack(spacing: HeirloomSpacing.xs) {
+                    Image(systemName: "network.slash")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.warmGray)
 
-                // View Lineage Button (only show if there are multiple versions)
-                if versionViewModel.versions.count > 1 {
-                    Button {
-                        showLineageView = true
-                    } label: {
-                        HStack(spacing: HeirloomSpacing.xs) {
-                            Image(systemName: "network")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(HeirloomColors.tomato)
+                    Text("Family Tree")
+                        .font(HeirloomFonts.callout)
+                        .foregroundStyle(HeirloomColors.warmGray)
 
-                            Text("View Family Tree")
-                                .font(HeirloomFonts.callout)
-                                .foregroundStyle(HeirloomColors.tomato)
+                    Text("(offline)")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.warmGray)
 
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(HeirloomColors.tomato.opacity(0.6))
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, HeirloomSpacing.xs)
+                    Spacer()
                 }
+                .padding(.top, HeirloomSpacing.xs)
             }
 
             if recipe.timesCooked > 0 {
@@ -2165,6 +2253,14 @@ extension RecipeDetailView {
             return
         }
 
+        if recipe.isDemoRecipe {
+            toastManager.info(
+                title: "Demo recipes can't be shared",
+                message: "This is a demo recipe for learning. Create your own recipe to share with friends!"
+            )
+            return
+        }
+
         // Check if user is authenticated before sharing
         if firebaseAuth.isAuthenticated {
             showCloudKitShare = true
@@ -2195,9 +2291,146 @@ extension RecipeDetailView {
         ])
     }
 
+    // MARK: - Lineage Download (Netflix-style offline)
+
+    private func downloadLineageForOffline() {
+        // If already cached, offer to remove
+        if recipe.lineageCachedAt != nil {
+            recipe.lineageCachedAt = nil
+            recipe.cachedLineageJSON = nil
+            try? modelContext.save()
+            toastManager.success(title: "Offline lineage removed")
+            return
+        }
+
+        // Download and cache
+        isDownloadingLineage = true
+        Task {
+            do {
+                let tree = try await lineageService.fetchLineageTree(
+                    for: recipe,
+                    context: modelContext
+                )
+
+                // Serialize tree to JSON for offline storage
+                let cacheData = CachedLineageData(
+                    recipeId: recipe.id,
+                    cachedAt: Date(),
+                    nodes: tree.nodes.map { node in
+                        CachedLineageNode(
+                            recipeId: node.recipe.id,
+                            title: node.recipe.title,
+                            generation: node.generation,
+                            contributorName: node.contributor?.displayName,
+                            contributorId: node.contributor?.userId,
+                            isCurrentUser: node.isCurrentUser,
+                            cookCount: node.stats.cookCount,
+                            shareCount: node.stats.shareCount
+                        )
+                    },
+                    edges: tree.edges.map { edge in
+                        CachedLineageEdge(
+                            fromId: edge.fromID,
+                            toId: edge.toID,
+                            createdAt: edge.createdAt
+                        )
+                    }
+                )
+
+                let encoder = JSONEncoder()
+                encoder.dateEncodingStrategy = .iso8601
+                let jsonData = try encoder.encode(cacheData)
+                let jsonString = String(data: jsonData, encoding: .utf8)
+
+                await MainActor.run {
+                    recipe.cachedLineageJSON = jsonString
+                    recipe.lineageCachedAt = Date()
+                    try? modelContext.save()
+                    isDownloadingLineage = false
+                    toastManager.success(title: "Lineage saved for offline")
+
+                    analytics.track(event: .featureUsed, properties: [
+                        "feature": "lineage_download",
+                        "recipe_id": recipe.id.uuidString,
+                        "node_count": tree.nodes.count
+                    ])
+                }
+
+                // Fire-and-forget: increment global download counter
+                await incrementGlobalDownloadCount(for: recipe)
+            } catch {
+                await MainActor.run {
+                    isDownloadingLineage = false
+                    toastManager.error(
+                        title: "Couldn't download lineage",
+                        message: "Please check your connection and try again"
+                    )
+                }
+                Log.error("Failed to download lineage for offline", category: .firebase, metadata: [
+                    "error": error.localizedDescription,
+                    "recipeId": recipe.id.uuidString
+                ])
+            }
+        }
+    }
+
+    /// Show offline download education modal if user hasn't seen it and recipe has heritage
+    private func showOfflineEducationIfNeeded() {
+        // Only show for recipes with heritage/sharing data
+        guard recipe.heritageChain != nil || recipe.sharedBy != nil else { return }
+        // Only show once
+        guard !hasSeenOfflineEducation else { return }
+        // Don't show if already cached
+        guard recipe.lineageCachedAt == nil else { return }
+
+        showOfflineEducationModal = true
+    }
+
+    /// Fire-and-forget increment of global download counter for popularity tracking
+    private func incrementGlobalDownloadCount(for recipe: Recipe) async {
+        let endpoint = "https://us-central1-heirloom-ios-prod.cloudfunctions.net/incrementDownloadCount"
+        guard let url = URL(string: endpoint) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Use source recipe ID for tracking:
+        // - themeRecipeId for theme recipes (e.g., "automat-001")
+        // - sharedFromRecipeId for shared recipes
+        // - recipe.id for user-created recipes
+        let sourceId = recipe.themeRecipeId ?? recipe.sharedFromRecipeId ?? recipe.id.uuidString
+
+        let body: [String: Any] = [
+            "recipeId": recipe.id.uuidString,
+            "sourceRecipeId": sourceId
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            let (_, response) = try await URLSession.shared.data(for: request)
+
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                Log.debug("Global download count incremented", category: .firebase, metadata: [
+                    "recipeId": recipe.id.uuidString
+                ])
+            }
+        } catch {
+            // Fail silently - this is a non-critical analytics operation
+            Log.debug("Failed to increment global download count", category: .firebase, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
     private func toggleFavorite() {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
+
+        // Show offline education on first favorite (if applicable)
+        if recipe.isFavorite {
+            showOfflineEducationIfNeeded()
+        }
 
         // Sync with Favorites collection
         syncFavoritesCollection()
@@ -2322,6 +2555,9 @@ extension RecipeDetailView {
                 )
             }
         } else {
+            // Show offline education on first add to shopping list (if applicable)
+            showOfflineEducationIfNeeded()
+
             // Add to cart with current target servings
             let cartRecipe = ShoppingCartRecipe(recipe: recipe, targetServings: targetServings)
             modelContext.insert(cartRecipe)

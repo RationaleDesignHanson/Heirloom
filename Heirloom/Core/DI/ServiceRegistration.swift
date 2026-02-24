@@ -34,10 +34,9 @@ extension ServiceContainer {
         }
 
         // MARK: - Feature Management
-        // TODO: Re-enable after fixing module visibility
-        // register(FeatureFlagManager.self, lifecycle: .singleton) { _ in
-        //     FeatureFlagManager.shared
-        // }
+        register(FeatureFlagManager.self, lifecycle: .singleton) { _ in
+            FeatureFlagManager.shared
+        }
 
         // MARK: - Firebase Core
         register(FirebaseConfiguration.self, lifecycle: .singleton) { container in
@@ -778,6 +777,11 @@ extension ServiceContainer {
         register(PrivacyConsentService.self, lifecycle: .singleton) { container in
             let analytics = container.resolve(AnalyticsService.self)
             return PrivacyConsentService(analytics: analytics)
+        }
+
+        // MARK: - Account Deletion (Apple Compliance)
+        register(AccountDeletionService.self, lifecycle: .singleton) { _ in
+            AccountDeletionService()
         }
 
         // MARK: - Short URL

@@ -13,6 +13,8 @@ struct ProfileHeaderView: View {
     let connectionsCount: Int
     let directSharesCount: Int
     let publicSharesCount: Int
+    var creditsCount: Int = 0
+    var onCredits: (() -> Void)? = nil
     let onEditProfile: () -> Void
 
     var body: some View {
@@ -69,6 +71,20 @@ struct ProfileHeaderView: View {
                     Spacer()
                     statItem(count: publicSharesCount, label: "Public")
                 }
+
+                Spacer()
+
+                // Credits - tappable to open credits store
+                if let onCredits = onCredits {
+                    Button {
+                        onCredits()
+                    } label: {
+                        creditsStatItem
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    creditsStatItem
+                }
             }
         }
         .padding(HeirloomSpacing.md)
@@ -111,6 +127,21 @@ struct ProfileHeaderView: View {
                 .font(HeirloomFonts.title3)
                 .foregroundStyle(.white)
             Text(label)
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(.white.opacity(0.8))
+        }
+    }
+
+    private var creditsStatItem: some View {
+        VStack(spacing: 2) {
+            HStack(spacing: 4) {
+                Image(systemName: "giftcard.fill")
+                    .font(.system(size: 14))
+                Text("\(creditsCount)")
+                    .font(HeirloomFonts.title3)
+            }
+            .foregroundStyle(.white)
+            Text("Credits")
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(.white.opacity(0.8))
         }

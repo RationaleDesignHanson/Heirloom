@@ -20,6 +20,7 @@ import {
   ShortenURLRequest,
   DetectLanguageRequest,
   TranslateTextRequest,
+  IncrementDownloadCountRequest,
 } from './types';
 
 // Initialize Firebase Admin
@@ -535,3 +536,93 @@ export const onUserCreated = functionsV1.auth.user().onCreate(async (user: UserR
     // They can re-seed manually via the seed script
   }
 });
+
+/**
+ * Increment offline download count for a recipe
+ * POST /incrementDownloadCount
+ * Body: { recipeId: string, sourceRecipeId?: string, userId?: string }
+ *
+ * Tracks popularity signal when users download recipes for offline access.
+ * Increments counter on the source/theme recipe for aggregate insights.
+ */
+export const incrementDownloadCount = onRequest(
+    {
+      timeoutSeconds: 10,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        res.status(405).json({error: 'Method not allowed'});
+        return;
+      }
+
+      try {
+        const requestBody = req.body as IncrementDownloadCountRequest;
+
+        if (!requestBody || !requestBody.recipeId) {
+          res.status(400).json({
+            success: false,
+            error: 'Missing required field: recipeId',
+          });
+          return;
+        }
+
+        // Use sourceRecipeId if provided (for theme recipes), otherwise use recipeId
+        const targetRecipeId = requestBody.sourceRecipeId || requestBody.recipeId;
+
+        console.log(`📥 Download count increment for recipe: ${targetRecipeId}`);
+
+        // Try to find the recipe in theme_recipes first, then users' recipes
+        let recipeRef = db.collection('theme_recipes').doc(targetRecipeId);
+        let recipeDoc = await recipeRef.get();
+
+        if (!recipeDoc.exists) {
+          // Not a theme recipe - could be a shared recipe in a user's collection
+          // For now, we'll create a tracking document in a separate collection
+          recipeRef = db.collection('recipe_popularity').doc(targetRecipeId);
+          recipeDoc = await recipeRef.get();
+        }
+
+        // Use FieldValue.increment for atomic update
+        const updateData: Record<string, any> = {
+          offlineDownloadCount: admin.firestore.FieldValue.increment(1),
+          lastDownloadedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (recipeDoc.exists) {
+          await recipeRef.update(updateData);
+        } else {
+          // Create new tracking document
+          await recipeRef.set({
+            recipeId: targetRecipeId,
+            offlineDownloadCount: 1,
+            lastDownloadedAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        // Get the updated count
+        const updatedDoc = await recipeRef.get();
+        const newCount = updatedDoc.data()?.offlineDownloadCount || 1;
+
+        console.log(`✅ Download count now: ${newCount}`);
+
+        res.status(200).json({
+          success: true,
+          newCount: newCount,
+        });
+      } catch (error: any) {
+        console.error('❌ Download count error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to increment download count',
+        });
+      }
+    }
+);

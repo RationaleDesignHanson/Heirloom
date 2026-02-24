@@ -5,8 +5,24 @@ import SwiftData
 struct PublishRecipeSheet: View {
     let recipe: Recipe
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     @State private var viewModel: PublishRecipeViewModel
+
+    // Demo user sanitization (always auto-sanitize)
+    @State private var lineageVersionOwnerIds: [String] = []
+    @State private var hasLoadedLineage = false
+
+    /// Whether recipe has demo users in its lineage (heritage chain OR version owners)
+    private var hasDemoUsersInLineage: Bool {
+        // Check heritage chain (for recipes received from others)
+        let inHeritageChain = recipe.heritageChain?.contains(where: { DemoSocialBehaviorService.isDemoUser($0) }) ?? false
+
+        // Check lineage version owners (for recipes you created that others modified)
+        let inVersionOwners = lineageVersionOwnerIds.contains(where: { DemoSocialBehaviorService.isDemoUser($0) })
+
+        return inHeritageChain || inVersionOwners
+    }
 
     init(recipe: Recipe) {
         self.recipe = recipe
@@ -55,6 +71,33 @@ struct PublishRecipeSheet: View {
             } message: {
                 Text(viewModel.publishErrorMessage ?? "Failed to publish recipe. Please try again.")
             }
+            .task {
+                await loadLineageVersionOwners()
+            }
+        }
+    }
+
+    private func loadLineageVersionOwners() async {
+        guard !hasLoadedLineage else { return }
+
+        let versionViewModel = RecipeVersionSelectorViewModel()
+        await versionViewModel.loadVersions(for: recipe, context: modelContext)
+
+        await MainActor.run {
+            lineageVersionOwnerIds = versionViewModel.versions.compactMap { $0.modifiedBy }
+            hasLoadedLineage = true
+            Log.debug("Loaded lineage for publish sheet", category: .firebase, metadata: [
+                "recipeTitle": recipe.title,
+                "versionCount": versionViewModel.versions.count,
+                "hasDemoInLineage": hasDemoUsersInLineage
+            ])
+        }
+    }
+
+    private func handlePublishTapped() {
+        // Always auto-sanitize demo users from lineage
+        Task {
+            await viewModel.publishRecipe(sanitizeDemoUsers: hasDemoUsersInLineage)
         }
     }
 
@@ -229,9 +272,7 @@ struct PublishRecipeSheet: View {
     @ViewBuilder
     private var publishButton: some View {
         Button {
-            Task {
-                await viewModel.publishRecipe()
-            }
+            handlePublishTapped()
         } label: {
             HStack(spacing: HeirloomSpacing.sm) {
                 if viewModel.isPublishing {
@@ -291,7 +332,7 @@ class PublishRecipeViewModel {
         self.blockedReason = validation.reason
     }
 
-    func publishRecipe() async {
+    func publishRecipe(sanitizeDemoUsers: Bool = false) async {
         guard canPublish else { return }
         guard !isPublishing else { return }
 
@@ -299,7 +340,7 @@ class PublishRecipeViewModel {
         publishErrorMessage = nil
 
         do {
-            let publicRecipeId = try await publicRecipeService.publishRecipe(recipe)
+            let publicRecipeId = try await publicRecipeService.publishRecipe(recipe, sanitizeDemoUsers: sanitizeDemoUsers)
 
             // Update local recipe with public metadata
             recipe.isPublic = true

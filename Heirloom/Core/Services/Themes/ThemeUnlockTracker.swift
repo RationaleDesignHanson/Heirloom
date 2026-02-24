@@ -104,10 +104,54 @@ class ThemeUnlockTracker: ObservableObject {
         updateCurrentTrialDay()
         setupDayChangeObserver()
         setupDayChangeTimer()
+        setupUserDataClearObserver()
+        setupThemeProgressRestoredObserver()
 
         // Setup analytics (optional - app may not have analytics configured)
         Task { @MainActor in
             self.analyticsService = ServiceContainer.shared.resolveOptional(AnalyticsServiceProtocol.self)
+        }
+    }
+
+    /// Listen for user sign-out to reset trial state
+    private func setupUserDataClearObserver() {
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("ClearAllUserDataNotification"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.resetTrial()
+                Log.info("Reset trial state on user sign-out", category: .trial)
+            }
+        }
+    }
+
+    /// Listen for theme progress restoration from import
+    private func setupThemeProgressRestoredObserver() {
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("ThemeProgressRestored"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor in
+                guard let self = self else { return }
+
+                // Reload state from UserDefaults
+                self.loadPersistedState()
+                self.updateCurrentTrialDay()
+
+                // Log the restoration
+                if let themeIds = notification.userInfo?["selectedThemeIds"] as? [String] {
+                    Log.info("Theme progress restored from import", category: .trial, metadata: [
+                        "selectedThemes": themeIds.count,
+                        "currentDay": self.currentTrialDay
+                    ])
+                }
+
+                // Trigger UI update
+                self.objectWillChange.send()
+            }
         }
     }
 
@@ -124,14 +168,35 @@ class ThemeUnlockTracker: ObservableObject {
             return
         }
 
-        trialStartDate = Date()
+        // Check if trial was pre-configured (e.g., for deletion test account)
+        // A pre-configured trial has a start date in the past but no themes selected yet
+        let existingTrialDate = userDefaults.object(forKey: Keys.trialStartDate) as? Date
+        let wasPreConfigured = existingTrialDate != nil &&
+                               existingTrialDate! < Date() &&
+                               selectedThemeIds.isEmpty
+
+        if wasPreConfigured {
+            // Preserve pre-configured trial start date (e.g., deletion test)
+            Log.info("Preserving pre-configured trial start date", category: .trial, metadata: [
+                "existingDate": existingTrialDate!.description,
+                "currentDay": currentTrialDay
+            ])
+            // Update day calculation without resetting date
+            updateCurrentTrialDay()
+        } else {
+            // Start fresh trial
+            trialStartDate = Date()
+            currentTrialDay = 1
+        }
+
         selectedThemeIds = themeIds
-        currentTrialDay = 1
         unlockedRecipeIds = []
         hasNewUnlocks = false
 
         Log.info("Trial started with \(themeIds.count) themes", category: .trial, metadata: [
-            "themes": themeIds.joined(separator: ", ")
+            "themes": themeIds.joined(separator: ", "),
+            "currentDay": currentTrialDay,
+            "wasPreConfigured": wasPreConfigured
         ])
 
         // Track analytics
@@ -250,6 +315,70 @@ class ThemeUnlockTracker: ObservableObject {
         lastCheckDate = nil
 
         Log.info("Trial reset", category: .trial)
+    }
+
+    // MARK: - App Store Review Support
+
+    /// Configure theme trial for demo account (demo@heirloomrecipebox.app)
+    /// Sets trial to day 3 with default themes (German-American + Scandinavian)
+    /// This allows Apple reviewers to see theme content without going through onboarding
+    func configureForDemoAccount() {
+        Log.info("Configuring theme trial for demo account", category: .trial)
+
+        // Set trial start date to 2 days ago (so current day = 3)
+        let twoDaysAgo = Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date()
+        trialStartDate = twoDaysAgo
+
+        // Set demo themes (German-American + Scandinavian)
+        selectedThemeIds = ["german-american", "scandinavian-heritage"]
+
+        // Update current day calculation
+        updateCurrentTrialDay()
+
+        // Set last unlock day to 0 to trigger unlock check/celebration
+        userDefaults.set(0, forKey: Keys.lastUnlockDay)
+
+        Log.info("Demo account theme trial configured", category: .trial, metadata: [
+            "currentDay": currentTrialDay,
+            "selectedThemes": selectedThemeIds,
+            "trialStartDate": trialStartDate.description
+        ])
+    }
+
+    /// Configure theme trial for deletion test account
+    /// Sets trial to day 3 so Apple reviewer can see theme content
+    /// Sets default themes if none are selected (to handle returning user case)
+    func configureForDeletionTest() {
+        Log.info("Configuring theme trial for deletion test account", category: .trial)
+
+        // Set trial start date to 2 days ago (so current day = 3)
+        let twoDaysAgo = Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date()
+        trialStartDate = twoDaysAgo
+
+        // Set default themes if none are selected
+        // This handles the "returning user" case where user has recipes in Firebase but no themes locally
+        if selectedThemeIds.isEmpty {
+            selectedThemeIds = ["german-american", "scandinavian-heritage"]
+            Log.info("Set default themes for deletion test account", category: .trial, metadata: [
+                "themes": selectedThemeIds
+            ])
+        } else {
+            Log.info("Keeping existing themes", category: .trial, metadata: [
+                "existingThemes": selectedThemeIds
+            ])
+        }
+
+        // Update current day
+        updateCurrentTrialDay()
+
+        // Set last unlock day to 0 to trigger unlock celebration
+        userDefaults.set(0, forKey: Keys.lastUnlockDay)
+
+        Log.info("Deletion test theme trial configured", category: .trial, metadata: [
+            "currentDay": currentTrialDay,
+            "selectedThemes": selectedThemeIds.count,
+            "trialStartDate": trialStartDate.description
+        ])
     }
 
     // MARK: - Verification Methods

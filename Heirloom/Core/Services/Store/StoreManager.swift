@@ -8,6 +8,7 @@
 import Foundation
 import StoreKit
 import Observation
+import RevenueCat
 
 /// Product identifiers for Heirloom subscriptions
 enum ProductIdentifier: String, CaseIterable {
@@ -92,23 +93,33 @@ final class StoreManager {
     private let logger: LoggingService
     private let analytics: AnalyticsService
 
-    // MARK: - RevenueCat Integration Point
-    // ============================================================================
-    // **TO SWAP FROM STOREKIT TO REVENUECAT:**
-    //
-    // 1. Change this flag to `true`:
-    /// Feature flag to enable/disable RevenueCat
-    private var isRevenueCatEnabled: Bool {
-        return false  // Change to `true` to enable RevenueCat
-        // UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
+    /// RevenueCat purchase service - handles all RevenueCat API calls
+    private var _revenueCatServiceInstance: RevenueCatPurchaseService?
+    private var revenueCatService: RevenueCatPurchaseService {
+        if let existing = _revenueCatServiceInstance {
+            return existing
+        }
+        let service = RevenueCatPurchaseService(logger: logger, analytics: analytics)
+        _revenueCatServiceInstance = service
+        return service
     }
-    //
-    // 2. Implement `purchaseViaRevenueCat()` method (line ~233)
-    // 3. Add RevenueCat SDK configuration in HeirloomApp.swift init()
-    // 4. See RevenueCatPurchaseService.swift for complete integration guide
-    //
-    // All purchase flows will automatically route through RevenueCat!
+
+    // MARK: - RevenueCat Integration
     // ============================================================================
+    // RevenueCat is now ENABLED by default for production payments.
+    // Fake payments are still available for debug builds.
+    //
+    // For beta testing:
+    // - TestFlight users use Apple Sandbox (no real charges)
+    // - RevenueCat handles all purchase flows
+    // - Dashboard shows sandbox vs production transactions
+    // ============================================================================
+
+    /// Feature flag to enable/disable RevenueCat
+    /// Defaults to TRUE - RevenueCat handles all production purchases
+    private var isRevenueCatEnabled: Bool {
+        return true
+    }
 
     // ⭐ NEW: Fake Payments (DEBUG ONLY - Remove before production)
     // MARK: - Fake Payments (Temporary Debug Feature)
@@ -117,14 +128,19 @@ final class StoreManager {
     /// Debug flag to enable fake payments (grants premium without StoreKit transactions)
     private let debugFakePaymentsKey = "debug_fake_payments_enabled"
 
-    /// Check if fake payments are enabled (defaults to TRUE for easy testing)
+    /// Check if fake payments are enabled (DEBUG builds only)
     var isFakePaymentsEnabled: Bool {
-        // If key has never been set, default to true for testing convenience
+        #if DEBUG
+        // Default to FALSE so test accounts use real RevenueCat flow with StoreKit payment sheet
+        // Must explicitly enable fake payments via Developer Settings toggle to bypass payments
         if UserDefaults.standard.object(forKey: debugFakePaymentsKey) == nil {
-            return true
+            return false
         }
         // Otherwise respect user's toggle choice
         return UserDefaults.standard.bool(forKey: debugFakePaymentsKey)
+        #else
+        return false  // Never enable fake payments in production
+        #endif
     }
 
     // MARK: - Initialization
@@ -145,12 +161,29 @@ final class StoreManager {
 
     // MARK: - Product Loading
 
-    /// Load products from App Store
+    /// Load products from App Store (via RevenueCat)
     /// - Note: Call this on app launch and when entering store UI
     func loadProducts() async throws {
         isLoading = true
         currentError = nil
 
+        // Use RevenueCat for product loading
+        if isRevenueCatEnabled {
+            logger.log("Loading products via RevenueCat...", category: .store, level: .info, metadata: nil)
+
+            do {
+                self.products = try await revenueCatService.loadProducts()
+                isLoading = false
+            } catch {
+                isLoading = false
+                let storeError = StoreError.unknownError(error)
+                currentError = storeError
+                throw storeError
+            }
+            return
+        }
+
+        // Fallback to direct StoreKit (not used when RevenueCat enabled)
         logger.log("Loading products from App Store...", category: .store, level: .info, metadata: nil)
 
         do {
@@ -232,26 +265,33 @@ final class StoreManager {
         return await purchaseViaStoreKit(productID)
     }
 
-    /// RevenueCat purchase stub (not yet implemented)
+    /// RevenueCat purchase implementation
     /// - Parameter productID: Product to purchase
     /// - Returns: Purchase result
     private func purchaseViaRevenueCat(_ productID: ProductIdentifier) async -> PurchaseResult {
-        let error = StoreError.notImplemented("RevenueCat purchase flow")
-        currentError = error
-
         logger.log(
-            "RevenueCat purchase attempted but not implemented",
+            "Starting RevenueCat purchase: \(productID.displayName)",
             category: .store,
-            level: .warning,
+            level: .info,
             metadata: ["product": productID.rawValue]
         )
 
-        analytics.track(event: .purchaseFailed, properties: [
-            "product": productID.rawValue,
-            "reason": "revenuecat_not_implemented"
-        ])
+        let result = await revenueCatService.purchase(productID)
 
-        return .failed(error)
+        // Handle result for state management
+        switch result {
+        case .success:
+            logger.log("RevenueCat purchase succeeded", category: .store, level: .info, metadata: nil)
+        case .cancelled:
+            logger.log("RevenueCat purchase cancelled", category: .store, level: .info, metadata: nil)
+        case .pending:
+            logger.log("RevenueCat purchase pending", category: .store, level: .info, metadata: nil)
+        case .failed(let error):
+            currentError = error
+            logger.log("RevenueCat purchase failed: \(error.localizedDescription)", category: .store, level: .error, metadata: nil)
+        }
+
+        return result
     }
 
     // ⭐ NEW: Fake purchase handler (DEBUG ONLY)
@@ -455,7 +495,7 @@ final class StoreManager {
     /// Restore previous purchases
     /// - Returns: Array of restored transactions
     func restorePurchases() async throws -> [Transaction] {
-        // ⭐ NEW: Handle fake restore (DEBUG ONLY)
+        // Handle fake restore (DEBUG ONLY)
         if isFakePaymentsEnabled {
             logger.log("🎭 FAKE RESTORE: Checking fake subscription status", category: .store, level: .info, metadata: nil)
 
@@ -476,7 +516,14 @@ final class StoreManager {
             return []
         }
 
-        logger.log("Restoring purchases...", category: .store, level: .info, metadata: nil)
+        // Use RevenueCat for restore
+        if isRevenueCatEnabled {
+            logger.log("Restoring purchases via RevenueCat...", category: .store, level: .info, metadata: nil)
+            return try await revenueCatService.restorePurchases()
+        }
+
+        // Fallback to direct StoreKit restore
+        logger.log("Restoring purchases via StoreKit...", category: .store, level: .info, metadata: nil)
 
         analytics.track(event: .restoreStarted)
 
@@ -566,6 +613,12 @@ final class StoreManager {
 
     /// Check if user has lifetime purchase
     func hasLifetimePurchase() async -> Bool {
+        // Use RevenueCat
+        if isRevenueCatEnabled {
+            return await revenueCatService.hasLifetimePurchase()
+        }
+
+        // Fallback to StoreKit
         for await result in Transaction.currentEntitlements {
             do {
                 let transaction = try checkVerified(result)
@@ -580,6 +633,30 @@ final class StoreManager {
         }
 
         return false
+    }
+
+    // MARK: - RevenueCat Status Methods
+
+    /// Check if user has premium access via RevenueCat
+    func checkPremiumStatus() async -> Bool {
+        guard isRevenueCatEnabled else { return false }
+        return await revenueCatService.checkPremiumStatus()
+    }
+
+    /// Clear the cached purchase info (for demo account sign-in)
+    /// This ensures stale sandbox purchase data doesn't interfere with fresh testing
+    func clearPurchaseCache() {
+        revenueCatService.clearPurchaseCache()
+        logger.log("Purchase cache cleared for fresh testing", category: .store, level: .info, metadata: nil)
+    }
+
+    /// Get subscription info from RevenueCat
+    /// - Parameter forceRefresh: If true, invalidates cache to get fresh data from server
+    /// - Parameter isDemoAccount: If true, prefers session purchase over stale sandbox data
+    /// - Returns: Tuple of (status, expiryDate, willRenew) or nil if error
+    func getSubscriptionInfo(forceRefresh: Bool = false, isDemoAccount: Bool = false) async -> (status: HeirloomSubscriptionStatus, expiryDate: Date?, willRenew: Bool)? {
+        guard isRevenueCatEnabled else { return nil }
+        return await revenueCatService.getSubscriptionInfo(forceRefresh: forceRefresh, isDemoAccount: isDemoAccount)
     }
 
     // MARK: - Transaction Listener
@@ -600,11 +677,23 @@ final class StoreManager {
                         metadata: nil
                     )
 
-                    // Notify SubscriptionManager of change
-                    NotificationCenter.default.post(
-                        name: .subscriptionStatusChanged,
-                        object: transaction
-                    )
+                    // Only update and notify for subscription transactions, NOT credit purchases
+                    // Credit purchases (e.g., "credits.small.v2") don't have a matching ProductIdentifier
+                    // and should not trigger subscription status changes
+                    if let productID = ProductIdentifier(rawValue: transaction.productID) {
+                        await MainActor.run {
+                            self.revenueCatService.updatePurchaseCache(for: productID)
+                        }
+
+                        // Notify SubscriptionManager of change
+                        // Include product ID in userInfo so SubscriptionManager can use it directly
+                        // This is critical for upgrades via Apple's subscription management (outside our purchase() flow)
+                        NotificationCenter.default.post(
+                            name: .subscriptionStatusChanged,
+                            object: transaction,
+                            userInfo: ["purchasedProductID": transaction.productID]
+                        )
+                    }
 
                     // Finish the transaction
                     await transaction.finish()
@@ -627,7 +716,7 @@ final class StoreManager {
     /// - Parameter result: Verification result from StoreKit
     /// - Returns: Verified transaction
     /// - Throws: Verification error
-    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+    private func checkVerified<T>(_ result: StoreKit.VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
             // Transaction failed verification
@@ -647,4 +736,6 @@ extension Notification.Name {
     static let userProfileDidUpdate = Notification.Name("userProfileDidUpdate")
     static let navigateToRecipe = Notification.Name("navigateToRecipe")
     static let creditTierShouldUpdate = Notification.Name("creditTierShouldUpdate")
+    /// Posted when theme collections and recipes are ready (used for test account setup)
+    static let themeContentReady = Notification.Name("themeContentReady")
 }

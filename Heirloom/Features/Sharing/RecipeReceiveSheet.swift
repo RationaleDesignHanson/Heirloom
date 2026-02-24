@@ -117,9 +117,31 @@ struct RecipeReceiveSheet: View {
     private func attributionCard(preview: RecipePreview) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             HStack {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(HeirloomColors.tomato)
+                // Sharer profile photo
+                if let photoURL = preview.sharerPhotoURL, let url = URL(string: photoURL) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                        case .failure, .empty:
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(HeirloomColors.tomato)
+                        @unknown default:
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(HeirloomColors.tomato)
+                        }
+                    }
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundStyle(HeirloomColors.tomato)
+                }
 
                 VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     if let sharerName = preview.sharerName {
@@ -326,6 +348,7 @@ struct RecipeReceiveSheet: View {
                 ingredientCount: (metadata["ingredientCount"] as? Int) ?? 0,
                 instructionCount: (metadata["instructionCount"] as? Int) ?? 0,
                 sharerName: metadata["ownerName"] as? String,
+                sharerPhotoURL: metadata["ownerPhotoURL"] as? String,
                 personalMessage: metadata["personalMessage"] as? String,
                 generation: metadata["generation"] as? Int,
                 imageURL: metadata["firebaseImageURL"] as? String
@@ -345,6 +368,7 @@ struct RecipeReceiveSheet: View {
                 ingredientCount: 0,
                 instructionCount: 0,
                 sharerName: "Someone",
+                sharerPhotoURL: nil,
                 personalMessage: nil,
                 generation: nil,
                 imageURL: nil
@@ -447,6 +471,7 @@ struct RecipePreview {
     let ingredientCount: Int
     let instructionCount: Int
     let sharerName: String?
+    let sharerPhotoURL: String? // Profile photo URL of sharer
     let personalMessage: String?
     let generation: Int?
     let imageURL: String? // Firebase image URL for thumbnail

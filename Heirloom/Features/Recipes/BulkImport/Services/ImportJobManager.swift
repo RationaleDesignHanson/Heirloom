@@ -288,7 +288,8 @@ final class ImportJobManager: ObservableObject {
         if let breakdown = costBreakdown, breakdown.totalCredits > 0 {
             try await deductCreditsForImport(
                 credits: breakdown.totalCredits,
-                context: context
+                context: context,
+                costBreakdown: breakdown
             )
             job.creditsDeducted = breakdown.totalCredits
             try context.save()
@@ -3248,7 +3249,8 @@ final class ImportJobManager: ObservableObject {
     /// - Parameters:
     ///   - credits: Number of credits to deduct
     ///   - context: SwiftData ModelContext
-    private func deductCreditsForImport(credits: Int, context: ModelContext) async throws {
+    ///   - costBreakdown: Optional breakdown for determining PDF type for analytics
+    private func deductCreditsForImport(credits: Int, context: ModelContext, costBreakdown: PDFCostCalculator.CostBreakdown? = nil) async throws {
         // Query for user credits
         let descriptor = FetchDescriptor<UserCredits>()
         let allCredits = try context.fetch(descriptor)
@@ -3260,6 +3262,32 @@ final class ImportJobManager: ObservableObject {
 
         try userCredits.deductCredits(credits)
         try context.save()
+
+        // Track credit analytics
+        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+
+        // Determine PDF operation type from cost breakdown
+        let operationType: CreditOperationType
+        if let breakdown = costBreakdown {
+            if breakdown.scannedCount == 0 && breakdown.mixedCount == 0 && breakdown.textRichCount > 0 {
+                operationType = .pdfTextRich
+            } else if breakdown.textRichCount == 0 && breakdown.mixedCount == 0 && breakdown.scannedCount > 0 {
+                operationType = .pdfScanned
+            } else {
+                operationType = .pdfMixed
+            }
+        } else {
+            operationType = .pdfMixed  // Default to mixed if no breakdown
+        }
+
+        CreditAnalytics.trackDeduction(
+            analytics: analytics,
+            userCredits: userCredits,
+            operationType: operationType,
+            amount: credits,
+            subscriptionManager: subscriptionManager
+        )
 
         Log.info("Credits deducted for import", category: .import, metadata: [
             "deducted": credits,

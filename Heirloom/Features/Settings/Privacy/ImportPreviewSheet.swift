@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseFirestore
 
 struct ImportPreviewSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -15,10 +16,21 @@ struct ImportPreviewSheet: View {
     let fileURL: URL
     let modelContext: ModelContext
 
+    /// If true, performs a clean restore (deletes all existing data first)
+    /// Default is true for settings restore - prevents merge conflicts
+    var cleanRestore: Bool = true
+
+    /// Callback when restore completes (used for onboarding flow)
+    var onRestoreComplete: (() -> Void)?
+
     @State private var isImporting = false
     @State private var importResult: HeirloomImportResult?
     @State private var showResult = false
     @State private var importError: String?
+    @State private var generateMissingImages = false
+    @State private var sharedRecipeCount = 0
+    @State private var showSharedRecipePrompt = false
+    @State private var isCheckingSharedUpdates = false
 
     private var exporter: HeirloomDataExporter {
         let profileService: ProfileServiceProtocol = ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
@@ -44,7 +56,7 @@ struct ImportPreviewSheet: View {
                 .padding(HeirloomSpacing.lg)
             }
             .background(HeirloomColors.appBackground)
-            .navigationTitle("Import Preview")
+            .navigationTitle(cleanRestore ? "Restore Preview" : "Import Preview")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !showResult {
@@ -55,7 +67,7 @@ struct ImportPreviewSheet: View {
                     }
 
                     ToolbarItem(placement: .primaryAction) {
-                        Button("Import") {
+                        Button(cleanRestore ? "Restore" : "Import") {
                             Task {
                                 await performImport()
                             }
@@ -90,22 +102,27 @@ struct ImportPreviewSheet: View {
 
             // Instructions
             instructionsSection
+
+            // Image generation option
+            imageGenerationSection
         }
     }
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack {
-                Image(systemName: "doc.fill")
+                Image(systemName: cleanRestore ? "arrow.counterclockwise.circle.fill" : "doc.fill")
                     .font(.system(size: 40))
                     .foregroundStyle(HeirloomColors.familyGreen)
 
-                Text("Ready to Import")
+                Text(cleanRestore ? "Ready to Restore" : "Ready to Import")
                     .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
 
-            Text("Review what will be imported from this backup file.")
+            Text(cleanRestore
+                 ? "Your recipes and settings will be restored from this backup."
+                 : "Review what will be imported from this backup file.")
                 .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
@@ -209,21 +226,54 @@ struct ImportPreviewSheet: View {
 
     private var instructionsSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            Text("How import works:")
+            Text(cleanRestore ? "How restore works:" : "How import works:")
                 .font(HeirloomFonts.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                instructionItem("Recipes will be merged with your existing collection")
-                instructionItem("Duplicate recipes will be skipped")
-                instructionItem("Your current data won't be deleted")
-                instructionItem("Connections may require manual reconnection")
+                if cleanRestore {
+                    instructionItem("Your current recipes and collections will be replaced")
+                    instructionItem("Theme unlock progress will be restored")
+                    instructionItem("You'll resume exactly where you left off")
+                    instructionItem("Connections may require manual reconnection")
+                } else {
+                    instructionItem("Recipes will be merged with your existing collection")
+                    instructionItem("Duplicate recipes will be skipped")
+                    instructionItem("Your current data won't be deleted")
+                    instructionItem("Connections may require manual reconnection")
+                }
+            }
+
+            // Account flexibility note for clean restore
+            if cleanRestore {
+                accountFlexibilityNote
             }
         }
         .padding(HeirloomSpacing.md)
         .background(HeirloomColors.cardBackground)
         .cornerRadius(12)
+    }
+
+    private var accountFlexibilityNote: some View {
+        HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+            Image(systemName: "person.badge.key.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(HeirloomColors.familyGreen)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Works with any sign-in method")
+                    .font(HeirloomFonts.caption1)
+                    .fontWeight(.medium)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Text("Your backup data syncs to your current account, regardless of how you signed in.")
+                    .font(HeirloomFonts.caption2)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+        }
+        .padding(.top, HeirloomSpacing.sm)
     }
 
     @ViewBuilder
@@ -238,6 +288,26 @@ struct ImportPreviewSheet: View {
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
+    }
+
+    private var imageGenerationSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            Toggle(isOn: $generateMissingImages) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Generate images for recipes without photos")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Uses AI to create images for recipes that couldn't be restored")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+            .tint(HeirloomColors.familyGreen)
+        }
+        .padding(HeirloomSpacing.md)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(12)
     }
 
     // MARK: - Result Section
@@ -255,11 +325,91 @@ struct ImportPreviewSheet: View {
             // Import Statistics
             statisticsSection(result)
 
+            // Shared recipe update prompt
+            if sharedRecipeCount > 0 && !isCheckingSharedUpdates {
+                sharedRecipeUpdateSection
+            }
+
+            // Checking for updates indicator
+            if isCheckingSharedUpdates {
+                checkingUpdatesSection
+            }
+
             // Errors (if any)
             if !result.errors.isEmpty {
                 errorsSection(result)
             }
         }
+    }
+
+    private var sharedRecipeUpdateSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            HStack(spacing: HeirloomSpacing.sm) {
+                Image(systemName: "person.2.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(HeirloomColors.familyGreen)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Shared Recipes")
+                        .font(HeirloomFonts.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("You have \(sharedRecipeCount) recipes from connections")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
+                Spacer()
+            }
+
+            Text("These were restored as they were at backup time. Would you like to check if your connections have made updates?")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+
+            HStack(spacing: HeirloomSpacing.md) {
+                Button(action: {
+                    Task {
+                        await checkForSharedRecipeUpdates()
+                    }
+                }) {
+                    Text("Check for Updates")
+                        .font(HeirloomFonts.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, HeirloomSpacing.md)
+                        .padding(.vertical, HeirloomSpacing.sm)
+                        .background(HeirloomColors.familyGreen)
+                        .cornerRadius(8)
+                }
+
+                Button(action: {
+                    sharedRecipeCount = 0 // Hide the section
+                }) {
+                    Text("Keep Backup Versions")
+                        .font(HeirloomFonts.subheadline)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+        }
+        .padding(HeirloomSpacing.md)
+        .background(HeirloomColors.familyGreen.opacity(0.1))
+        .cornerRadius(12)
+    }
+
+    private var checkingUpdatesSection: some View {
+        HStack(spacing: HeirloomSpacing.md) {
+            ProgressView()
+                .tint(HeirloomColors.familyGreen)
+
+            Text("Checking for updates from connections...")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding(HeirloomSpacing.md)
+        .frame(maxWidth: .infinity)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(12)
     }
 
     private var successHeader: some View {
@@ -386,11 +536,32 @@ struct ImportPreviewSheet: View {
         isImporting = true
         importError = nil
 
+        // Security-scoped access is required for files selected via fileImporter
+        let didStartAccess = fileURL.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccess {
+                fileURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
         do {
+            // Clean restore: delete all existing data first
+            if cleanRestore {
+                await cleanExistingData()
+            }
+
+            var options = cleanRestore ? HeirloomImportOptions.recipesOnly : HeirloomImportOptions.mergeAll
+            options.generateMissingImages = generateMissingImages
+            // For clean restore, we want to import all data including theme progress
+            if cleanRestore {
+                options.mergeRecipes = false // Replace, don't merge
+                options.restorePrivacySettings = true
+            }
+
             let result = try await exporter.importData(
                 from: fileURL,
                 context: modelContext,
-                options: .mergeAll
+                options: options
             )
 
             await MainActor.run {
@@ -402,8 +573,24 @@ struct ImportPreviewSheet: View {
             Log.info("Import completed", category: .storage, metadata: [
                 "version": result.version,
                 "recipesImported": result.recipesImported,
-                "errorCount": result.errors.count
+                "errorCount": result.errors.count,
+                "cleanRestore": cleanRestore
             ])
+
+            // Refresh theme recipes from Firebase to get any updates
+            // (preserves user modifications like favorites, cook count, etc.)
+            if cleanRestore {
+                await refreshThemeRecipesFromFirebase()
+            }
+
+            // Count shared recipes for update prompt
+            await countSharedRecipes()
+
+            // Call completion handler if provided (for onboarding flow)
+            // Note: Don't call immediately if there are shared recipes - wait for user decision
+            if sharedRecipeCount == 0 {
+                onRestoreComplete?()
+            }
 
         } catch {
             await MainActor.run {
@@ -413,6 +600,222 @@ struct ImportPreviewSheet: View {
 
             Log.error("Import failed", category: .storage, error: error)
         }
+    }
+
+    /// Delete all existing local data for clean restore
+    private func cleanExistingData() async {
+        Log.info("Cleaning existing data for restore", category: .storage)
+
+        // Delete all recipes
+        let recipeDescriptor = FetchDescriptor<Recipe>()
+        if let recipes = try? modelContext.fetch(recipeDescriptor) {
+            for recipe in recipes {
+                modelContext.delete(recipe)
+            }
+            Log.info("Deleted \(recipes.count) recipes", category: .storage)
+        }
+
+        // Delete all collections
+        let collectionDescriptor = FetchDescriptor<RecipeCollection>()
+        if let collections = try? modelContext.fetch(collectionDescriptor) {
+            for collection in collections {
+                modelContext.delete(collection)
+            }
+            Log.info("Deleted \(collections.count) collections", category: .storage)
+        }
+
+        // Clear theme progress from UserDefaults
+        let userDefaults = UserDefaults.standard
+        userDefaults.removeObject(forKey: "selected_theme_ids")
+        userDefaults.removeObject(forKey: "theme_trial_start_date")
+        userDefaults.removeObject(forKey: "last_unlock_day")
+
+        // Save context
+        try? modelContext.save()
+
+        Log.info("Clean restore: existing data deleted", category: .storage)
+    }
+
+    /// Refresh theme recipes from Firebase to get any updates since backup
+    /// Preserves user modifications (favorites, cook count, notes added by user, etc.)
+    private func refreshThemeRecipesFromFirebase() async {
+        // Get unique theme IDs from restored recipes
+        let themeRecipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.isThemeRecipe == true }
+        )
+
+        guard let themeRecipes = try? modelContext.fetch(themeRecipeDescriptor) else {
+            Log.warning("No theme recipes found to refresh", category: .storage)
+            return
+        }
+
+        let themeIds = Set(themeRecipes.compactMap { $0.sourceThemeId })
+
+        guard !themeIds.isEmpty else {
+            Log.info("No theme IDs to refresh", category: .storage)
+            return
+        }
+
+        Log.info("Refreshing theme recipes from Firebase", category: .storage, metadata: [
+            "themeCount": themeIds.count,
+            "recipeCount": themeRecipes.count
+        ])
+
+        // ThemeRecipeService.downloadRecipesForTheme already handles:
+        // - Checking if recipe exists by themeRecipeId
+        // - Updating content (title, ingredients, instructions, images)
+        // - Preserving user fields (isFavorite, timesCooked, lastCooked, cardBack tips)
+        let themeService = ThemeRecipeService()
+
+        for themeId in themeIds {
+            do {
+                _ = try await themeService.downloadRecipesForTheme(themeId: themeId, into: modelContext)
+                Log.info("Refreshed theme recipes", category: .storage, metadata: ["themeId": themeId])
+            } catch {
+                Log.warning("Failed to refresh theme recipes", category: .storage, metadata: [
+                    "themeId": themeId,
+                    "error": error.localizedDescription
+                ])
+                // Continue with other themes even if one fails
+            }
+        }
+
+        try? modelContext.save()
+        Log.info("Theme recipe refresh complete", category: .storage)
+    }
+
+    /// Count shared recipes after import for update prompt
+    private func countSharedRecipes() async {
+        let sharedDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.sharedByUserId != nil }
+        )
+
+        if let sharedRecipes = try? modelContext.fetch(sharedDescriptor) {
+            await MainActor.run {
+                self.sharedRecipeCount = sharedRecipes.count
+            }
+            Log.info("Found shared recipes after restore", category: .storage, metadata: [
+                "count": sharedRecipes.count
+            ])
+        }
+    }
+
+    /// Check for updates to shared recipes from connections
+    private func checkForSharedRecipeUpdates() async {
+        isCheckingSharedUpdates = true
+
+        let sharedDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.sharedByUserId != nil }
+        )
+
+        guard let sharedRecipes = try? modelContext.fetch(sharedDescriptor) else {
+            isCheckingSharedUpdates = false
+            sharedRecipeCount = 0
+            onRestoreComplete?()
+            return
+        }
+
+        var updatedCount = 0
+        let firestore = Firestore.firestore()
+
+        for recipe in sharedRecipes {
+            guard let sharerId = recipe.sharedByUserId else { continue }
+
+            // Try to find the original recipe in the sharer's collection
+            do {
+                let querySnapshot: QuerySnapshot
+
+                if let originalRecipeId = recipe.sharedFromRecipeId {
+                    // Query by original recipe ID (exact match, lowercase UUID)
+                    querySnapshot = try await firestore
+                        .collection("users")
+                        .document(sharerId)
+                        .collection("recipes")
+                        .whereField("id", isEqualTo: originalRecipeId)
+                        .limit(to: 1)
+                        .getDocuments()
+                } else {
+                    // Fallback: query by title (for legacy shared recipes without sharedFromRecipeId)
+                    querySnapshot = try await firestore
+                        .collection("users")
+                        .document(sharerId)
+                        .collection("recipes")
+                        .whereField("title", isEqualTo: recipe.title)
+                        .whereField("isDeleted", isEqualTo: false)
+                        .limit(to: 1)
+                        .getDocuments()
+                }
+
+                guard let document = querySnapshot.documents.first else {
+                    // Original not found (sharer may have deleted it or their account)
+                    continue
+                }
+
+                let data = document.data()
+
+                // Check if the sharer's version is newer
+                if let sharerModifiedTimestamp = data["modifiedAt"] as? Timestamp {
+                    let sharerModified = sharerModifiedTimestamp.dateValue()
+
+                    if sharerModified > recipe.lastModified {
+                        // Update recipe with sharer's newer version
+                        // Preserve user's personal fields
+                        let userFavorite = recipe.isFavorite
+                        let userTimesCooked = recipe.timesCooked
+                        let userLastCooked = recipe.lastCooked
+                        let userCardBack = recipe.cardBack
+
+                        // Update content fields
+                        recipe.title = data["title"] as? String ?? recipe.title
+                        recipe.notes = data["notes"] as? String
+                        recipe.servings = data["servings"] as? String
+                        recipe.prepTime = data["prepTime"] as? String
+                        recipe.cookTime = data["cookTime"] as? String
+
+                        if let instructionsData = data["instructions"] as? [String] {
+                            recipe.instructions = instructionsData
+                        }
+
+                        if let imageURL = data["firebaseImageURL"] as? String {
+                            recipe.firebaseImageURL = imageURL
+                        }
+
+                        // Restore user's personal fields
+                        recipe.isFavorite = userFavorite
+                        recipe.timesCooked = userTimesCooked
+                        recipe.lastCooked = userLastCooked
+                        recipe.cardBack = userCardBack
+
+                        updatedCount += 1
+                        Log.info("Updated shared recipe from connection", category: .storage, metadata: [
+                            "title": recipe.title,
+                            "sharerId": sharerId
+                        ])
+                    }
+                }
+            } catch {
+                Log.warning("Failed to check for shared recipe update", category: .storage, metadata: [
+                    "title": recipe.title,
+                    "error": error.localizedDescription
+                ])
+                // Continue checking other recipes
+            }
+        }
+
+        try? modelContext.save()
+
+        await MainActor.run {
+            self.isCheckingSharedUpdates = false
+            self.sharedRecipeCount = 0 // Hide the prompt
+        }
+
+        Log.info("Shared recipe update check complete", category: .storage, metadata: [
+            "checked": sharedRecipes.count,
+            "updated": updatedCount
+        ])
+
+        // Now call completion handler
+        onRestoreComplete?()
     }
 }
 

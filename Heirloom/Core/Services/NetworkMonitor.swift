@@ -64,6 +64,10 @@ final class NetworkMonitor: NetworkMonitorProtocol {
     nonisolated init() {
         self.monitor = NWPathMonitor()
         startMonitoring()
+        // Log initialization on main actor
+        Task { @MainActor in
+            Log.info("NetworkMonitor initialized and monitoring started", category: .network)
+        }
     }
 
     deinit {
@@ -103,6 +107,28 @@ final class NetworkMonitor: NetworkMonitorProtocol {
         }
 
         monitor.start(queue: queue)
+
+        // Get current path immediately (don't wait for first change)
+        let currentPath = monitor.currentPath
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.isConnected = currentPath.status == .satisfied
+            if currentPath.usesInterfaceType(.wifi) {
+                self.connectionTypeEnum = .wifi
+            } else if currentPath.usesInterfaceType(.cellular) {
+                self.connectionTypeEnum = .cellular
+            } else if currentPath.usesInterfaceType(.wiredEthernet) {
+                self.connectionTypeEnum = .wired
+            } else {
+                self.connectionTypeEnum = .unknown
+            }
+            self.isExpensive = currentPath.isExpensive
+            self.isConstrained = currentPath.isConstrained
+            Log.info("NetworkMonitor initial state", category: .network, metadata: [
+                "isConnected": self.isConnected,
+                "connectionType": self.connectionTypeEnum.displayName
+            ])
+        }
     }
 
     /// Stop monitoring network connectivity
@@ -141,6 +167,32 @@ final class NetworkMonitor: NetworkMonitorProtocol {
             "isExpensive": isExpensive,
             "isConstrained": isConstrained
         ])
+    }
+
+    // MARK: - Async Stream for SwiftUI
+
+    /// Async stream of connection status changes for use with SwiftUI .task modifier
+    /// Polls the main monitor's state to avoid multiple NWPathMonitor instances
+    /// Usage: .task { for await isOnline in networkMonitor.connectionUpdates { isOffline = !isOnline } }
+    var connectionUpdates: AsyncStream<Bool> {
+        let currentStatus = self.isConnected
+        return AsyncStream { continuation in
+            // Yield initial state
+            continuation.yield(currentStatus)
+
+            // Poll state changes using Task sleep (cleaner than Timer for async context)
+            let pollTask = Task { @MainActor [weak self] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                    guard let self, !Task.isCancelled else { break }
+                    continuation.yield(self.isConnected)
+                }
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                pollTask.cancel()
+            }
+        }
     }
 
     // MARK: - Manual Testing Helpers

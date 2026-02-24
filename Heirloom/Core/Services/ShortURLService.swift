@@ -36,7 +36,7 @@ final class ShortURLService {
 
     /// Backend API endpoint
     /// TODO: Replace with production URL after deploying Firebase Functions
-    private let apiEndpoint = "https://us-central1-heirloom-prod.cloudfunctions.net/shortenURL"
+    private let apiEndpoint = "https://us-central1-heirloom-ios-prod.cloudfunctions.net/shortenURL"
 
     /// Length of generated short codes
     private let codeLength = 6

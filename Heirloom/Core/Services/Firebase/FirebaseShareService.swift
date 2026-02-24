@@ -227,6 +227,20 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             // Lineage tracking (for heirloom shares)
             "rootRecipeId": lineage?.rootRecipeId.firebaseString ?? recipeToShare.id.firebaseString,
             "rootOwnerId": lineage?.rootOwnerId ?? userId,
+            "rootProvenanceHash": recipeToShare.provenance.rootProvenanceHash,
+            // Heritage chain: ordered list of user IDs from root to current sharer
+            // Optionally sanitized to remove demo users
+            "heritageChain": sanitizeHeritageChain(
+                recipeToShare.heritageChain,
+                names: nil,
+                sanitize: options.sanitizeDemoUsers
+            ).chain + [userId],
+            // Heritage chain names: display names for offline viewing
+            "heritageChainNames": sanitizeHeritageChain(
+                recipeToShare.heritageChain,
+                names: recipeToShare.heritageChainNames,
+                sanitize: options.sanitizeDemoUsers
+            ).names + [options.sharerName ?? "Someone"],
 
             // Acceptance tracking
             "acceptedBy": [] as [String], // Array of user IDs who accepted
@@ -476,7 +490,9 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         }
 
         // 3. Extract share metadata
-        let recipeId = shareData["recipeId"] as? String ?? ""
+        // IMPORTANT: Lowercase recipeId to match Firebase document convention
+        // Old shares may have uppercase IDs, but documents are stored lowercase
+        let recipeId = (shareData["recipeId"] as? String ?? "").lowercased()
         let ownerId = shareData["ownerId"] as? String ?? ""
         let shareType = ShareOptions.ShareType(rawValue: shareData["shareType"] as? String ?? "heirloom") ?? .heirloom
 
@@ -528,27 +544,39 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
         sharedRecipe.ingredients = ingredients.isEmpty ? nil : ingredients
 
-        // 6.5. Download instructions
+        // 6.5. Download instructions from subcollection (legacy support)
+        // NOTE: Instructions are typically stored on the recipe document itself (loaded via convertFromFirestoreData),
+        // but some older recipes may have them in a subcollection. Only overwrite if subcollection has content.
         let instructionsSnapshot = try await db.collection("users/\(ownerId)/recipes/\(recipeId)/instructions").getDocuments()
-        var instructionItems: [(order: Int, text: String)] = []
 
-        for instructionDoc in instructionsSnapshot.documents {
-            let instructionData = instructionDoc.data()
-            let order = instructionData["orderIndex"] as? Int ?? instructionData["order"] as? Int ?? 0
-            let text = instructionData["text"] as? String ?? ""
-            if !text.isEmpty {
-                instructionItems.append((order: order, text: text))
+        if !instructionsSnapshot.documents.isEmpty {
+            var instructionItems: [(order: Int, text: String)] = []
+
+            for instructionDoc in instructionsSnapshot.documents {
+                let instructionData = instructionDoc.data()
+                let order = instructionData["orderIndex"] as? Int ?? instructionData["order"] as? Int ?? 0
+                let text = instructionData["text"] as? String ?? ""
+                if !text.isEmpty {
+                    instructionItems.append((order: order, text: text))
+                }
             }
+
+            // Sort by order and extract text - only overwrite if we found instructions in subcollection
+            if !instructionItems.isEmpty {
+                instructionItems.sort { $0.order < $1.order }
+                sharedRecipe.instructions = instructionItems.map { $0.text }
+            }
+
+            Log.debug("Downloaded instructions from subcollection for shared recipe", category: .firebase, metadata: [
+                "count": instructionItems.count,
+                "recipeId": recipeId
+            ])
+        } else {
+            Log.debug("No instructions subcollection found, using instructions from recipe document", category: .firebase, metadata: [
+                "count": sharedRecipe.instructions.count,
+                "recipeId": recipeId
+            ])
         }
-
-        // Sort by order and extract text
-        instructionItems.sort { $0.order < $1.order }
-        sharedRecipe.instructions = instructionItems.map { $0.text }
-
-        Log.debug("Downloaded instructions for shared recipe", category: .firebase, metadata: [
-            "count": instructionItems.count,
-            "recipeId": recipeId
-        ])
 
         // 7. Download comments if included
         if shareData["includePinnedComments"] as? Bool == true || shareData["includeAllComments"] as? Bool == true {
@@ -591,26 +619,53 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             }
         }
 
-        // 10. Update provenance
+        // 10. Update provenance with INHERITED rootProvenanceHash for cryptographic lineage
         let generation = (shareData["generation"] as? Int ?? 0) + 1
         let ownerName = shareData["ownerName"] as? String
+        let inheritedRootHash = shareData["rootProvenanceHash"] as? String
+        let parentShareId = shareId  // The share document ID links us to the parent
+
         Log.info("Setting sharedBy for accepted recipe", category: .firebase, metadata: [
             "ownerName": ownerName ?? "nil",
-            "recipeId": recipeId
+            "recipeId": recipeId,
+            "inheritedRootHash": inheritedRootHash ?? "none (legacy share)",
+            "generation": generation
         ])
 
         sharedRecipe.provenance = ProvenanceMetadata(
             sourceType: .shared,
             sourceURL: nil,
             sourceAttribution: ownerName,
+            rootProvenanceHash: inheritedRootHash,  // CRITICAL: Inherit root hash for cryptographic lineage
             generation: generation,
+            parentShareID: parentShareId,  // Link back to parent share document
             sharedByName: ownerName,
             createdAt: Date()
         )
 
         sharedRecipe.sharedBy = ownerName
+        sharedRecipe.sharedByUserId = ownerId // Store sharer's user ID for querying their recipes
+        sharedRecipe.sharedFromRecipeId = recipeId.lowercased() // Store original recipe UUID (lowercase) for update checks
         sharedRecipe.sharedDate = Date()
         sharedRecipe.generationCount = generation + 1
+
+        // Build heritage chain: inherit from share data and add current user
+        let inheritedChain = shareData["heritageChain"] as? [String] ?? []
+        sharedRecipe.heritageChain = inheritedChain + [userId]
+
+        // Build heritage chain names: inherit and add current user's display name
+        let inheritedChainNames = shareData["heritageChainNames"] as? [String] ?? []
+        let currentUserName = auth.currentUser?.displayName ?? "You"
+        sharedRecipe.heritageChainNames = inheritedChainNames + [currentUserName]
+
+        // Mark demo recipes - they cannot be shared (onboarding only)
+        let isDemoShare = shareData["isDemoShare"] as? Bool ?? false
+        sharedRecipe.isDemoRecipe = isDemoShare
+        if isDemoShare {
+            Log.info("Recipe marked as demo - sharing will be blocked", category: .firebase, metadata: [
+                "recipeId": recipeId
+            ])
+        }
 
         // 11. KEEP ORIGINAL ID for immutable recipe identity (v2.0+)
         // Original: sharedRecipe.id = UUID() // This broke lineage tracking
@@ -830,6 +885,46 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // (This would require storing the original share recipeId in a field)
         // For now, return nil and let it re-import
         return nil
+    }
+
+    /// Sanitize heritage chain by removing demo users
+    /// - Parameters:
+    ///   - chain: Array of user IDs in the heritage chain
+    ///   - names: Optional array of display names (parallel to chain)
+    ///   - sanitize: Whether to actually perform sanitization
+    /// - Returns: Tuple of (sanitized chain, sanitized names)
+    private func sanitizeHeritageChain(
+        _ chain: [String]?,
+        names: [String]?,
+        sanitize: Bool
+    ) -> (chain: [String], names: [String]) {
+        guard let chain = chain else {
+            return ([], [])
+        }
+
+        guard sanitize else {
+            return (chain, names ?? [])
+        }
+
+        var sanitizedChain: [String] = []
+        var sanitizedNames: [String] = []
+
+        for (index, userId) in chain.enumerated() {
+            if !DemoSocialBehaviorService.isDemoUser(userId) {
+                sanitizedChain.append(userId)
+                if let names = names, index < names.count {
+                    sanitizedNames.append(names[index])
+                }
+            }
+        }
+
+        Log.info("Sanitized heritage chain", category: .firebase, metadata: [
+            "originalCount": chain.count,
+            "sanitizedCount": sanitizedChain.count,
+            "removedDemoUsers": chain.count - sanitizedChain.count
+        ])
+
+        return (sanitizedChain, sanitizedNames)
     }
 }
 

@@ -343,6 +343,13 @@ struct IngredientParser {
             "pinches", "pinch",
             "dashes", "dash",
             "cans", "can",
+            "boxes", "box",
+            "jars", "jar",
+            "bottles", "bottle",
+            "heads", "head",
+            "stalks", "stalk",
+            "sprigs", "sprig",
+            "leaves", "leaf",
             "large", "medium", "small",
         ]
 
@@ -620,6 +627,13 @@ struct IngredientParser {
         case "pinches": normalized = "pinch"
         case "dashes": normalized = "dash"
         case "cans": normalized = "can"
+        case "boxes": normalized = "box"
+        case "jars": normalized = "jar"
+        case "bottles": normalized = "bottle"
+        case "heads": normalized = "head"
+        case "stalks": normalized = "stalk"
+        case "sprigs": normalized = "sprig"
+        case "leaves": normalized = "leaf"
 
         // Already singular or special cases
         default: normalized = unit

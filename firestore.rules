@@ -33,6 +33,24 @@ service cloud.firestore {
     // when we have time to properly test the architecture
 
     // ========================================
+    // USER DOCUMENT (Parent Document)
+    // Allows users to delete their own user document during account deletion
+    // ========================================
+    match /users/{userId} {
+      // Users can read their own document
+      allow read: if isOwner(userId);
+
+      // Users can create their own document
+      allow create: if isOwner(userId);
+
+      // Users can update their own document
+      allow update: if isOwner(userId);
+
+      // Users can delete their own document (for account deletion)
+      allow delete: if isOwner(userId);
+    }
+
+    // ========================================
     // USER RECIPES (User-Scoped)
     // ========================================
     match /users/{userId}/recipes/{recipeId} {

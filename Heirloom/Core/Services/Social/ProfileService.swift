@@ -154,7 +154,7 @@ class FirebaseProfileService: ProfileServiceProtocol {
         // Encode and save to Firestore
         let data = try Firestore.Encoder().encode(updatedProfile)
         let docRef = db.collection("users").document(userId).collection("profile").document("data")
-        try await docRef.setData(data, merge: false)
+        try await docRef.setData(data, merge: true)
 
         // Update cache
         profileCache[userId] = updatedProfile

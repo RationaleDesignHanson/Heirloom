@@ -110,12 +110,15 @@ struct RecipeFiltersView: View {
 
     private var sortSection: some View {
         Section {
-            Picker("Sort By", selection: $filters.sortOption) {
-                ForEach(RecipeSortOption.allCases, id: \.self) { option in
-                    Text(option.displayName).tag(option)
+            LabeledContent("Sort By") {
+                Picker("", selection: $filters.sortOption) {
+                    ForEach(RecipeSortOption.allCases, id: \.self) { option in
+                        Text(option.displayName).tag(option)
+                    }
                 }
+                .pickerStyle(.menu)
+                .labelsHidden()
             }
-            .pickerStyle(.menu)
 
             Picker("Order", selection: $filters.sortOrder) {
                 Label("Ascending", systemImage: "arrow.up").tag(SortOrder.ascending)

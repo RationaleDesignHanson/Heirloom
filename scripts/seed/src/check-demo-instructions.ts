@@ -14,10 +14,11 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// NOTE: Use lowercase UUIDs to match Swift's UUID.firebaseString convention
 const DEMO_RECIPES = [
-  { userId: 'demo_phillipfry', recipeId: '7EE0A981-0DD2-4105-AA26-AB941C23D688', title: 'Creamy One-Pot Pasta' },
-  { userId: 'demo_grandmazing', recipeId: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35', title: 'Brown Butter Cookies' },
-  { userId: 'demo_grillmaster', recipeId: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F', title: 'Ultimate Smash Burgers' },
+  { userId: 'demo_phillipfry', recipeId: '7ee0a981-0dd2-4105-aa26-ab941c23d688', title: 'Creamy One-Pot Pasta' },
+  { userId: 'demo_grandmazing', recipeId: '5e13b837-1a80-4d22-af8a-c474a6ea5c35', title: 'Brown Butter Cookies' },
+  { userId: 'demo_grillmaster', recipeId: '1de8ec4c-7629-466d-b39b-87d97b48ec9f', title: 'Ultimate Smash Burgers' },
 ];
 
 async function check() {

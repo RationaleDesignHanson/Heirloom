@@ -55,7 +55,7 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
             return nil
         }
 
-        let recipeId = recipe.id.uuidString
+        let recipeId = recipe.id.firebaseString
         let storagePath = "users/\(userId)/recipes/\(recipeId)/image.jpg"
         let storageRef = configuration.storage.reference().child(storagePath)
 
@@ -122,7 +122,7 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let storagePath = "users/\(userId)/recipes/\(recipeId.uuidString)/image.jpg"
+        let storagePath = "users/\(userId)/recipes/\(recipeId.firebaseString)/image.jpg"
         let storageRef = configuration.storage.reference().child(storagePath)
 
         logger.log("Deleting recipe image from Firebase Storage: \(storagePath)", category: .storage, level: .info, metadata: nil)

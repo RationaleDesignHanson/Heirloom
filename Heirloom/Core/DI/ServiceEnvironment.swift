@@ -67,6 +67,13 @@ private struct NetworkMonitorKey: EnvironmentKey {
     }
 }
 
+// Network (concrete type for @Observable to work properly)
+private struct NetworkMonitorConcreteKey: EnvironmentKey {
+    static let defaultValue: NetworkMonitor = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve(NetworkMonitor.self)
+    }
+}
+
 // Recipe Services
 private struct RecipeImportServiceKey: EnvironmentKey {
     static let defaultValue: any RecipeImportServiceProtocol = MainActor.assumeIsolated {
@@ -163,6 +170,13 @@ extension EnvironmentValues {
     var networkMonitor: any NetworkMonitorProtocol {
         get { self[NetworkMonitorKey.self] }
         set { self[NetworkMonitorKey.self] = newValue }
+    }
+
+    /// Concrete NetworkMonitor for @Observable to work in SwiftUI views
+    /// Use this instead of networkMonitor when you need real-time UI updates
+    var network: NetworkMonitor {
+        get { self[NetworkMonitorConcreteKey.self] }
+        set { self[NetworkMonitorConcreteKey.self] = newValue }
     }
 
     // MARK: Recipe Services

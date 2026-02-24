@@ -31,13 +31,11 @@ final class VideoProcessingJobManager: ObservableObject {
 
     private var standardProcessor: VideoRecipeProcessor?
     private var asmrProcessor: ASMRVideoProcessor?
-    private let usageManager: ASMRUsageManager
     private var modelContext: ModelContext?
 
     // MARK: - Initialization
 
     init() {
-        self.usageManager = ASMRUsageManager()
         setupBackgroundHandling()
     }
 
@@ -852,14 +850,12 @@ final class VideoProcessingJobManager: ObservableObject {
         try context.save()
 
         // Process through ASMR pipeline
-        // Credits are already deducted at confirmation time (confirmAndStartProcessing),
-        // so skip the ASMRUsageManager credit check in the processor
+        // Credits are handled by VideoProcessingJobManager.chargeCredits(), not the processor
         let extraction = try await processor.process(
             videoURL: videoURL,
             userCaption: job.userCaption ?? "",
             videoHash: nil,
-            dishNameHint: job.dishNameHint,
-            creditsPreCharged: job.creditsCharged > 0
+            dishNameHint: job.dishNameHint
         )
 
         // Return enhanced extraction with augmentation data
@@ -994,8 +990,10 @@ final class VideoProcessingJobManager: ObservableObject {
                 throw RecoveryError.invalidRecoveryAction
             }
 
-            // Check ASMR credits
-            guard usageManager.canStartExtraction() else {
+            // Check ASMR credits using UserCredits
+            let userCreditsDescriptor = FetchDescriptor<UserCredits>()
+            let allCredits = try context.fetch(userCreditsDescriptor)
+            guard let userCredits = allCredits.first, userCredits.canAfford(credits: 5) else {
                 throw RecoveryError.insufficientCredits
             }
 
@@ -1081,13 +1079,33 @@ final class VideoProcessingJobManager: ObservableObject {
         guard job.videoType == .asmr else { return }
         guard job.creditsCharged == 0 else { return }
 
-        try usageManager.startExtraction()
+        // Fetch UserCredits from context
+        let userCreditsDescriptor = FetchDescriptor<UserCredits>()
+        let allCredits = try context.fetch(userCreditsDescriptor)
+        guard let userCredits = allCredits.first else {
+            throw VideoProcessingError.insufficientCredits(needed: 5, available: 0)
+        }
+
+        // Deduct from UserCredits (unified credit system)
+        try userCredits.deductCredits(5)
         job.creditsCharged = 5
 
         try context.save()
 
+        // Track analytics
+        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        CreditAnalytics.trackDeduction(
+            analytics: analytics,
+            userCredits: userCredits,
+            operationType: .videoASMR,
+            amount: 5,
+            subscriptionManager: subscriptionManager
+        )
+
         Log.info("Charged 5 credits for ASMR processing", category: .video, metadata: [
-            "jobId": job.id.uuidString
+            "jobId": job.id.uuidString,
+            "creditsRemaining": userCredits.availableCredits
         ])
     }
 
@@ -1095,13 +1113,35 @@ final class VideoProcessingJobManager: ObservableObject {
         guard job.creditsCharged > 0 else { return }
         guard !job.creditsRefunded else { return }
 
-        usageManager.refundExtraction()
+        // Fetch UserCredits from context
+        let userCreditsDescriptor = FetchDescriptor<UserCredits>()
+        let allCredits = try context.fetch(userCreditsDescriptor)
+        guard let userCredits = allCredits.first else {
+            Log.warning("No UserCredits found for refund", category: .video)
+            return
+        }
+
+        // Refund to UserCredits (unified credit system)
+        userCredits.refundCredits(job.creditsCharged)
         job.creditsRefunded = true
 
         try context.save()
 
+        // Track analytics
+        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        CreditAnalytics.trackRefund(
+            analytics: analytics,
+            userCredits: userCredits,
+            operationType: .videoASMR,
+            amount: job.creditsCharged,
+            reason: "processing_failed",
+            subscriptionManager: subscriptionManager
+        )
+
         Log.info("Refunded \(job.creditsCharged) credits", category: .video, metadata: [
-            "jobId": job.id.uuidString
+            "jobId": job.id.uuidString,
+            "creditsRemaining": userCredits.availableCredits
         ])
     }
 
@@ -1191,6 +1231,18 @@ final class VideoProcessingJobManager: ObservableObject {
 
         try userCredits.deductCredits(creditCost)
         job.creditsCharged = creditCost
+
+        // Track credit deduction analytics
+        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        let operationType: CreditOperationType = job.videoType == .asmr ? .videoASMR : .videoRegular
+        CreditAnalytics.trackDeduction(
+            analytics: analytics,
+            userCredits: userCredits,
+            operationType: operationType,
+            amount: creditCost,
+            subscriptionManager: subscriptionManager
+        )
 
         // Store dish name hint if provided (for ASMR)
         if let hint = dishNameHint, !hint.isEmpty {

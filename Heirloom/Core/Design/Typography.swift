@@ -126,6 +126,55 @@ enum HeirloomSpacing {
     static let onboardingCardSpacing: CGFloat = 16
 }
 
+// MARK: - Card Back Typography
+extension HeirloomFonts {
+    /// Typography specifically tuned for recipe card backs
+    /// Optimized for limited space with warm, personal feel
+    enum CardBack {
+        // Section headers (Level 1) - Serif for warmth
+        static let sectionHeader = Font.system(.subheadline, design: .serif, weight: .semibold)
+
+        // Body content (Level 2)
+        static let bodyText = Font.system(.footnote, weight: .regular)
+        static let bodyEmphasis = Font.system(.footnote, weight: .medium)
+
+        // Meta/supporting text (Level 3)
+        static let metadata = Font.system(.caption2, weight: .regular)
+        static let metadataBold = Font.system(.caption2, weight: .semibold)
+
+        // Special treatments
+        static let personalNote = Font.system(.footnote, design: .serif, weight: .regular).italic()
+        static let heritageText = Font.system(.footnote, design: .serif, weight: .regular).italic()
+    }
+}
+
+// MARK: - Line Spacing
+extension HeirloomSpacing {
+    /// Line spacing for typography elements
+    enum LineHeight {
+        /// Tight spacing for headers (multiplier)
+        static let tight: CGFloat = 2
+
+        /// Standard spacing for body text
+        static let standard: CGFloat = 4
+
+        /// Relaxed spacing for long-form reading
+        static let relaxed: CGFloat = 5
+    }
+
+    /// Letter spacing (tracking) for typography
+    enum Tracking {
+        /// Normal tracking for body text
+        static let normal: CGFloat = 0
+
+        /// Slight spacing for elegance in headers
+        static let header: CGFloat = 0.3
+
+        /// Wide spacing for labels/metadata
+        static let label: CGFloat = 0.5
+    }
+}
+
 // MARK: - Shadows
 enum HeirloomShadows {
     static let card = (

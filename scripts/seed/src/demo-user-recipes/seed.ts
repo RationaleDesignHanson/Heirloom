@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 // These UUIDs are referenced in the share documents
 const DEMO_USER_RECIPES = {
   demo_phillipfry: {
-    recipeId: '7EE0A981-0DD2-4105-AA26-AB941C23D688', // Must match seed_data.ts UUID
+    recipeId: '7ee0a981-0dd2-4105-aa26-ab941c23d688', // Must match seed_data.ts UUID
     title: 'Creamy One-Pot Pasta',
     description: 'My go-to weeknight dinner. Everything cooks in one pot - pasta, sauce, and all. Super easy cleanup and it\'s ready in 25 minutes.',
     category: 'Dinner',
@@ -41,7 +41,7 @@ const DEMO_USER_RECIPES = {
     ],
   },
   demo_grillmaster: {
-    recipeId: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F', // Must match seed_data.ts UUID
+    recipeId: '1de8ec4c-7629-466d-b39b-87d97b48ec9f', // Must match seed_data.ts UUID
     title: 'Ultimate Smash Burgers',
     description: 'The secret is smashing the patties thin on a screaming hot griddle. Those crispy edges are everything. Trust me on this one.',
     category: 'Dinner',
@@ -69,7 +69,7 @@ const DEMO_USER_RECIPES = {
     ],
   },
   demo_grandmazing: {
-    recipeId: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35', // Must match seed_data.ts UUID
+    recipeId: '5e13b837-1a80-4d22-af8a-c474a6ea5c35', // Must match seed_data.ts UUID
     title: 'Brown Butter Chocolate Chip Cookies',
     description: 'The brown butter is my secret - it adds this nutty, caramel flavor that makes everyone ask for the recipe. Been making these for 40 years.',
     category: 'Dessert',
@@ -100,7 +100,7 @@ const DEMO_USER_RECIPES = {
     ],
   },
   demo_chef_maria: {
-    recipeId: '5D5A16D4-4FC2-483B-9737-7D0451F3C236', // Must match seed_data.ts UUID
+    recipeId: '5d5a16d4-4fc2-483b-9737-7d0451f3c236', // Must match seed_data.ts UUID
     title: 'Camarones al Ajillo (Garlic Shrimp)',
     description: 'This is how my abuela made it in Havana. The secret is letting the garlic infuse the oil slowly, then cooking the shrimp fast over high heat.',
     category: 'Dinner',
@@ -127,7 +127,7 @@ const DEMO_USER_RECIPES = {
     ],
   },
   demo_fitfoodie: {
-    recipeId: 'F3890DC5-F51A-455A-8BF2-EB4BB089C5A9', // Must match seed_data.ts UUID
+    recipeId: 'f3890dc5-f51a-455a-8bf2-eb4bb089c5a9', // Must match seed_data.ts UUID
     title: 'Ultimate Protein Power Bowl',
     description: '45g of protein and it actually tastes amazing. This is my post-workout go-to. The tahini dressing makes it.',
     category: 'Lunch',
@@ -155,7 +155,7 @@ const DEMO_USER_RECIPES = {
     ],
   },
   demo_bakingbelle: {
-    recipeId: 'FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF', // Must match seed_data.ts UUID
+    recipeId: 'fceb840f-6acb-49f3-a7f0-e1da3de286ff', // Must match seed_data.ts UUID
     title: 'Molten Chocolate Lava Cakes',
     description: 'These look so fancy but they\'re actually super easy. The trick is not overbaking - you want that molten center!',
     category: 'Dessert',
@@ -192,7 +192,13 @@ async function seedDemoUserRecipes(): Promise<void> {
   console.log('='.repeat(60));
 
   for (const [userId, recipeData] of Object.entries(DEMO_USER_RECIPES)) {
-    const recipeRef = db.doc(`users/${userId}/recipes/${recipeData.recipeId}`);
+    // IMPORTANT: Use lowercase UUID for document ID to match app's firebaseString convention
+    const recipeIdLower = recipeData.recipeId.toLowerCase();
+    const recipeRef = db.doc(`users/${userId}/recipes/${recipeIdLower}`);
+
+    // IMPORTANT: Store instructions as array on document (not subcollection)
+    // The app expects instructions as data["instructions"] which is [String]
+    const instructionStrings = recipeData.instructions.map(inst => inst.text);
 
     const recipe = {
       id: recipeData.recipeId,
@@ -204,6 +210,7 @@ async function seedDemoUserRecipes(): Promise<void> {
       prepTime: recipeData.prepTime,
       cookTime: recipeData.cookTime,
       firebaseImageURL: recipeData.imageURL,
+      instructions: instructionStrings, // Store as array on document for diff view
       createdAt: toTimestamp(daysAgo(30)),
       updatedAt: toTimestamp(now),
       modifiedAt: toTimestamp(now),
@@ -216,16 +223,21 @@ async function seedDemoUserRecipes(): Promise<void> {
     await recipeRef.set(recipe);
 
     // Delete existing ingredients before re-seeding (prevents duplicates)
-    const existingIngredients = await db.collection(`users/${userId}/recipes/${recipeData.recipeId}/ingredients`).get();
+    // Check both uppercase (old) and lowercase (new) paths
+    const existingIngredientsOld = await db.collection(`users/${userId}/recipes/${recipeData.recipeId}/ingredients`).get();
+    for (const doc of existingIngredientsOld.docs) {
+      await doc.ref.delete();
+    }
+    const existingIngredients = await db.collection(`users/${userId}/recipes/${recipeIdLower}/ingredients`).get();
     for (const doc of existingIngredients.docs) {
       await doc.ref.delete();
     }
 
-    // Seed ingredients as subcollection
+    // Seed ingredients as subcollection (using lowercase recipe ID)
     const ingredientBatch = db.batch();
     for (const ing of recipeData.ingredients) {
-      const ingredientId = uuidv4();
-      const ingredientRef = db.doc(`users/${userId}/recipes/${recipeData.recipeId}/ingredients/${ingredientId}`);
+      const ingredientId = uuidv4().toLowerCase(); // Also lowercase ingredient IDs
+      const ingredientRef = db.doc(`users/${userId}/recipes/${recipeIdLower}/ingredients/${ingredientId}`);
       ingredientBatch.set(ingredientRef, {
         id: ingredientId,
         originalText: ing.text,  // App expects 'originalText', not 'text'
@@ -239,16 +251,20 @@ async function seedDemoUserRecipes(): Promise<void> {
     await ingredientBatch.commit();
 
     // Delete existing instructions before re-seeding (prevents duplicates)
-    const existingInstructions = await db.collection(`users/${userId}/recipes/${recipeData.recipeId}/instructions`).get();
+    const existingInstructionsOld = await db.collection(`users/${userId}/recipes/${recipeData.recipeId}/instructions`).get();
+    for (const doc of existingInstructionsOld.docs) {
+      await doc.ref.delete();
+    }
+    const existingInstructions = await db.collection(`users/${userId}/recipes/${recipeIdLower}/instructions`).get();
     for (const doc of existingInstructions.docs) {
       await doc.ref.delete();
     }
 
-    // Seed instructions as subcollection
+    // Seed instructions as subcollection (using lowercase recipe ID)
     const instructionBatch = db.batch();
     for (const inst of recipeData.instructions) {
-      const instructionId = uuidv4();
-      const instructionRef = db.doc(`users/${userId}/recipes/${recipeData.recipeId}/instructions/${instructionId}`);
+      const instructionId = uuidv4().toLowerCase(); // Also lowercase instruction IDs
+      const instructionRef = db.doc(`users/${userId}/recipes/${recipeIdLower}/instructions/${instructionId}`);
       instructionBatch.set(instructionRef, {
         id: instructionId,
         text: inst.text,

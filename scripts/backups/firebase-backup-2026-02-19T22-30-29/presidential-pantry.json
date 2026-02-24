@@ -1,0 +1,2578 @@
+{
+  "themeId": "presidential-pantry",
+  "themeName": "Presidential Pantry",
+  "themeData": {
+    "id": "presidential-pantry",
+    "name": "Presidential Pantry",
+    "tagline": "Recipes from the White House kitchens",
+    "description": "From Martha Washington's Great Cake to Reagan's Cobb Salad, these recipes reveal what America's presidents ate at home and served to dignitaries.",
+    "iconName": "building.columns.fill",
+    "category": "historical",
+    "source": "White House Archives, Presidential Libraries",
+    "era": "1789-1989",
+    "region": "Washington, D.C.",
+    "totalRecipes": 14,
+    "unlockSchedule": [
+      1,
+      2,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 11,
+    "coverImagePrompt": "Elegant White House state dining room with presidential china and formal place settings, patriotic color accents, historical illustration style",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/presidential-pantry.webp",
+    "updatedAt": "2026-01-27T01:51:36.287Z"
+  },
+  "recipes": [
+    {
+      "id": "presidential-pantry-001",
+      "title": "Martha Washington's Great Cake",
+      "description": "Take 40 eggs and divide the whites from the yolks and beat them to a froth. Start to work 4 lb of butter with your hand till it is like a fine thick cream, then beat in 4 lb of sugar a small handful at a time. Take 5 lb of flour and mix in it 1/2 pint of wine and 1/2 pint of brandy. Pour this to the butter and sugar, add the eggs and spices. Work it all together with your hand, add your fruit and let it stand to rise 2 hours. Then bake in a slow oven for 4 hours.",
+      "prepTime": "2 hours",
+      "cookTime": "4 hours",
+      "servings": "Makes 1 large cake (serves 40)",
+      "source": "Martha Washington's Booke of Cookery, Mount Vernon Ladies' Association",
+      "story": "This recipe from Martha Washington's personal cookbook (circa 1749) was a centerpiece of presidential entertaining at Mount Vernon. The cake's massive scale—40 eggs and 4 pounds of butter—demonstrates the grandeur of 18th-century hospitality. It was traditionally served at holidays and important state occasions.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "holiday",
+        "entertaining"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-001.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:55.729Z",
+      "updatedAt": "2026-02-06T03:53:55.729Z",
+      "ingredients": [
+        {
+          "name": "40 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "40 eggs",
+          "order": 0
+        },
+        {
+          "name": "4 pounds of butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 pounds of butter",
+          "order": 1
+        },
+        {
+          "name": "4 pounds of sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 pounds of sugar",
+          "order": 2
+        },
+        {
+          "name": "5 pounds of flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 pounds of flour",
+          "order": 3
+        },
+        {
+          "name": "5 pounds of fruit (raisins, currants)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 pounds of fruit (raisins, currants)",
+          "order": 4
+        },
+        {
+          "name": "1/2 pint of wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 pint of wine",
+          "order": 5
+        },
+        {
+          "name": "1/2 pint of brandy",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 pint of brandy",
+          "order": 6
+        },
+        {
+          "name": "4 ounces of mace and nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 ounces of mace and nutmeg",
+          "order": 7
+        },
+        {
+          "name": "2 ounces of cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 ounces of cinnamon",
+          "order": 8
+        },
+        {
+          "name": "3 large spoonfuls of yeast",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 large spoonfuls of yeast",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Work the butter to a cream with your hands.",
+        "Beat the sugar into the butter, alternating with the eggs.",
+        "Add the wine, brandy, and spices.",
+        "Mix in the flour gradually.",
+        "Add the fruit last.",
+        "Let rise for 2 hours in a warm place.",
+        "Bake in a slow oven for 4 hours."
+      ]
+    },
+    {
+      "id": "presidential-pantry-002",
+      "title": "Thomas Jefferson's Ice Cream",
+      "description": "Mix the yolks & sugar. Put the cream on a fire in a casserole, first putting in a stick of Vanilla. When near boiling take it off & pour it gently into the mixture of eggs & sugar. Stir it well. Put it on the fire again stirring it thoroughly with a spoon to prevent it's sticking to the casserole. When near boiling take it off and strain it thro' a towel. Put it in the Sabottiere then set it in ice an hour before it is to be served. Put into the ice a handful of salt.",
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes (plus freezing)",
+      "servings": "Serves 8-10",
+      "source": "Thomas Jefferson's personal recipe notes, Library of Congress",
+      "story": "Thomas Jefferson is credited with introducing ice cream to America after encountering it in France during his time as Minister to France (1784-1789). His handwritten recipe, preserved in the Library of Congress, is one of the earliest American ice cream recipes. He served it at presidential dinners using a specially designed ice house at Monticello.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "frozen"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-002.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:55.938Z",
+      "updatedAt": "2026-02-06T03:53:55.938Z",
+      "ingredients": [
+        {
+          "name": "2 bottles of good cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 bottles of good cream",
+          "order": 0
+        },
+        {
+          "name": "6 egg yolks",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 egg yolks",
+          "order": 1
+        },
+        {
+          "name": "1/2 pound of sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 pound of sugar",
+          "order": 2
+        }
+      ],
+      "instructions": [
+        "Mix the yolks and sugar together in a saucepan.",
+        "Add the cream gradually, stirring constantly.",
+        "Heat gently until the mixture coats the back of a spoon.",
+        "Strain through a fine sieve.",
+        "Pour into a sabottiere (ice cream maker).",
+        "Freeze in ice mixed with salt.",
+        "Work the mixture every 5 minutes until frozen."
+      ]
+    },
+    {
+      "id": "presidential-pantry-003",
+      "title": "Abraham Lincoln's Gingerbread",
+      "description": "One cup molasses, one cup sugar, one cup butter, three eggs, ginger and cinnamon to taste, three cups flour, one cup hot water with one teaspoon saleratus dissolved. Bake in moderate oven.",
+      "prepTime": "20 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 12",
+      "source": "Mary Todd Lincoln's White House recipes, Illinois State Historical Society",
+      "story": "Abraham Lincoln had a well-documented fondness for gingerbread, which Mary Todd Lincoln often served at the White House. This soft, cake-like gingerbread was common in 19th-century America. Lincoln reportedly enjoyed it with coffee during long cabinet meetings. The recipe uses saleratus (an early leavening agent) and reflects Civil War-era baking.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cake",
+        "gingerbread"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-003.webp",
+      "sortOrder": 3,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:56.136Z",
+      "updatedAt": "2026-02-06T03:53:56.136Z",
+      "ingredients": [
+        {
+          "name": "1 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup molasses",
+          "order": 0
+        },
+        {
+          "name": "1 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup sugar",
+          "order": 1
+        },
+        {
+          "name": "1 cup butter, softened",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup butter, softened",
+          "order": 2
+        },
+        {
+          "name": "3 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 eggs",
+          "order": 3
+        },
+        {
+          "name": "1 tablespoon ginger",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon ginger",
+          "order": 4
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 5
+        },
+        {
+          "name": "3 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups flour",
+          "order": 6
+        },
+        {
+          "name": "1 cup hot water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup hot water",
+          "order": 7
+        },
+        {
+          "name": "1 teaspoon baking soda dissolved in hot water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking soda dissolved in hot water",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Cream together butter and sugar until light.",
+        "Beat in eggs one at a time.",
+        "Mix in molasses.",
+        "Combine flour, ginger, and cinnamon.",
+        "Dissolve baking soda in hot water.",
+        "Add flour mixture and soda water alternately to butter mixture.",
+        "Pour into greased 9x13 pan.",
+        "Bake at 350°F for 35 minutes until toothpick comes out clean.",
+        "Serve warm with whipped cream."
+      ]
+    },
+    {
+      "id": "presidential-pantry-004",
+      "title": "Eleanor Roosevelt's Scrambled Eggs",
+      "description": "Eight eggs, half cup of cream, butter the size of a walnut, salt and pepper. Beat eggs lightly, add cream. Melt butter in skillet, cook slowly, stirring constantly. Serve on toast when creamy but not dry.",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "source": "Eleanor Roosevelt's personal recipe collection",
+      "story": "Eleanor Roosevelt served these luxurious scrambled eggs at informal White House breakfasts during the 1930s-40s. Known for championing simple, wholesome food despite White House formality, she insisted on slow cooking for the creamiest texture. The recipe reflects Depression-era pragmatism while maintaining elegance through proper technique.",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "eggs",
+        "main dish"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-004.webp",
+      "sortOrder": 4,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:56.326Z",
+      "updatedAt": "2026-02-06T03:53:56.326Z",
+      "ingredients": [
+        {
+          "name": "8 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "8 eggs",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup heavy cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup heavy cream",
+          "order": 1
+        },
+        {
+          "name": "3 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons butter",
+          "order": 2
+        },
+        {
+          "name": "Salt and white pepper to taste",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and white pepper to taste",
+          "order": 3
+        },
+        {
+          "name": "2 tablespoons fresh chives, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons fresh chives, chopped",
+          "order": 4
+        },
+        {
+          "name": "Toast points for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Toast points for serving",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Beat eggs with cream, salt, and white pepper.",
+        "Melt butter in a heavy skillet over low heat.",
+        "Pour in egg mixture.",
+        "Stir constantly with a wooden spoon, scraping bottom.",
+        "Cook slowly until eggs are creamy and just set.",
+        "Remove from heat while still slightly soft.",
+        "Garnish with chives.",
+        "Serve immediately on toast points."
+      ]
+    },
+    {
+      "id": "presidential-pantry-005",
+      "title": "Dolley Madison's Oyster Soup",
+      "description": "Take two dozen oysters and their liquor. Scald the oysters in their own liquor. When the edges curl, remove them. Make a white sauce with butter, flour, milk and cream. Season with mace. Return oysters to soup and heat through. Serve immediately.",
+      "prepTime": "15 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 6",
+      "source": "Dolley Madison's recipe book, James Madison's Montpelier",
+      "story": "Dolley Madison was renowned for her elegant entertaining during James Madison's presidency (1809-1817). Oyster soup was a fashionable first course in Federal-era Washington. The Madisons sourced oysters from the Chesapeake Bay, and Dolley's Wednesday evening 'drawing rooms' often featured this refined soup, showcasing American ingredients with European technique.",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "seafood",
+        "appetizer"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-005.webp",
+      "sortOrder": 5,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:56.544Z",
+      "updatedAt": "2026-02-06T03:53:56.544Z",
+      "ingredients": [
+        {
+          "name": "2 dozen fresh oysters with liquor",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 dozen fresh oysters with liquor",
+          "order": 0
+        },
+        {
+          "name": "4 cups whole milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups whole milk",
+          "order": 1
+        },
+        {
+          "name": "1 cup heavy cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup heavy cream",
+          "order": 2
+        },
+        {
+          "name": "4 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 3
+        },
+        {
+          "name": "2 tablespoons flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons flour",
+          "order": 4
+        },
+        {
+          "name": "1/4 teaspoon mace",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 teaspoon mace",
+          "order": 5
+        },
+        {
+          "name": "Salt and white pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and white pepper",
+          "order": 6
+        },
+        {
+          "name": "Oyster crackers for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Oyster crackers for serving",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Strain oyster liquor and reserve.",
+        "Heat oyster liquor until edges curl (about 3 minutes).",
+        "Remove oysters and keep warm.",
+        "Make roux with butter and flour.",
+        "Slowly add milk, cream, and oyster liquor to roux.",
+        "Season with mace, salt, and pepper.",
+        "Simmer gently for 10 minutes (do not boil).",
+        "Add oysters back just before serving.",
+        "Serve with oyster crackers."
+      ]
+    },
+    {
+      "id": "presidential-pantry-006",
+      "title": "Jacqueline Kennedy's Chicken Casserole",
+      "description": "Combine cooked chicken with cream soup, sour cream, and vegetables. Top with herb dressing mixed with butter. Bake until golden. This is wonderful for informal suppers.",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "source": "White House social secretary records, Kennedy Library",
+      "story": "This quintessentially 1960s casserole was a Jackie Kennedy favorite for family dinners, contrasting with the formal French cuisine served at state dinners. It represents mid-century American comfort food and Jackie's ability to balance haute cuisine with approachable family meals. The use of convenience foods (canned soup, frozen vegetables) reflects the era's culinary trends.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "casserole",
+        "chicken"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-006.webp",
+      "sortOrder": 6,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:56.758Z",
+      "updatedAt": "2026-02-06T03:53:56.758Z",
+      "ingredients": [
+        {
+          "name": "4 cups cooked chicken, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups cooked chicken, diced",
+          "order": 0
+        },
+        {
+          "name": "1 can cream of mushroom soup",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 can cream of mushroom soup",
+          "order": 1
+        },
+        {
+          "name": "1 cup sour cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup sour cream",
+          "order": 2
+        },
+        {
+          "name": "1/2 cup chicken broth",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup chicken broth",
+          "order": 3
+        },
+        {
+          "name": "1 package frozen peas",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 package frozen peas",
+          "order": 4
+        },
+        {
+          "name": "1 can water chestnuts, sliced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 can water chestnuts, sliced",
+          "order": 5
+        },
+        {
+          "name": "2 cups herb stuffing mix",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups herb stuffing mix",
+          "order": 6
+        },
+        {
+          "name": "4 tablespoons butter, melted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter, melted",
+          "order": 7
+        },
+        {
+          "name": "1/2 cup slivered almonds",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup slivered almonds",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Mix soup, sour cream, and broth together.",
+        "Fold in chicken, peas, and water chestnuts.",
+        "Pour into buttered 9x13 baking dish.",
+        "Toss stuffing with melted butter.",
+        "Spread stuffing over chicken mixture.",
+        "Top with almonds.",
+        "Bake at 350°F for 45 minutes until golden and bubbly.",
+        "Let stand 10 minutes before serving."
+      ]
+    },
+    {
+      "id": "presidential-pantry-007",
+      "title": "FDR's Favorite Grilled Cheese",
+      "description": "Good white bread, sharp cheese, ripe tomato, bacon. Butter both sides liberally. Grill until cheese melts and bread is golden. The President likes his with bacon.",
+      "prepTime": "5 minutes",
+      "cookTime": "8 minutes",
+      "servings": "Serves 1",
+      "source": "White House usher's diary, FDR Presidential Library",
+      "story": "Franklin Roosevelt's love of simple comfort food was well-documented, despite Eleanor's advocacy for plainer fare. He insisted on grilled cheese for late-night snacks during wartime strategy sessions. This upgraded version with bacon and tomato was FDR's preference, prepared by the White House kitchen staff. It provided comfort during the pressures of Depression and war.",
+      "difficulty": "medium",
+      "tags": [
+        "lunch",
+        "sandwich",
+        "comfort food"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-007.webp",
+      "sortOrder": 7,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:56.959Z",
+      "updatedAt": "2026-02-06T03:53:56.959Z",
+      "ingredients": [
+        {
+          "name": "2 slices white bread",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 slices white bread",
+          "order": 0
+        },
+        {
+          "name": "3 tablespoons butter, softened",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons butter, softened",
+          "order": 1
+        },
+        {
+          "name": "3 slices sharp cheddar cheese",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 slices sharp cheddar cheese",
+          "order": 2
+        },
+        {
+          "name": "2 slices tomato",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 slices tomato",
+          "order": 3
+        },
+        {
+          "name": "2 strips crispy bacon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 strips crispy bacon",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Butter one side of each bread slice generously.",
+        "Place one slice butter-side down in skillet.",
+        "Layer cheese, tomato, and bacon on bread.",
+        "Top with second slice, butter-side up.",
+        "Cook over medium heat until golden brown (4 minutes).",
+        "Flip carefully and cook other side until golden.",
+        "Press gently with spatula while cooking.",
+        "Cut diagonally and serve hot."
+      ]
+    },
+    {
+      "id": "presidential-pantry-008",
+      "title": "Harry Truman's Ozark Pudding",
+      "description": "One egg, three-quarters cup sugar, two tablespoons flour, one and one-quarter teaspoons baking powder, pinch salt, one cup chopped apples, one-half cup nuts, vanilla. Mix and bake in moderate oven. Best served warm with cream.",
+      "prepTime": "15 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 8",
+      "source": "Bess Truman's recipe box, Truman Presidential Library",
+      "story": "President Truman's favorite dessert from his Missouri roots, representing hearty Midwest cooking. Bess Truman brought this recipe to the White House, where it appeared at family dinners. The dessert's simplicity—no crust, few ingredients—exemplifies Truman's preference for straightforward food over elaborate White House fare. It's neither quite a cake nor a pudding, but distinctly Ozark.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pudding",
+        "apple"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-008.webp",
+      "sortOrder": 8,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:57.156Z",
+      "updatedAt": "2026-02-06T03:53:57.156Z",
+      "ingredients": [
+        {
+          "name": "1 egg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 egg",
+          "order": 0
+        },
+        {
+          "name": "3/4 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3/4 cup sugar",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons flour",
+          "order": 2
+        },
+        {
+          "name": "1 1/4 teaspoons baking powder",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/4 teaspoons baking powder",
+          "order": 3
+        },
+        {
+          "name": "1/8 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/8 teaspoon salt",
+          "order": 4
+        },
+        {
+          "name": "1 cup chopped apples",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup chopped apples",
+          "order": 5
+        },
+        {
+          "name": "1/2 cup chopped pecans",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup chopped pecans",
+          "order": 6
+        },
+        {
+          "name": "1 teaspoon vanilla",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla",
+          "order": 7
+        },
+        {
+          "name": "Whipped cream for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Whipped cream for serving",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Beat egg until frothy.",
+        "Gradually add sugar, beating well.",
+        "Sift together flour, baking powder, and salt.",
+        "Fold dry ingredients into egg mixture.",
+        "Stir in apples, pecans, and vanilla.",
+        "Pour into greased 9-inch pie pan.",
+        "Bake at 325°F for 35 minutes until set and golden.",
+        "Serve warm with whipped cream."
+      ]
+    },
+    {
+      "id": "presidential-pantry-009",
+      "title": "LBJ's Pedernales River Chili",
+      "description": "Four pounds meat, one onion, two cloves garlic, oregano, cumin seed, chili powder, tomatoes, salt, hot water. Brown meat. Add seasonings. Simmer one hour. No beans. The President is very particular about this.",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 10",
+      "source": "Lady Bird Johnson, White House kitchen records",
+      "story": "LBJ was passionate about his Texas chili and served it frequently at his ranch to visiting dignitaries and reporters. He insisted on NO BEANS—a point of Texas pride. The recipe was so popular that the White House received thousands of requests for it. Johnson personally supervised its preparation and had strong opinions about consistency and spicing. This chili became synonymous with his Texas hospitality.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "chili",
+        "Texas",
+        "beef"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-009.webp",
+      "sortOrder": 9,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:57.342Z",
+      "updatedAt": "2026-02-06T03:53:57.342Z",
+      "ingredients": [
+        {
+          "name": "4 pounds coarse-ground beef",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 pounds coarse-ground beef",
+          "order": 0
+        },
+        {
+          "name": "1 large onion, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 large onion, chopped",
+          "order": 1
+        },
+        {
+          "name": "2 cloves garlic, minced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cloves garlic, minced",
+          "order": 2
+        },
+        {
+          "name": "1 teaspoon oregano",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon oregano",
+          "order": 3
+        },
+        {
+          "name": "1 teaspoon cumin",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cumin",
+          "order": 4
+        },
+        {
+          "name": "6 teaspoons chili powder",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 teaspoons chili powder",
+          "order": 5
+        },
+        {
+          "name": "2 cans tomatoes",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cans tomatoes",
+          "order": 6
+        },
+        {
+          "name": "Salt to taste",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt to taste",
+          "order": 7
+        },
+        {
+          "name": "2 cups hot water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups hot water",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Brown meat in large heavy pot until gray (not brown).",
+        "Drain excess fat.",
+        "Add onion and garlic, cook until soft.",
+        "Add oregano, cumin, chili powder, and salt.",
+        "Add tomatoes and water.",
+        "Bring to boil, then reduce to simmer.",
+        "Cover and simmer 1 hour.",
+        "Skim fat from surface.",
+        "Serve in bowls with saltine crackers."
+      ]
+    },
+    {
+      "id": "presidential-pantry-010",
+      "title": "George Washington's Hoecakes",
+      "description": "Mix meal with salt and a bit of grease. Scald with boiling water to make a batter. Fry in hot grease on both sides. Eat with butter. The General was particularly fond of these for breakfast.",
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Makes 12 cakes",
+      "source": "Mount Vernon kitchen records",
+      "story": "Hoecakes (originally cooked on a hoe blade over an open fire) were a staple at Mount Vernon. Washington ate them for breakfast throughout his life, from his surveying days through his presidency. The simple cornmeal cakes represented frontier practicality. Enslaved cooks at Mount Vernon prepared these daily, and the recipe reflects the foundational role of corn in early American cuisine.",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "bread",
+        "cornmeal"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-010.webp",
+      "sortOrder": 10,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:57.550Z",
+      "updatedAt": "2026-02-06T03:53:57.550Z",
+      "ingredients": [
+        {
+          "name": "2 cups white cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups white cornmeal",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons butter, melted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter, melted",
+          "order": 2
+        },
+        {
+          "name": "1 1/2 to 2 cups boiling water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 to 2 cups boiling water",
+          "order": 3
+        },
+        {
+          "name": "Bacon drippings or butter for frying",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Bacon drippings or butter for frying",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt in bowl.",
+        "Add melted butter.",
+        "Pour in enough boiling water to make a thick batter.",
+        "Let stand 5 minutes to thicken.",
+        "Heat bacon drippings in cast iron skillet.",
+        "Drop batter by large spoonfuls onto hot skillet.",
+        "Flatten slightly with back of spoon.",
+        "Fry until golden brown on both sides (3-4 minutes per side).",
+        "Serve hot with butter and syrup or honey."
+      ]
+    },
+    {
+      "id": "presidential-pantry-011",
+      "title": "John Adams' Indian Pudding",
+      "description": "Scald milk, add meal gradually. Cook until thick. Add molasses, sugar, butter, eggs and spices. Pour in pan, add cold milk on top. Bake slow until set. A New England favorite.",
+      "prepTime": "15 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "source": "Adams family recipe collection, Adams National Historical Park",
+      "story": "This quintessential New England dessert was served at the Adams home in Quincy, Massachusetts, throughout John Adams' life. 'Indian' refers to cornmeal (from Native American corn). The long, slow baking creates a creamy custard. Abigail Adams served this to guests, and it represents the frugal, hearty cuisine of New England Federalists. The molasses reflects colonial trade connections.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pudding",
+        "New England"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-011.webp",
+      "sortOrder": 11,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:57.761Z",
+      "updatedAt": "2026-02-06T03:53:57.761Z",
+      "ingredients": [
+        {
+          "name": "5 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 cups milk",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup cornmeal",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup molasses",
+          "order": 2
+        },
+        {
+          "name": "1/4 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup sugar",
+          "order": 3
+        },
+        {
+          "name": "1/4 cup butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup butter",
+          "order": 4
+        },
+        {
+          "name": "2 eggs, beaten",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 eggs, beaten",
+          "order": 5
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 6
+        },
+        {
+          "name": "1/2 teaspoon ginger",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon ginger",
+          "order": 7
+        },
+        {
+          "name": "1/2 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon salt",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Scald 4 cups milk in double boiler.",
+        "Slowly stir in cornmeal, whisking constantly.",
+        "Cook 15 minutes until thick.",
+        "Remove from heat.",
+        "Add molasses, sugar, butter, and spices.",
+        "Stir in beaten eggs.",
+        "Pour into buttered baking dish.",
+        "Pour remaining 1 cup cold milk over top (do not stir).",
+        "Bake at 300°F for 2 hours until set.",
+        "Serve warm with vanilla ice cream or cream."
+      ]
+    },
+    {
+      "id": "presidential-pantry-012",
+      "title": "Reagan's California Cobb Salad",
+      "description": "Arrange lettuce, then rows of chicken, bacon, egg, tomato, avocado, cheese. Dress with oil and vinegar. Mix at table. The President favors this for lunch with the Cabinet.",
+      "prepTime": "25 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 4",
+      "source": "Nancy Reagan's White House entertaining notes",
+      "story": "President Reagan loved this Hollywood-born salad from the Brown Derby restaurant. It perfectly represented his California roots and his preference for lighter, West Coast cuisine. Nancy Reagan often served it for informal White House luncheons. The salad's composed presentation—ingredients arranged in neat rows—appealed to Reagan's appreciation for order and visual appeal. It marked a shift from heavier East Coast White House fare.",
+      "difficulty": "medium",
+      "tags": [
+        "salad",
+        "lunch",
+        "California"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-012.webp",
+      "sortOrder": 12,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:58.022Z",
+      "updatedAt": "2026-02-06T03:53:58.022Z",
+      "ingredients": [
+        {
+          "name": "1 head iceberg lettuce, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 head iceberg lettuce, chopped",
+          "order": 0
+        },
+        {
+          "name": "2 cups cooked chicken breast, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cooked chicken breast, diced",
+          "order": 1
+        },
+        {
+          "name": "6 strips bacon, cooked and crumbled",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 strips bacon, cooked and crumbled",
+          "order": 2
+        },
+        {
+          "name": "2 hard-boiled eggs, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 hard-boiled eggs, chopped",
+          "order": 3
+        },
+        {
+          "name": "2 tomatoes, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tomatoes, diced",
+          "order": 4
+        },
+        {
+          "name": "1 avocado, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 avocado, diced",
+          "order": 5
+        },
+        {
+          "name": "1/2 cup blue cheese, crumbled",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup blue cheese, crumbled",
+          "order": 6
+        },
+        {
+          "name": "3 tablespoons red wine vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons red wine vinegar",
+          "order": 7
+        },
+        {
+          "name": "1 teaspoon Dijon mustard",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon Dijon mustard",
+          "order": 8
+        },
+        {
+          "name": "1/2 cup olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup olive oil",
+          "order": 9
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Arrange lettuce on large platter.",
+        "Arrange chicken, bacon, eggs, tomatoes, avocado, and blue cheese in rows on lettuce.",
+        "Whisk together vinegar, mustard, salt, and pepper.",
+        "Slowly whisk in olive oil.",
+        "Drizzle dressing over salad at table.",
+        "Toss just before serving."
+      ]
+    },
+    {
+      "id": "presidential-pantry-013",
+      "title": "Calvin Coolidge's Chicken Pie",
+      "description": "Boil a chicken until tender. Make a white sauce with butter, flour, broth and cream. Add chicken and vegetables. Cover with pastry. Bake until golden.",
+      "prepTime": "40 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "source": "Grace Coolidge's White House menus",
+      "story": "Grace Coolidge's chicken pie represented Vermont thrift and New England cooking. The Coolidges preferred simple meals despite White House grandeur. This embodied Coolidge frugality.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "pie",
+        "chicken"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-013.webp",
+      "sortOrder": 13,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:58.245Z",
+      "updatedAt": "2026-02-06T03:53:58.245Z",
+      "ingredients": [
+        {
+          "name": "1 whole chicken (3-4 lbs), cooked and diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 whole chicken (3-4 lbs), cooked and diced",
+          "order": 0
+        },
+        {
+          "name": "4 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup flour",
+          "order": 2
+        },
+        {
+          "name": "2 cups chicken broth",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups chicken broth",
+          "order": 3
+        },
+        {
+          "name": "1 cup cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup cream",
+          "order": 4
+        },
+        {
+          "name": "1 cup peas",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup peas",
+          "order": 5
+        },
+        {
+          "name": "3 carrots, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 carrots, diced",
+          "order": 6
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 7
+        },
+        {
+          "name": "Pastry for double crust",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pastry for double crust",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Make roux with butter and flour.",
+        "Gradually add broth and cream, stirring constantly.",
+        "Cook until thick.",
+        "Add chicken, peas, and carrots.",
+        "Season with salt and pepper.",
+        "Line pie dish with bottom crust.",
+        "Pour in filling.",
+        "Top with crust, seal edges, cut vents.",
+        "Bake at 375°F for 45 minutes until golden."
+      ]
+    },
+    {
+      "id": "presidential-pantry-014",
+      "title": "James Monroe's Spoon Bread",
+      "description": "Scald milk with meal, cook thick. Add beaten yolks, butter, salt. Fold in beaten whites. Bake until risen. Serve hot with butter. A Virginia specialty.",
+      "prepTime": "15 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6",
+      "source": "Highland Plantation records, University of Virginia",
+      "story": "Spoon bread, a Southern staple at Monroe's Virginia estate, bridges Native American cornmeal traditions with European soufflé technique. Too soft to slice, it's eaten with a spoon—hence the name. Monroe served this at state dinners, showcasing regional American cuisine to foreign dignitaries.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "bread",
+        "Southern"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-presidential-014.webp",
+      "sortOrder": 14,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:58.433Z",
+      "updatedAt": "2026-02-06T03:53:58.433Z",
+      "ingredients": [
+        {
+          "name": "1 1/2 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 cups milk",
+          "order": 0
+        },
+        {
+          "name": "1 cup cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup cornmeal",
+          "order": 1
+        },
+        {
+          "name": "3 eggs, separated",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 eggs, separated",
+          "order": 2
+        },
+        {
+          "name": "3 tablespoons butter, melted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons butter, melted",
+          "order": 3
+        },
+        {
+          "name": "1 teaspoon sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon sugar",
+          "order": 4
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "1 1/2 teaspoons baking powder",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 teaspoons baking powder",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Scald milk and gradually stir in cornmeal.",
+        "Cook until thick, stirring constantly.",
+        "Remove from heat, cool slightly.",
+        "Beat egg yolks and add to cornmeal mixture.",
+        "Stir in melted butter, sugar, salt, and baking powder.",
+        "Beat egg whites until stiff peaks form.",
+        "Fold whites into cornmeal mixture.",
+        "Pour into buttered baking dish.",
+        "Bake at 375°F for 40 minutes until puffed and golden.",
+        "Serve immediately with butter."
+      ]
+    },
+    {
+      "id": "presidential-pantry-015",
+      "title": "Herbert Hoover's Waldorf Salad",
+      "description": "Dice apples and celery. Add nuts. Dress with sweetened mayonnaise. Serve on lettuce. Created at the Waldorf-Astoria, President Hoover's favorite.",
+      "prepTime": "20 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 6",
+      "source": "Lou Henry Hoover's White House entertaining records",
+      "story": "Though created at New York's Waldorf-Astoria Hotel in the 1890s, this salad became synonymous with Hoover's presidency. Lou Henry Hoover served it frequently, representing the cosmopolitan sophistication of the era before the Depression. The recipe's simplicity belied the luxury it symbolized in Gilded Age dining.",
+      "difficulty": "medium",
+      "tags": [
+        "salad",
+        "appetizer",
+        "apple"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-015.webp",
+      "sortOrder": 15,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:58.628Z",
+      "updatedAt": "2026-02-06T03:53:58.628Z",
+      "ingredients": [
+        {
+          "name": "3 cups diced apples",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups diced apples",
+          "order": 0
+        },
+        {
+          "name": "1 cup diced celery",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup diced celery",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup chopped walnuts",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup chopped walnuts",
+          "order": 2
+        },
+        {
+          "name": "1/2 cup mayonnaise",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup mayonnaise",
+          "order": 3
+        },
+        {
+          "name": "2 tablespoons lemon juice",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons lemon juice",
+          "order": 4
+        },
+        {
+          "name": "1 tablespoon sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon sugar",
+          "order": 5
+        },
+        {
+          "name": "Lettuce leaves for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Lettuce leaves for serving",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Dice apples, toss with lemon juice to prevent browning.",
+        "Add celery and walnuts.",
+        "Mix mayonnaise with sugar.",
+        "Fold dressing into apple mixture.",
+        "Chill for 30 minutes.",
+        "Serve on lettuce leaves."
+      ]
+    },
+    {
+      "id": "presidential-pantry-016",
+      "title": "Ulysses S. Grant's Rice Pudding",
+      "description": "Half cup rice, six cups milk, sugar, salt. Bake slow, stirring often. Add raisins near end. The General requests this often.",
+      "prepTime": "10 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "source": "Julia Grant's household records",
+      "story": "Grant's love of simple desserts was well-known. Despite his military glory, he preferred humble fare. Rice pudding reminded him of his Ohio childhood. Julia Grant served this comfort food throughout their White House years, a reminder that even war heroes cherished simple pleasures.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pudding",
+        "rice"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-016.webp",
+      "sortOrder": 16,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:58.834Z",
+      "updatedAt": "2026-02-06T03:53:58.834Z",
+      "ingredients": [
+        {
+          "name": "1/2 cup rice",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup rice",
+          "order": 0
+        },
+        {
+          "name": "6 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 cups milk",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "1/4 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 teaspoon salt",
+          "order": 3
+        },
+        {
+          "name": "1/2 teaspoon vanilla",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon vanilla",
+          "order": 4
+        },
+        {
+          "name": "1/4 teaspoon nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 teaspoon nutmeg",
+          "order": 5
+        },
+        {
+          "name": "1/2 cup raisins",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup raisins",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Mix rice, milk, sugar, and salt in buttered baking dish.",
+        "Bake at 300°F for 2 hours, stirring every 30 minutes.",
+        "Add raisins and vanilla after 90 minutes.",
+        "Continue baking until creamy and rice is tender.",
+        "Sprinkle with nutmeg before serving.",
+        "Serve warm or cold."
+      ]
+    },
+    {
+      "id": "presidential-pantry-017",
+      "title": "William Howard Taft's Steak",
+      "description": "Thick steak, well-seasoned. Sear hot and fast. Finish with butter. The President prefers his rare.",
+      "prepTime": "5 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Serves 2",
+      "source": "White House kitchen records, Taft administration",
+      "story": "Taft's legendary appetite was no myth—at 300+ pounds, he was America's heaviest president. He loved simple, well-prepared steaks. Despite later dietary reforms, Taft's White House dinners featured substantial portions of high-quality beef, reflecting both his personal preferences and the carnivorous dining culture of the era.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "beef",
+        "steak"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-017.webp",
+      "sortOrder": 17,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:59.033Z",
+      "updatedAt": "2026-02-06T03:53:59.033Z",
+      "ingredients": [
+        {
+          "name": "2 ribeye steaks (1 inch thick)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 ribeye steaks (1 inch thick)",
+          "order": 0
+        },
+        {
+          "name": "2 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "Salt and black pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and black pepper",
+          "order": 2
+        },
+        {
+          "name": "2 cloves garlic, smashed",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cloves garlic, smashed",
+          "order": 3
+        },
+        {
+          "name": "2 sprigs fresh thyme",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 sprigs fresh thyme",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Remove steaks from refrigerator 30 minutes before cooking.",
+        "Season generously with salt and pepper.",
+        "Heat cast iron skillet until smoking hot.",
+        "Sear steaks 4 minutes per side for medium-rare.",
+        "Add butter, garlic, and thyme to pan.",
+        "Baste steaks with melted butter.",
+        "Remove and rest 5 minutes before serving."
+      ]
+    },
+    {
+      "id": "presidential-pantry-018",
+      "title": "Benjamin Harrison's Corn Relish",
+      "description": "Cut corn from cob. Mix with cabbage, onion, pepper. Add vinegar, sugar, spices. Boil and pack hot. Mrs. Harrison puts this up every summer.",
+      "prepTime": "30 minutes",
+      "cookTime": "30 minutes",
+      "servings": "Makes 4 pints",
+      "source": "Caroline Harrison's preservation records",
+      "story": "Caroline Harrison's corn relish represented the tradition of home preservation. The First Lady personally supervised the White House kitchen's canning operations, continuing Victorian-era practices. This sweet-sour condiment accompanied roasted meats and reflected the Midwest agricultural abundance of the Harrison era.",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "preserved",
+        "corn"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-018.webp",
+      "sortOrder": 18,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:59.224Z",
+      "updatedAt": "2026-02-06T03:53:59.224Z",
+      "ingredients": [
+        {
+          "name": "12 ears fresh corn",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "12 ears fresh corn",
+          "order": 0
+        },
+        {
+          "name": "1 small cabbage, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 small cabbage, chopped",
+          "order": 1
+        },
+        {
+          "name": "3 onions, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 onions, chopped",
+          "order": 2
+        },
+        {
+          "name": "2 red peppers, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 red peppers, chopped",
+          "order": 3
+        },
+        {
+          "name": "2 cups vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups vinegar",
+          "order": 4
+        },
+        {
+          "name": "1 1/2 cups sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 cups sugar",
+          "order": 5
+        },
+        {
+          "name": "2 tablespoons mustard seed",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons mustard seed",
+          "order": 6
+        },
+        {
+          "name": "1 tablespoon celery seed",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon celery seed",
+          "order": 7
+        },
+        {
+          "name": "1 tablespoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon salt",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Cut corn from cobs.",
+        "Combine all vegetables in large pot.",
+        "Add vinegar, sugar, and spices.",
+        "Bring to boil, then simmer 30 minutes.",
+        "Pack hot into sterilized jars.",
+        "Seal and process in water bath 15 minutes."
+      ]
+    },
+    {
+      "id": "presidential-pantry-019",
+      "title": "Rutherford B. Hayes' Mashed Potatoes",
+      "description": "Boil potatoes until soft. Drain well, mash smooth. Beat in butter and cream. Season well. Lucy Hayes insists they must be perfectly smooth and creamy.",
+      "prepTime": "20 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 8",
+      "source": "Lucy Hayes' White House menus",
+      "story": "The Hayes White House was known for temperance—'Lemonade Lucy' banned alcohol. But the food was exceptional, and these luxurious mashed potatoes were a staple. The recipe represents the era's shift toward refined technique in American cooking, turning humble potatoes into elegant fare.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "potato"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-019.webp",
+      "sortOrder": 19,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:59.420Z",
+      "updatedAt": "2026-02-06T03:53:59.420Z",
+      "ingredients": [
+        {
+          "name": "5 pounds russet potatoes",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 pounds russet potatoes",
+          "order": 0
+        },
+        {
+          "name": "1 cup butter, softened",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup butter, softened",
+          "order": 1
+        },
+        {
+          "name": "1 cup heavy cream, warmed",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup heavy cream, warmed",
+          "order": 2
+        },
+        {
+          "name": "Salt and white pepper to taste",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and white pepper to taste",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Peel and quarter potatoes.",
+        "Boil in salted water until fork-tender (20-25 minutes).",
+        "Drain thoroughly.",
+        "Return to pot over low heat to dry (2 minutes).",
+        "Mash with potato masher or ricer.",
+        "Add butter and mix until melted.",
+        "Gradually add warm cream, beating until fluffy.",
+        "Season with salt and white pepper."
+      ]
+    },
+    {
+      "id": "presidential-pantry-020",
+      "title": "James Buchanan's Sauerkraut",
+      "description": "Brown pork, add kraut, apples, wine, spices. Simmer long until tender. A Pennsylvania Dutch dish the President favors.",
+      "prepTime": "30 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 8",
+      "source": "Harriet Lane's entertaining records, Wheatland",
+      "story": "Buchanan, a Pennsylvania native, brought German-American cuisine to the White House. His love of sauerkraut reflected Pennsylvania Dutch heritage. As America's only bachelor president, he relied on his niece Harriet Lane to host, and she served these hearty ethnic dishes, representing immigrant foodways.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "pork",
+        "German"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-020.webp",
+      "sortOrder": 20,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:59.681Z",
+      "updatedAt": "2026-02-06T03:53:59.681Z",
+      "ingredients": [
+        {
+          "name": "2 pounds sauerkraut, drained",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 pounds sauerkraut, drained",
+          "order": 0
+        },
+        {
+          "name": "2 pounds pork butt, cubed",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 pounds pork butt, cubed",
+          "order": 1
+        },
+        {
+          "name": "1 large onion, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 large onion, chopped",
+          "order": 2
+        },
+        {
+          "name": "2 apples, peeled and diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 apples, peeled and diced",
+          "order": 3
+        },
+        {
+          "name": "1 cup white wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup white wine",
+          "order": 4
+        },
+        {
+          "name": "1 tablespoon caraway seeds",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon caraway seeds",
+          "order": 5
+        },
+        {
+          "name": "6 juniper berries",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 juniper berries",
+          "order": 6
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Brown pork cubes in Dutch oven.",
+        "Remove meat, sauté onion in drippings.",
+        "Return meat to pot.",
+        "Add sauerkraut, apples, wine, and spices.",
+        "Bring to simmer, cover.",
+        "Cook on low heat 1.5 hours until pork is tender.",
+        "Serve with boiled potatoes and mustard."
+      ]
+    },
+    {
+      "id": "presidential-pantry-021",
+      "title": "Grover Cleveland's Corned Beef Hash",
+      "description": "Dice leftover corned beef and potatoes. Fry with onion in butter. Press flat, let crust form. Turn once. Top with eggs. The President requests this for breakfast.",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 6",
+      "source": "White House kitchen records, Cleveland administrations",
+      "story": "Cleveland's simple tastes were legendary. This workingman's breakfast, made from leftovers, reflected his humble Buffalo roots and rejection of Washington pretension. His two non-consecutive terms (1885-89, 1893-97) both featured hearty, unpretentious meals that stood in stark contrast to Gilded Age excess.",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "beef",
+        "hash"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-021.webp",
+      "sortOrder": 21,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:59.899Z",
+      "updatedAt": "2026-02-06T03:53:59.899Z",
+      "ingredients": [
+        {
+          "name": "3 cups cooked corned beef, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups cooked corned beef, diced",
+          "order": 0
+        },
+        {
+          "name": "3 cups cooked potatoes, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups cooked potatoes, diced",
+          "order": 1
+        },
+        {
+          "name": "1 large onion, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 large onion, diced",
+          "order": 2
+        },
+        {
+          "name": "4 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 3
+        },
+        {
+          "name": "1/2 cup cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup cream",
+          "order": 4
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 5
+        },
+        {
+          "name": "Poached eggs for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Poached eggs for serving",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Melt butter in large cast iron skillet.",
+        "Sauté onion until translucent.",
+        "Add corned beef and potatoes.",
+        "Press mixture into pan, cook 10 minutes without stirring.",
+        "Add cream, mix gently.",
+        "Press down again, cook until crusty on bottom.",
+        "Flip portions to serve with crispy side up.",
+        "Top with poached eggs."
+      ]
+    },
+    {
+      "id": "presidential-pantry-022",
+      "title": "Chester Arthur's Lobster Newburg",
+      "description": "Sauté lobster in butter. Add wine. Thicken with cream and eggs. Season. Serve on toast. President Arthur insists on the finest ingredients.",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 4",
+      "source": "Louis Tuckerman's White House recipes, Arthur era",
+      "story": "Arthur, the most refined president of the Gilded Age, hired Louis Tuckerman as White House steward and insisted on French haute cuisine. Lobster Newburg epitomized this luxurious era. Arthur's 14-course dinners with French wines scandalized reformers but established the White House as a center of sophisticated dining. This dish required the freshest lobster and perfect technique.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "seafood",
+        "lobster",
+        "luxury"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-022.webp",
+      "sortOrder": 22,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:54:00.120Z",
+      "updatedAt": "2026-02-06T03:54:00.120Z",
+      "ingredients": [
+        {
+          "name": "2 pounds cooked lobster meat, diced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 pounds cooked lobster meat, diced",
+          "order": 0
+        },
+        {
+          "name": "4 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "3 egg yolks",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 egg yolks",
+          "order": 2
+        },
+        {
+          "name": "1 1/2 cups heavy cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 cups heavy cream",
+          "order": 3
+        },
+        {
+          "name": "1/4 cup sherry",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup sherry",
+          "order": 4
+        },
+        {
+          "name": "1/4 teaspoon nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 teaspoon nutmeg",
+          "order": 5
+        },
+        {
+          "name": "Cayenne pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cayenne pepper",
+          "order": 6
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 7
+        },
+        {
+          "name": "Toast points for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Toast points for serving",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Sauté lobster in butter briefly.",
+        "Add sherry, cook 2 minutes.",
+        "Beat egg yolks with cream.",
+        "Temper yolks by slowly adding hot lobster liquid.",
+        "Pour egg mixture into pan with lobster.",
+        "Cook over low heat, stirring constantly, until thickened.",
+        "Do not boil.",
+        "Season with nutmeg, cayenne, salt.",
+        "Serve over toast points."
+      ]
+    },
+    {
+      "id": "presidential-pantry-023",
+      "title": "Millard Fillmore's Apple Dumplings",
+      "description": "Wrap apples in pastry, fill centers with sugar and spice. Bake in sweet syrup. Abigail Fillmore's specialty from New York.",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "source": "Fillmore family recipes, Buffalo",
+      "story": "This homey dessert from Abigail Fillmore's New York upbringing brought frontier simplicity to the White House. Apple dumplings represented American agricultural abundance and domestic virtue. Abigail, a former schoolteacher, established the White House library and maintained modest entertaining focused on substance over show.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "apple",
+        "dumplings"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-023.webp",
+      "sortOrder": 23,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:54:00.329Z",
+      "updatedAt": "2026-02-06T03:54:00.329Z",
+      "ingredients": [
+        {
+          "name": "6 medium baking apples, peeled and cored",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 medium baking apples, peeled and cored",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup brown sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup brown sugar",
+          "order": 1
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 2
+        },
+        {
+          "name": "6 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 tablespoons butter",
+          "order": 3
+        },
+        {
+          "name": "Pastry for double crust",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pastry for double crust",
+          "order": 4
+        },
+        {
+          "name": "2 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups water",
+          "order": 5
+        },
+        {
+          "name": "1 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup sugar",
+          "order": 6
+        },
+        {
+          "name": "1/4 teaspoon nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 teaspoon nutmeg",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Roll pastry and cut into six squares.",
+        "Place apple in center of each square.",
+        "Fill apple cavity with brown sugar, cinnamon, and 1 tablespoon butter.",
+        "Bring pastry corners up over apple, seal.",
+        "Place in baking dish.",
+        "Make syrup by boiling water, sugar, and nutmeg.",
+        "Pour syrup around dumplings.",
+        "Bake at 375°F for 45 minutes until golden.",
+        "Serve warm with cream."
+      ]
+    },
+    {
+      "id": "presidential-pantry-024",
+      "title": "Franklin Pierce's Rum Punch",
+      "description": "Mix rum, brandy, lemon juice, sugar syrup, water. Add ice. Grate nutmeg fresh. This was served at the inauguration.",
+      "prepTime": "10 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 12",
+      "source": "White House social records, Pierce administration",
+      "story": "Pierce's White House was known for lavish entertaining and flowing liquor—a stark contrast to the later temperance era. This potent punch flowed at receptions and balls. Pierce's presidency (1853-57) coincided with rising sectional tensions, and his social events attempted to unite North and South over convivial drinking, though ultimately failed.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "cocktail",
+        "rum",
+        "punch"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-024.webp",
+      "sortOrder": 24,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:54:00.532Z",
+      "updatedAt": "2026-02-06T03:54:00.532Z",
+      "ingredients": [
+        {
+          "name": "2 cups dark rum",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups dark rum",
+          "order": 0
+        },
+        {
+          "name": "1 cup cognac",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup cognac",
+          "order": 1
+        },
+        {
+          "name": "1 cup fresh lemon juice",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup fresh lemon juice",
+          "order": 2
+        },
+        {
+          "name": "1/2 cup sugar syrup",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup sugar syrup",
+          "order": 3
+        },
+        {
+          "name": "1 quart cold water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 quart cold water",
+          "order": 4
+        },
+        {
+          "name": "Fresh nutmeg for grating",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Fresh nutmeg for grating",
+          "order": 5
+        },
+        {
+          "name": "Lemon wheels for garnish",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Lemon wheels for garnish",
+          "order": 6
+        },
+        {
+          "name": "Ice",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Ice",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Dissolve sugar in a small amount of hot water to make syrup.",
+        "Combine rum, cognac, lemon juice, and sugar syrup in punch bowl.",
+        "Add cold water and stir well.",
+        "Add large block of ice.",
+        "Let chill 15 minutes.",
+        "Grate fresh nutmeg over top.",
+        "Serve in punch cups with lemon wheels."
+      ]
+    },
+    {
+      "id": "presidential-pantry-025",
+      "title": "William McKinley's Gingerbread Cookies",
+      "description": "Cream butter and sugar. Add egg and molasses. Mix in flour, spices, soda. Chill, roll, cut. Bake. Ida McKinley distributed these to children at White House events.",
+      "prepTime": "30 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Makes 36 cookies",
+      "source": "Ida McKinley's recipe collection",
+      "story": "Ida McKinley, despite chronic illness, took great interest in White House entertaining. These spiced cookies were distributed at children's events and Christmas parties. They represented the Victorian tradition of elaborate cookie-making and the McKinley's kindly, domestic image during the Spanish-American War era.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cookies",
+        "gingerbread"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/presidential-pantry/presidential-pantry-025.webp",
+      "sortOrder": 25,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:54:00.729Z",
+      "updatedAt": "2026-02-06T03:54:00.729Z",
+      "ingredients": [
+        {
+          "name": "3 1/2 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 1/2 cups flour",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon baking soda",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking soda",
+          "order": 1
+        },
+        {
+          "name": "2 teaspoons ginger",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 teaspoons ginger",
+          "order": 2
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 3
+        },
+        {
+          "name": "1/2 teaspoon cloves",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon cloves",
+          "order": 4
+        },
+        {
+          "name": "1/2 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "3/4 cup butter, softened",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3/4 cup butter, softened",
+          "order": 6
+        },
+        {
+          "name": "1 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup sugar",
+          "order": 7
+        },
+        {
+          "name": "1 egg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 egg",
+          "order": 8
+        },
+        {
+          "name": "1/2 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup molasses",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar until fluffy.",
+        "Beat in egg and molasses.",
+        "Combine dry ingredients.",
+        "Gradually mix dry into wet.",
+        "Chill dough 2 hours.",
+        "Roll 1/4 inch thick on floured surface.",
+        "Cut with cookie cutters.",
+        "Bake at 350°F for 10-12 minutes.",
+        "Cool on racks."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:31:00.383Z"
+}

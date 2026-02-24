@@ -201,7 +201,7 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             )
         }
 
-        let connectionId = UUID().uuidString
+        let connectionId = UUID().uuidString.lowercased()
         let now = Date()
 
         // Fetch current user's profile to get display name and photo
@@ -414,7 +414,7 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             ])
         }
 
-        let connectionId = UUID().uuidString
+        let connectionId = UUID().uuidString.lowercased()
         let now = Date()
         let isInviterDemoUser = DemoSocialBehaviorService.isDemoUser(inviterUserId)
 
@@ -842,7 +842,7 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             ])
         } else {
             // Create new blocked connection entry
-            let blockId = UUID().uuidString
+            let blockId = UUID().uuidString.lowercased()
             let blockedConnection = Connection(
                 id: blockId,
                 userId: userId,

@@ -35,6 +35,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
     @Published var isSyncing = false
     @Published var lastSyncDate: Date?
     @Published private(set) var syncError: Error?
+    @Published var hasCompletedInitialSync = false
 
     // Loading state for collections (tracks which collections are loading recipes)
     @Published var loadingCollectionIds: Set<UUID> = []
@@ -156,8 +157,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["generationCount"] = recipe.generationCount
 
         // Provenance (as JSON string)
-        if let provenance = recipe.provenance,
-           let provenanceData = try? JSONEncoder().encode(provenance),
+        if let provenanceData = try? JSONEncoder().encode(recipe.provenance),
            let provenanceString = String(data: provenanceData, encoding: .utf8) {
             data["provenanceJSON"] = provenanceString
         }
@@ -1452,7 +1452,11 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 // Update theme-specific fields
                 // TODO: Update for theme system in Phase A3
                 if let collectionTypeStr = data["collectionType"] as? String {
-                    existing.collectionType = collectionTypeStr
+                    // Protect "Generated Recipes" type - must remain userCreated to be visible
+                    let isGeneratedRecipes = existing.name == "Generated Recipes"
+                    if !isGeneratedRecipes {
+                        existing.collectionType = collectionTypeStr
+                    }
                 }
                 existing.iconName = data["iconName"] as? String ?? existing.iconName
                 existing.color = data["color"] as? String ?? existing.color
@@ -1494,8 +1498,17 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
                     // Set theme-specific fields
                     // TODO: Update for theme system in Phase A3
+                    let collectionName = data["name"] as? String ?? ""
                     if let collectionTypeStr = data["collectionType"] as? String {
-                        collection.collectionType = collectionTypeStr
+                        // Force "Generated Recipes" to userCreated type for visibility
+                        if collectionName == "Generated Recipes" {
+                            collection.collectionType = "userCreated"
+                        } else {
+                            collection.collectionType = collectionTypeStr
+                        }
+                    } else if collectionName == "Generated Recipes" {
+                        // Ensure Generated Recipes always has correct type even if not in Firebase
+                        collection.collectionType = "userCreated"
                     }
                     collection.isSystemCollection = data["isSystemCollection"] as? Bool ?? false
                     collection.isAllRecipes = data["isAllRecipes"] as? Bool ?? false

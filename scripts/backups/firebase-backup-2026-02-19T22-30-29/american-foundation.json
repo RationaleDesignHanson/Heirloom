@@ -1,0 +1,2096 @@
+{
+  "themeId": "american-foundation",
+  "themeName": "American Foundation",
+  "themeData": {
+    "id": "american-foundation",
+    "name": "American Foundation",
+    "tagline": "Colonial and early American recipes",
+    "description": "Johnnycakes, succotash, and election cake - these foundational recipes shaped American cuisine from colonial times through the early republic.",
+    "iconName": "flag.fill",
+    "category": "historical",
+    "source": "Colonial Cookbooks, Shaker Communities, Early American Archives",
+    "era": "1620-1850",
+    "region": "Colonial America / New England",
+    "totalRecipes": 12,
+    "unlockSchedule": [
+      1,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 14,
+    "coverImagePrompt": "Colonial American hearth kitchen with copper pots and wooden utensils, candlelit warmth, Americana folk art style",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/american-foundation.webp",
+    "updatedAt": "2026-01-27T01:51:36.949Z"
+  },
+  "recipes": [
+    {
+      "id": "american-foundation-001",
+      "title": "Colonial Brown Bread",
+      "description": "One cup Indian meal, one cup rye meal, one cup graham flour, three-quarters cup molasses, two cups sour milk, two teaspoons salt, two teaspoons soda. Steam three hours.",
+      "prepTime": "15 minutes",
+      "cookTime": "3 hours (steaming)",
+      "servings": "Makes 2 loaves",
+      "source": "Colonial New England kitchens, Fannie Farmer's Boston Cooking-School Cook Book",
+      "story": "Boston Brown Bread was a staple of colonial New England, developed when wheat was scarce and settlers relied on native corn (maize) and imported rye. Traditionally steamed in special cylindrical molds on Saturday and served with baked beans for Sunday dinner (as cooking on the Sabbath was prohibited). The three types of flour represent the agricultural diversity of colonial America.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "colonial",
+        "New England"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-001.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:37.397Z",
+      "updatedAt": "2026-02-05T23:31:37.397Z",
+      "ingredients": [
+        {
+          "name": "1 cup rye meal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup rye meal",
+          "order": 0
+        },
+        {
+          "name": "1 cup Indian meal (cornmeal)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup Indian meal (cornmeal)",
+          "order": 1
+        },
+        {
+          "name": "1 cup graham flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup graham flour",
+          "order": 2
+        },
+        {
+          "name": "3/4 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3/4 cup molasses",
+          "order": 3
+        },
+        {
+          "name": "2 cups sour milk or buttermilk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups sour milk or buttermilk",
+          "order": 4
+        },
+        {
+          "name": "2 tsp salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tsp salt",
+          "order": 5
+        },
+        {
+          "name": "2 tsp baking soda",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tsp baking soda",
+          "order": 6
+        },
+        {
+          "name": "1 cup raisins (optional)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup raisins (optional)",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Mix all dry ingredients in a large bowl.",
+        "Stir in molasses and sour milk.",
+        "Add raisins if desired.",
+        "Pour into greased pudding molds or coffee cans, filling 2/3 full.",
+        "Cover tightly with lids or cloth.",
+        "Steam for 3 hours in a large pot with water halfway up the molds.",
+        "Cool slightly before unmolding.",
+        "Slice and serve warm with butter."
+      ]
+    },
+    {
+      "id": "american-foundation-002",
+      "title": "Shaker Lemon Pie",
+      "description": "Slice two lemons as thin as paper, rind and all. Place in a bowl with two cups sugar, mix well and let stand over night or for 24 hours. Then add four well beaten eggs. Pour into a crust-lined pie plate, arrange lemon slices evenly. Cover with top crust, cut several slits near center. Bake in hot oven 15 minutes, reduce heat and bake 30 minutes more or until silver knife inserted comes out clean.",
+      "prepTime": "24 hours (for maceration)",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "source": "Shaker community records, North Union Shaker Village",
+      "story": "This ingenious recipe from the Ohio Shaker community (circa 1800s) demonstrates the sect's commitment to simplicity and waste reduction—the entire lemon, rind and all, is used. The Shakers were known for their innovative agricultural and culinary practices. This pie became a symbol of American resourcefulness and Shaker perfectionism, where economy met elegance.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pie",
+        "Shaker",
+        "lemon"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-002.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:37.669Z",
+      "updatedAt": "2026-02-05T23:31:37.669Z",
+      "ingredients": [
+        {
+          "name": "2 whole lemons, washed",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 whole lemons, washed",
+          "order": 0
+        },
+        {
+          "name": "2 cups sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups sugar",
+          "order": 1
+        },
+        {
+          "name": "4 eggs, well beaten",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 eggs, well beaten",
+          "order": 2
+        },
+        {
+          "name": "Pastry for 9-inch double crust pie",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pastry for 9-inch double crust pie",
+          "order": 3
+        },
+        {
+          "name": "1/4 tsp salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 tsp salt",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Slice lemons paper-thin, removing seeds.",
+        "Combine lemon slices with sugar in a bowl.",
+        "Let stand 24 hours, stirring occasionally.",
+        "Add beaten eggs and salt to lemon mixture.",
+        "Line pie pan with bottom crust.",
+        "Pour filling into crust, spreading evenly.",
+        "Cover with top crust, seal edges, and cut vents.",
+        "Bake at 450°F for 15 minutes, then at 375°F for 30 minutes.",
+        "Cool completely before serving."
+      ]
+    },
+    {
+      "id": "american-foundation-003",
+      "title": "Johnnycakes",
+      "description": "Rhode Island cornmeal pancakes. Native American origin.",
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "servings": "Makes 12",
+      "source": "Colonial New England records",
+      "story": "Journey cakes became johnnycakes. Rhode Island colonists learned this from Narragansett people.",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "pancakes"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-003.webp",
+      "sortOrder": 3,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:37.884Z",
+      "updatedAt": "2026-02-05T23:31:37.884Z",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cornmeal",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons butter, melted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter, melted",
+          "order": 2
+        },
+        {
+          "name": "1 1/2 cups boiling water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 cups boiling water",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add butter and boiling water.",
+        "Drop spoonfuls on hot griddle.",
+        "Cook until golden, flip once."
+      ]
+    },
+    {
+      "id": "american-foundation-004",
+      "title": "Succotash",
+      "description": "Native American dish of beans and corn. Msickquatash.",
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "servings": "Serves 6",
+      "source": "Native American foodways, Plymouth Colony",
+      "story": "From Narragansett word. Pilgrims learned this life-sustaining combination from indigenous peoples.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "corn",
+        "beans"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-004.webp",
+      "sortOrder": 4,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:38.089Z",
+      "updatedAt": "2026-02-05T23:31:38.089Z",
+      "ingredients": [
+        {
+          "name": "2 cups lima beans",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups lima beans",
+          "order": 0
+        },
+        {
+          "name": "2 cups corn kernels",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups corn kernels",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup butter",
+          "order": 2
+        },
+        {
+          "name": "1/4 cup cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup cream",
+          "order": 3
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Cook beans until tender.",
+        "Add corn, cook 5 minutes.",
+        "Stir in butter and cream.",
+        "Season and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-005",
+      "title": "Pumpkin Butter",
+      "description": "Spiced pumpkin spread for bread. Colonial preservation.",
+      "prepTime": "30 min",
+      "cookTime": "2 hrs",
+      "servings": "Makes 4 pints",
+      "source": "Colonial preservation methods",
+      "story": "Early Americans preserved pumpkin for winter. This buttersread on johnny cakes or bread.",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "pumpkin",
+        "preserved"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-005.webp",
+      "sortOrder": 5,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:38.296Z",
+      "updatedAt": "2026-02-05T23:31:38.296Z",
+      "ingredients": [
+        {
+          "name": "6 cups pumpkin puree",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 cups pumpkin puree",
+          "order": 0
+        },
+        {
+          "name": "3 cups sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups sugar",
+          "order": 1
+        },
+        {
+          "name": "1 cup apple cider",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup apple cider",
+          "order": 2
+        },
+        {
+          "name": "2 teaspoons cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 teaspoons cinnamon",
+          "order": 3
+        },
+        {
+          "name": "1 teaspoon cloves",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cloves",
+          "order": 4
+        },
+        {
+          "name": "1/2 teaspoon nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon nutmeg",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Combine all ingredients in pot.",
+        "Simmer 2 hours, stirring often.",
+        "When thick, pack into sterilized jars.",
+        "Seal and process."
+      ]
+    },
+    {
+      "id": "american-foundation-006",
+      "title": "Apple Pandowdy",
+      "description": "Dowdy crust pushed into fruit. New England apple dessert.",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "servings": "Serves 8",
+      "source": "New England colonial kitchens",
+      "story": "The 'dowdy' crust is deliberately broken and pushed into the juices. Thrifty colonial baking.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "apple",
+        "colonial"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-006.webp",
+      "sortOrder": 6,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:38.558Z",
+      "updatedAt": "2026-02-05T23:31:38.558Z",
+      "ingredients": [
+        {
+          "name": "6 apples, sliced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 apples, sliced",
+          "order": 0
+        },
+        {
+          "name": "1 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup molasses",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 3
+        },
+        {
+          "name": "Pie crust",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pie crust",
+          "order": 4
+        },
+        {
+          "name": "1/4 cup butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup butter",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Layer apples in baking dish.",
+        "Pour molasses over, sprinkle with sugar and cinnamon.",
+        "Top with broken pieces of pie crust.",
+        "Dot with butter.",
+        "Bake 1 hour, breaking crust partway through."
+      ]
+    },
+    {
+      "id": "american-foundation-007",
+      "title": "Hasty Pudding",
+      "description": "Quick cornmeal porridge. Colonial comfort food.",
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "servings": "Serves 6",
+      "source": "Colonial American kitchens",
+      "story": "Made from cornmeal—cheap, fast, filling. Harvard's Hasty Pudding Club named for this dish.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "pudding"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-007.webp",
+      "sortOrder": 7,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:38.770Z",
+      "updatedAt": "2026-02-05T23:31:38.770Z",
+      "ingredients": [
+        {
+          "name": "1 cup cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup cornmeal",
+          "order": 0
+        },
+        {
+          "name": "4 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups milk",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup molasses",
+          "order": 2
+        },
+        {
+          "name": "1/2 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon salt",
+          "order": 3
+        },
+        {
+          "name": "Butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Butter",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Heat milk to boiling.",
+        "Whisk in cornmeal slowly.",
+        "Add molasses and salt.",
+        "Cook 15 minutes, stirring.",
+        "Serve hot with butter and cream."
+      ]
+    },
+    {
+      "id": "american-foundation-008",
+      "title": "Election Cake",
+      "description": "Rich fruit bread for election day celebrations.",
+      "prepTime": "3 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "source": "Connecticut colonial traditions",
+      "story": "Baked for Connecticut election days in 1700s. Women contributed these cakes to voting day festivities.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cake",
+        "fruit"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-008.webp",
+      "sortOrder": 8,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:38.967Z",
+      "updatedAt": "2026-02-05T23:31:38.967Z",
+      "ingredients": [
+        {
+          "name": "1 cup butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup butter",
+          "order": 0
+        },
+        {
+          "name": "2 cups sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups sugar",
+          "order": 1
+        },
+        {
+          "name": "4 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 eggs",
+          "order": 2
+        },
+        {
+          "name": "1 cup milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup milk",
+          "order": 3
+        },
+        {
+          "name": "5 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 cups flour",
+          "order": 4
+        },
+        {
+          "name": "2 teaspoons baking soda",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 teaspoons baking soda",
+          "order": 5
+        },
+        {
+          "name": "2 cups raisins",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups raisins",
+          "order": 6
+        },
+        {
+          "name": "1 cup currants",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup currants",
+          "order": 7
+        },
+        {
+          "name": "Spices",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Spices",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, then dry and wet alternately.",
+        "Fold in fruit.",
+        "Let rise 1 hour.",
+        "Bake 45 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-009",
+      "title": "Switchel",
+      "description": "Haymaker's drink. Vinegar refresher for harvest.",
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "servings": "Serves 8",
+      "source": "Colonial farm practices",
+      "story": "Colonial farmers drank this during hay harvest. The vinegar was refreshing and prevented dehydration.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "vinegar",
+        "ginger"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-009.webp",
+      "sortOrder": 9,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:39.179Z",
+      "updatedAt": "2026-02-05T23:31:39.179Z",
+      "ingredients": [
+        {
+          "name": "1 cup apple cider vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup apple cider vinegar",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup molasses",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup honey",
+          "order": 2
+        },
+        {
+          "name": "1 tablespoon ginger",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon ginger",
+          "order": 3
+        },
+        {
+          "name": "8 cups cold water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "8 cups cold water",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Mix all ingredients until dissolved.",
+        "Chill thoroughly.",
+        "Serve over ice."
+      ]
+    },
+    {
+      "id": "american-foundation-010",
+      "title": "Syllabub",
+      "description": "Whipped cream and wine dessert. Colonial elegance.",
+      "prepTime": "15 min",
+      "cookTime": "2 hrs chill",
+      "servings": "Serves 6",
+      "source": "Colonial entertaining customs",
+      "story": "Fashionable in colonial America, served at balls and parties. Light, alcoholic, sophisticated.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "wine",
+        "cream"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-010.webp",
+      "sortOrder": 10,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:39.371Z",
+      "updatedAt": "2026-02-05T23:31:39.371Z",
+      "ingredients": [
+        {
+          "name": "2 cups heavy cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups heavy cream",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup white wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup white wine",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "Lemon juice and zest",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Lemon juice and zest",
+          "order": 3
+        },
+        {
+          "name": "Nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Nutmeg",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Whip cream with sugar until soft peaks.",
+        "Fold in wine and lemon.",
+        "Spoon into glasses.",
+        "Chill 2 hours.",
+        "Grate nutmeg on top."
+      ]
+    },
+    {
+      "id": "american-foundation-011",
+      "title": "Mincemeat",
+      "description": "Preserved meat and fruit mixture. Originally with venison.",
+      "prepTime": "1 hr",
+      "cookTime": "3 hrs",
+      "servings": "Makes 8 pies",
+      "source": "Colonial preservation techniques",
+      "story": "Colonial preservation method. The name 'mincemeat' comes from minced meat, now mostly fruit.",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "preserved",
+        "pie filling"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-011.webp",
+      "sortOrder": 11,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:39.570Z",
+      "updatedAt": "2026-02-05T23:31:39.570Z",
+      "ingredients": [
+        {
+          "name": "2 lbs beef, cooked and chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 lbs beef, cooked and chopped",
+          "order": 0
+        },
+        {
+          "name": "2 lbs apples",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 lbs apples",
+          "order": 1
+        },
+        {
+          "name": "2 cups raisins",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups raisins",
+          "order": 2
+        },
+        {
+          "name": "2 cups currants",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups currants",
+          "order": 3
+        },
+        {
+          "name": "1 cup suet",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup suet",
+          "order": 4
+        },
+        {
+          "name": "1 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup molasses",
+          "order": 5
+        },
+        {
+          "name": "Spices",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Spices",
+          "order": 6
+        },
+        {
+          "name": "Brandy",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Brandy",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Combine all ingredients except brandy.",
+        "Simmer 3 hours.",
+        "Add brandy, mix well.",
+        "Pack into jars.",
+        "Use for pie filling."
+      ]
+    },
+    {
+      "id": "american-foundation-012",
+      "title": "Corn Dodgers",
+      "description": "Hard corn cakes. Civil War soldier food.",
+      "prepTime": "15 min",
+      "cookTime": "20 min",
+      "servings": "Makes 16",
+      "source": "Civil War era food",
+      "story": "Confederate soldiers ate these—easily made over campfires. Dodge means to shape or form.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "military"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-american-012.webp",
+      "sortOrder": 12,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:39.793Z",
+      "updatedAt": "2026-02-05T23:31:39.793Z",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cornmeal",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons fat",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons fat",
+          "order": 2
+        },
+        {
+          "name": "1 1/4 cups boiling water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/4 cups boiling water",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add fat and boiling water.",
+        "Shape into oval patties.",
+        "Bake on greased sheet at 400°F for 20 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-013",
+      "title": "Samp and Beans",
+      "description": "Native American hominy and bean stew.",
+      "prepTime": "overnight soak",
+      "cookTime": "3 hrs",
+      "servings": "Serves 8",
+      "source": "Native American and colonial foodways",
+      "story": "Algonquian dish adopted by colonists. Samp is hulled corn. Sustained early settlements.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "hominy",
+        "beans"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-013.webp",
+      "sortOrder": 13,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:40.007Z",
+      "updatedAt": "2026-02-05T23:31:40.007Z",
+      "ingredients": [
+        {
+          "name": "2 cups hominy (samp)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups hominy (samp)",
+          "order": 0
+        },
+        {
+          "name": "1 cup dried beans",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup dried beans",
+          "order": 1
+        },
+        {
+          "name": "1 onion",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 onion",
+          "order": 2
+        },
+        {
+          "name": "Salt pork",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt pork",
+          "order": 3
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Soak samp and beans overnight.",
+        "Simmer with salt pork 3 hours until tender.",
+        "Add onion last hour.",
+        "Season and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-014",
+      "title": "Rye and Injun Bread",
+      "description": "Mixed grain bread. New England staple when wheat was scarce.",
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "source": "Colonial New England baking",
+      "story": "'Injun' was colonial slang for Indian corn. This bread reflects grain scarcity and adaptation.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "rye",
+        "cornmeal"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-014.webp",
+      "sortOrder": 14,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:40.233Z",
+      "updatedAt": "2026-02-05T23:31:40.233Z",
+      "ingredients": [
+        {
+          "name": "2 cups rye flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups rye flour",
+          "order": 0
+        },
+        {
+          "name": "2 cups cornmeal (Injun)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cornmeal (Injun)",
+          "order": 1
+        },
+        {
+          "name": "1 tablespoon yeast",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon yeast",
+          "order": 2
+        },
+        {
+          "name": "2 cups warm water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups warm water",
+          "order": 3
+        },
+        {
+          "name": "1/4 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup molasses",
+          "order": 4
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Mix flours.",
+        "Dissolve yeast in water, add molasses.",
+        "Combine, knead.",
+        "Let rise 1 hour.",
+        "Shape, rise 30 min.",
+        "Bake 45 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-015",
+      "title": "Pone",
+      "description": "Cornmeal flatbread. Native American pone, Algonquian origin.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 8",
+      "source": "Native American cooking methods",
+      "story": "From Algonquian 'apan' meaning baked. Simple cornbread baked or fried.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "Native American"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-015.webp",
+      "sortOrder": 15,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:40.435Z",
+      "updatedAt": "2026-02-05T23:31:40.435Z",
+      "ingredients": [
+        {
+          "name": "3 cups cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups cornmeal",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons butter, melted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter, melted",
+          "order": 2
+        },
+        {
+          "name": "2 cups boiling water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups boiling water",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add butter and water.",
+        "Press into greased baking dish.",
+        "Bake at 400°F for 30 minutes until crusty."
+      ]
+    },
+    {
+      "id": "american-foundation-016",
+      "title": "Flummery",
+      "description": "Molded milk pudding. Colonial dessert from England.",
+      "prepTime": "15 min",
+      "cookTime": "4 hrs chill",
+      "servings": "Serves 6",
+      "source": "Anglo-American traditions",
+      "story": "Welsh origin, became American with cornstarch. Elegant molded dessert for special occasions.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pudding",
+        "molded"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-016.webp",
+      "sortOrder": 16,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:40.655Z",
+      "updatedAt": "2026-02-05T23:31:40.655Z",
+      "ingredients": [
+        {
+          "name": "4 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups milk",
+          "order": 0
+        },
+        {
+          "name": "1/4 cup cornstarch",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup cornstarch",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup sugar",
+          "order": 2
+        },
+        {
+          "name": "1 teaspoon vanilla",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla",
+          "order": 3
+        },
+        {
+          "name": "Nutmeg",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Nutmeg",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Mix cornstarch with little cold milk.",
+        "Heat remaining milk with sugar.",
+        "Whisk in cornstarch mixture.",
+        "Cook until thick.",
+        "Pour into mold, chill.",
+        "Unmold and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-017",
+      "title": "Persimmon Pudding",
+      "description": "Wild persimmon dessert. Native American fruit pudding.",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "servings": "Serves 8",
+      "source": "Native American ingredients, Southern tradition",
+      "story": "Native Americans introduced colonists to persimmons. This pudding became a Southern tradition.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "persimmon",
+        "Southern"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-017.webp",
+      "sortOrder": 17,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:40.867Z",
+      "updatedAt": "2026-02-05T23:31:40.867Z",
+      "ingredients": [
+        {
+          "name": "2 cups persimmon pulp",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups persimmon pulp",
+          "order": 0
+        },
+        {
+          "name": "1 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup sugar",
+          "order": 1
+        },
+        {
+          "name": "2 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 eggs",
+          "order": 2
+        },
+        {
+          "name": "1 cup milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup milk",
+          "order": 3
+        },
+        {
+          "name": "1 1/2 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/2 cups flour",
+          "order": 4
+        },
+        {
+          "name": "1 teaspoon baking soda",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking soda",
+          "order": 5
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Mix persimmon with sugar and eggs.",
+        "Add milk.",
+        "Mix in dry ingredients.",
+        "Pour into greased pan.",
+        "Bake at 350°F for 1 hour.",
+        "Serve warm with cream."
+      ]
+    },
+    {
+      "id": "american-foundation-018",
+      "title": "Hominy Grits",
+      "description": "Stone-ground corn porridge. Southern breakfast staple.",
+      "prepTime": "5 min",
+      "cookTime": "25 min",
+      "servings": "Serves 4",
+      "source": "Native American and colonial foodways",
+      "story": "From Algonquian 'rockahominy.' Nixtamalized corn ground coarse. Foundation of Southern cuisine.",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "grits"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-018.webp",
+      "sortOrder": 18,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:41.087Z",
+      "updatedAt": "2026-02-05T23:31:41.087Z",
+      "ingredients": [
+        {
+          "name": "1 cup stone-ground grits",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup stone-ground grits",
+          "order": 0
+        },
+        {
+          "name": "4 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups water",
+          "order": 1
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 2
+        },
+        {
+          "name": "2 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 3
+        },
+        {
+          "name": "Salt and pepper to taste",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper to taste",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Bring water and salt to boil.",
+        "Whisk in grits slowly.",
+        "Reduce heat, simmer 20-25 minutes, stirring often.",
+        "Stir in butter.",
+        "Season and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-019",
+      "title": "Shrub",
+      "description": "Vinegar-preserved fruit syrup. Colonial refreshment.",
+      "prepTime": "20 min",
+      "cookTime": "1 week",
+      "servings": "Makes 2 quarts",
+      "source": "Colonial American preservation",
+      "story": "Pre-refrigeration preservation. The vinegar preserved fruit for mixing with water—colonial soda.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "vinegar",
+        "fruit"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-019.webp",
+      "sortOrder": 19,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:41.284Z",
+      "updatedAt": "2026-02-05T23:31:41.284Z",
+      "ingredients": [
+        {
+          "name": "4 cups berries",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups berries",
+          "order": 0
+        },
+        {
+          "name": "2 cups vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups vinegar",
+          "order": 1
+        },
+        {
+          "name": "2 cups sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups sugar",
+          "order": 2
+        },
+        {
+          "name": "Sparkling water for serving",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Sparkling water for serving",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Macerate berries in vinegar 1 week.",
+        "Strain, add sugar, heat until dissolved.",
+        "Bottle.",
+        "Mix 1 part shrub to 3 parts sparkling water."
+      ]
+    },
+    {
+      "id": "american-foundation-020",
+      "title": "Indian Pudding (Baked)",
+      "description": "Slow-baked cornmeal pudding. New England classic.",
+      "prepTime": "20 min",
+      "cookTime": "3 hrs",
+      "servings": "Serves 8",
+      "source": "Colonial New England",
+      "story": "Different from Adams' stovetop version—this is baked long and slow. Colonial comfort dessert.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "baked"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-020.webp",
+      "sortOrder": 20,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:41.491Z",
+      "updatedAt": "2026-02-05T23:31:41.491Z",
+      "ingredients": [
+        {
+          "name": "5 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 cups milk",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup cornmeal",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup molasses",
+          "order": 2
+        },
+        {
+          "name": "1/4 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup sugar",
+          "order": 3
+        },
+        {
+          "name": "1 teaspoon cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 4
+        },
+        {
+          "name": "1/2 teaspoon ginger",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 teaspoon ginger",
+          "order": 5
+        },
+        {
+          "name": "1/4 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "2 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 eggs",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Scald milk, stir in cornmeal.",
+        "Cook until thick.",
+        "Add molasses, sugar, spices.",
+        "Beat in eggs.",
+        "Pour into buttered dish.",
+        "Bake at 275°F for 3 hours.",
+        "Serve with ice cream."
+      ]
+    },
+    {
+      "id": "american-foundation-021",
+      "title": "Corn Oysters",
+      "description": "Fritters shaped like oysters. Mock oysters for inland tables.",
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "servings": "Makes 20",
+      "source": "Colonial American recipes",
+      "story": "When oysters were unavailable, corn fritters provided a similar shape. Clever colonial cooking.",
+      "difficulty": "medium",
+      "tags": [
+        "appetizer",
+        "corn",
+        "fritters"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-021.webp",
+      "sortOrder": 21,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:41.709Z",
+      "updatedAt": "2026-02-05T23:31:41.709Z",
+      "ingredients": [
+        {
+          "name": "2 cups corn kernels",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups corn kernels",
+          "order": 0
+        },
+        {
+          "name": "2 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 eggs",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup flour",
+          "order": 2
+        },
+        {
+          "name": "1 teaspoon baking powder",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking powder",
+          "order": 3
+        },
+        {
+          "name": "Salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt and pepper",
+          "order": 4
+        },
+        {
+          "name": "Oil for frying",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Oil for frying",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Mix all ingredients to make thick batter.",
+        "Drop spoonfuls into hot oil.",
+        "Fry until golden on both sides.",
+        "Drain and serve hot."
+      ]
+    },
+    {
+      "id": "american-foundation-022",
+      "title": "Anadama Bread",
+      "description": "Anna, damn her! Legend says a fisherman cursed his wife's cornmeal mush.",
+      "prepTime": "2 hrs 30 min",
+      "cookTime": "40 min",
+      "servings": "Makes 2 loaves",
+      "source": "Massachusetts folklore",
+      "story": "Massachusetts legend: a fisherman tired of cornmeal mush added flour and yeast, cursing 'Anna, damn her!' Hence the name.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "molasses"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-022.webp",
+      "sortOrder": 22,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:41.904Z",
+      "updatedAt": "2026-02-05T23:31:41.904Z",
+      "ingredients": [
+        {
+          "name": "1/2 cup cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup cornmeal",
+          "order": 0
+        },
+        {
+          "name": "2 cups boiling water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups boiling water",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup molasses",
+          "order": 2
+        },
+        {
+          "name": "2 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 3
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 4
+        },
+        {
+          "name": "1 tablespoon yeast",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon yeast",
+          "order": 5
+        },
+        {
+          "name": "5 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 cups flour",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Stir cornmeal into boiling water, cook until thick.",
+        "Add molasses, butter, salt. Cool to lukewarm.",
+        "Dissolve yeast in warm water.",
+        "Add to cornmeal mixture with flour.",
+        "Knead, let rise 1 hour.",
+        "Shape, rise 30 minutes.",
+        "Bake at 375°F for 40 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-023",
+      "title": "Sally Lunn Bread",
+      "description": "Rich egg bread. English immigrant recipe.",
+      "prepTime": "2 hrs",
+      "cookTime": "30 min",
+      "servings": "Makes 1 loaf",
+      "source": "Anglo-American baking traditions",
+      "story": "Named for Sally Lunn who sold these in Bath, England. Became American colonial favorite—rich, cake-like bread.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "eggs",
+        "sweet"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-023.webp",
+      "sortOrder": 23,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:42.112Z",
+      "updatedAt": "2026-02-05T23:31:42.112Z",
+      "ingredients": [
+        {
+          "name": "3 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups flour",
+          "order": 0
+        },
+        {
+          "name": "1/4 cup sugar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup sugar",
+          "order": 1
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 2
+        },
+        {
+          "name": "1 tablespoon yeast",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon yeast",
+          "order": 3
+        },
+        {
+          "name": "1 cup warm milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup warm milk",
+          "order": 4
+        },
+        {
+          "name": "3 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 eggs",
+          "order": 5
+        },
+        {
+          "name": "1/2 cup butter, melted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup butter, melted",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Mix dry ingredients.",
+        "Combine milk, eggs, butter.",
+        "Add to dry, beat well.",
+        "Let rise 1 hour in greased bundt pan.",
+        "Bake at 350°F for 30 minutes.",
+        "Serve warm with butter."
+      ]
+    },
+    {
+      "id": "american-foundation-024",
+      "title": "Ash Cakes",
+      "description": "Cornbread baked in fireplace ashes. Frontier simplicity.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Makes 8",
+      "source": "Frontier American cooking",
+      "story": "When settlers had no pots or ovens, they baked in ashes. Most basic bread possible.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "primitive"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-024.webp",
+      "sortOrder": 24,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:42.355Z",
+      "updatedAt": "2026-02-05T23:31:42.355Z",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cornmeal",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "Water to make stiff dough",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Water to make stiff dough",
+          "order": 2
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal, salt, and enough water to form stiff dough.",
+        "Shape into flat cakes.",
+        "Wrap in cabbage leaves or corn husks.",
+        "Bury in hot ashes.",
+        "Bake 30 minutes.",
+        "Brush off ash, eat hot."
+      ]
+    },
+    {
+      "id": "american-foundation-025",
+      "title": "Spider Corn Cake",
+      "description": "Cake baked in a 'spider'—cast iron pan with legs for hanging over coals.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 8",
+      "source": "Colonial American hearth cooking",
+      "story": "The spider was a legged skillet used in hearth cooking. This creates a custard layer when milk is added on top.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "hearth"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/american-foundation/american-foundation-025.webp",
+      "sortOrder": 25,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:42.582Z",
+      "updatedAt": "2026-02-05T23:31:42.582Z",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cornmeal",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "1 teaspoon baking soda",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking soda",
+          "order": 2
+        },
+        {
+          "name": "2 cups sour milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups sour milk",
+          "order": 3
+        },
+        {
+          "name": "2 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 eggs",
+          "order": 4
+        },
+        {
+          "name": "2 tablespoons molasses",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons molasses",
+          "order": 5
+        },
+        {
+          "name": "2 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 6
+        },
+        {
+          "name": "1 cup sweet milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup sweet milk",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal, salt, soda.",
+        "Beat in sour milk, eggs, molasses.",
+        "Melt butter in cast iron spider (pan with legs).",
+        "Pour in batter.",
+        "Pour sweet milk over top (don't stir).",
+        "Bake at 425°F for 30 minutes until set."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:31:12.777Z"
+}

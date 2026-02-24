@@ -10,6 +10,13 @@ struct SettingsView: View {
     @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @Query private var recipes: [Recipe]
+    @Query private var allUserCredits: [UserCredits]
+
+    /// Current user's credits (first matching current user ID)
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
+    }
 
     // User-created recipes only (excludes theme/discovery recipes)
     private var userRecipes: [Recipe] {
@@ -25,7 +32,6 @@ struct SettingsView: View {
     @State private var firebaseSyncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
     @State private var subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
     @State private var storeManager = ServiceContainer.shared.resolve(StoreManager.self)
-    @State private var recipeExporter = ServiceContainer.shared.resolve(RecipeExporter.self)
 
     // Units configuration for measurement system
     @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
@@ -39,14 +45,13 @@ struct SettingsView: View {
     @State private var storageSize: String = "Calculating..."
     @State private var authStateChanged = false // Force view updates when auth state changes
     @State private var isClearingData = false // Show loading indicator while clearing
-    @State private var isExporting = false
-    @State private var isRestoringPurchases = false
     @State private var showDowngradeAlert = false
-    @State private var showClearCollectionsConfirmation = false
 
-    // Screen Recording Reset
-    @State private var showFirstTimeUserReset = false
-    @StateObject private var resetService = ScreenRecordingResetService.shared
+    // Developer section password protection
+    @State private var showDeveloperSection = false
+    @State private var developerPassword = ""
+    @State private var showDeveloperPasswordAlert = false
+    @State private var showManagePlan = false
 
     var body: some View {
         NavigationStack {
@@ -72,13 +77,19 @@ struct SettingsView: View {
                 // Support Section
                 supportSection
 
-                // Developer Section (moved DOWN - debug tools isolated)
-                developerSection
+                // Developer Section (password protected)
+                if showDeveloperSection {
+                    developerSection
+                } else {
+                    developerAccessSection
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 await calculateStorageSize()
+                // NOTE: Subscription refresh moved to ManagePlanView to avoid
+                // state update conflicts during sheet presentation
             }
             .confirmationDialog(
                 "Clear All Data",
@@ -91,30 +102,6 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("This will permanently delete all \(userRecipes.count) user recipes and \(recipes.count - userRecipes.count) discovery recipes. This cannot be undone.")
-            }
-            .confirmationDialog(
-                "Sign Out",
-                isPresented: $showSignOutConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Sign Out", role: .destructive) {
-                    signOut()
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("You'll need to sign in again to access your recipes.")
-            }
-            .confirmationDialog(
-                "Clear All Collections",
-                isPresented: $showClearCollectionsConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Clear Collections", role: .destructive) {
-                    clearAllCollections()
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This will delete all collections but keep your recipes. Use this for clean testing. This cannot be undone.")
             }
             .alert(
                 "Switch to Monthly Plan",
@@ -130,6 +117,9 @@ struct SettingsView: View {
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
                     .presentationDetents([.large])
+            }
+            .sheet(isPresented: $showManagePlan) {
+                ManagePlanView()
             }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
@@ -194,115 +184,82 @@ struct SettingsView: View {
 
     private var subscriptionSection: some View {
         Section {
-            // Status row
-            LabeledContent("Status", value: subscriptionStatusText)
-                .foregroundStyle(subscriptionStatusColor)
+            // Status row with plan info
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(subscriptionStatusText)
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(subscriptionStatusColor)
 
-            // Current plan row (if subscribed)
-            if subscriptionManager.isPremium, let planName = subscriptionManager.currentPlanName {
-                LabeledContent("Current Plan", value: planName)
-                    .font(HeirloomFonts.body)
-            }
-
-            // Renewal/Expiry date row (if applicable)
-            if let dateText = subscriptionDateText {
-                LabeledContent(subscriptionDateLabel, value: dateText)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
-
-            // Change Plan button (for subscribers who can upgrade/downgrade)
-            if subscriptionManager.isPremium && subscriptionManager.status != .lifetime {
-                if subscriptionManager.canUpgrade {
-                    NavigationLink {
-                        PaywallView()
-                    } label: {
-                        HStack {
-                            Label("Upgrade to Annual", systemImage: "arrow.up.circle.fill")
-                                .foregroundStyle(.green)
-                            Spacer()
-                            Text("Save 50%")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.green)
-                        }
-                    }
-                } else if subscriptionManager.canDowngrade {
-                    Button {
-                        showDowngradeAlert = true
-                    } label: {
-                        Label("Switch to Monthly", systemImage: "arrow.down.circle")
-                            .foregroundStyle(HeirloomColors.primaryText)
+                    if let dateText = subscriptionDateText {
+                        Text("\(subscriptionDateLabel): \(dateText)")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
                     }
                 }
+                Spacer()
 
-                // Manage Subscription button (cancel, etc.)
-                // ⭐ MODIFIED: Disable when fake payments active (no real subscription to manage)
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                    Button {
-                        openManageSubscription()
-                    } label: {
-                        Label("Manage Subscription", systemImage: "gearshape")
-                    }
-                    .disabled(ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled)
-                    .opacity(ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled ? 0.5 : 1.0)
-
-                    // Show hint when disabled
-                    if ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
-                        Text("Only available for real subscriptions")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(.secondary)
-                            .padding(.leading, 32)
-                    }
+                // Plan badge
+                if subscriptionManager.isPremium {
+                    Text(subscriptionManager.currentPlanName ?? "Premium")
+                        .font(HeirloomFonts.caption1.weight(.medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(subscriptionManager.status == .lifetime ? HeirloomColors.tomato : HeirloomColors.familyGreen)
+                        .cornerRadius(12)
                 }
             }
 
-            // Upgrade button (for free users)
-            if !subscriptionManager.isPremium {
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    // Trial countdown badge
-                    if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining {
-                        HStack {
-                            Image(systemName: "clock.fill")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.orange)
+            // Trial countdown (for free users)
+            if !subscriptionManager.isPremium, subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining {
+                HStack {
+                    Image(systemName: "clock.fill")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.orange)
 
-                            Text("\(daysRemaining) day\(daysRemaining == 1 ? "" : "s") left in trial")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.orange)
+                    Text("\(daysRemaining) day\(daysRemaining == 1 ? "" : "s") left in trial")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.orange)
 
-                            Spacer()
-                        }
-                        .padding(HeirloomSpacing.sm)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(.orange.opacity(0.1))
-                        )
-                    }
-
-                    NavigationLink {
-                        PaywallView()
-                    } label: {
-                        Label("Upgrade to Premium", systemImage: "crown.fill")
-                            .foregroundStyle(HeirloomColors.tomato)
-                    }
+                    Spacer()
                 }
+                .padding(HeirloomSpacing.sm)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.orange.opacity(0.1))
+                )
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
 
-            // Restore Purchases button
+            // Manage Plan button - opens our custom view
             Button {
-                restorePurchases()
+                showManagePlan = true
             } label: {
-                if isRestoringPurchases {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                        Text("Restoring...")
+                HStack {
+                    Label(
+                        subscriptionManager.isPremium ? "Manage Plan" : "View Plans & Upgrade",
+                        systemImage: subscriptionManager.isPremium ? "gearshape" : "crown.fill"
+                    )
+                    .foregroundStyle(subscriptionManager.isPremium ? .primary : HeirloomColors.tomato)
+
+                    Spacer()
+
+                    if !subscriptionManager.isPremium {
+                        Text("Upgrade")
+                            .font(HeirloomFonts.caption1.weight(.medium))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(HeirloomColors.tomato)
+                            .cornerRadius(12)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                } else {
-                    Label("Restore Purchases", systemImage: "arrow.clockwise")
                 }
             }
-            .disabled(isRestoringPurchases)
 
         } header: {
             Text("Subscription")
@@ -318,31 +275,16 @@ struct SettingsView: View {
             LabeledContent("Recipes", value: "\(userRecipes.count)")
             LabeledContent("Storage Used", value: storageSize)
 
-            Button {
-                exportRecipes()
+            // Privacy & Data (includes export and account deletion for Apple compliance)
+            NavigationLink {
+                PrivacySettingsView()
             } label: {
-                if isExporting {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                        Text("Exporting...")
-                    }
-                } else {
-                    Label("Export All Recipes", systemImage: "square.and.arrow.up")
-                }
-            }
-            .disabled(isExporting || userRecipes.isEmpty)
-
-            Button(role: .destructive) {
-                showClearDataConfirmation = true
-            } label: {
-                Label("Clear All Data", systemImage: "trash")
-                    .foregroundStyle(.red)
+                Label("Privacy & Data", systemImage: "hand.raised")
             }
         } header: {
             Text("Data Management")
         } footer: {
-            Text("Export your recipes as JSON. Your recipes are always yours, even without a subscription.")
+            Text("Your recipes are always yours, even without a subscription.")
         }
     }
 
@@ -353,21 +295,13 @@ struct SettingsView: View {
             // Force view dependency on authStateChanged to trigger re-renders
             let _ = authStateChanged
 
-            if let user = firebaseAuth.currentUser {
-                // Determine sign-in provider for fallback display
-                let provider = user.providerData.first?.providerID ?? "Unknown"
-                let providerName: String = {
-                    switch provider {
-                    case "apple.com": return "Apple"
-                    case "google.com": return "Google"
-                    case "password": return "Email"
-                    default: return "Unknown Provider"
-                    }
-                }()
-
-                let userDisplay = user.displayName ?? user.email ?? "Signed in with \(providerName)"
-                LabeledContent("Signed in as", value: userDisplay)
-                    .font(HeirloomFonts.caption1)
+            if firebaseAuth.currentUser != nil {
+                // Profile row with avatar and credits badge
+                NavigationLink {
+                    ProfileView()
+                } label: {
+                    SettingsProfileRow()
+                }
 
                 // Sign Out button
                 Button(role: .destructive) {
@@ -375,6 +309,18 @@ struct SettingsView: View {
                 } label: {
                     Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                         .foregroundStyle(.red)
+                }
+                .confirmationDialog(
+                    "Sign Out",
+                    isPresented: $showSignOutConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Sign Out", role: .destructive) {
+                        signOut()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("You'll need to sign in again to access your recipes.")
                 }
             }
         } header: {
@@ -432,397 +378,108 @@ struct SettingsView: View {
 
     private var developerSection: some View {
         Section {
-            // Premium Mode Toggle (defaults to ON for testing)
-            Toggle(isOn: Binding(
-                get: {
-                    UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true
-                },
-                set: { newValue in
-                    UserDefaults.standard.set(newValue, forKey: "debug_force_non_premium")
-                }
-            )) {
-                HStack {
-                    Image(systemName: "crown.fill")
-                        .foregroundStyle((UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true) ? .gray : .orange)
-                    VStack(alignment: .leading) {
-                        Text("Force Non-Premium Mode")
-                        Text((UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true) ? "Testing progressive unlock" : "Premium access enabled")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-
-            Divider()
-
-            // ⭐ Subscription Testing Tools
-            // Auto Premium Toggle (MOVED FROM SUBSCRIPTION SECTION)
-            Toggle(isOn: Binding(
-                get: {
-                    subscriptionManager.isAutoPremiumEnabled
-                },
-                set: { enabled in
-                    subscriptionManager.isAutoPremiumEnabled = enabled
-
-                    // Show toast notification
-                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    if enabled {
-                        toastManager.info(
-                            title: "Auto Premium Enabled",
-                            message: "Paywalls will show but won't block access"
-                        )
-                    } else {
-                        toastManager.info(
-                            title: "Auto Premium Disabled",
-                            message: "Paywalls will block access normally"
-                        )
-                    }
-                }
-            )) {
-                HStack {
-                    Image(systemName: "crown.fill")
-                        .foregroundStyle(.orange)
-                    VStack(alignment: .leading) {
-                        Text("Auto Premium (Debug)")
-                        Text("Show paywalls without blocking access")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .tint(.orange)
-
-            // Fake Payments Toggle (MOVED FROM SUBSCRIPTION SECTION)
-            Toggle(isOn: Binding(
-                get: {
-                    ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled
-                },
-                set: { enabled in
-                    UserDefaults.standard.set(enabled, forKey: "debug_fake_payments_enabled")
-
-                    Log.info("Fake payments: \(enabled ? "ENABLED" : "DISABLED")", category: .store)
-
-                    // Show toast notification
-                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    if enabled {
-                        toastManager.info(
-                            title: "Fake Payments Enabled",
-                            message: "Subscribe buttons will grant premium without payment"
-                        )
-                    } else {
-                        toastManager.info(
-                            title: "Fake Payments Disabled",
-                            message: "Real StoreKit purchases will be used"
-                        )
-                    }
-                }
-            )) {
-                HStack {
-                    Image(systemName: "theatermasks.fill")
-                        .foregroundStyle(.purple)
-                    VStack(alignment: .leading) {
-                        Text("Fake Payments (Debug)")
-                        Text("Grants premium without real transactions")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .tint(.purple)
-
-            // Cancel Fake Subscription (MOVED FROM SUBSCRIPTION SECTION)
-            if subscriptionManager.isPremium && ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
-                Button(role: .destructive) {
-                    cancelFakeSubscription()
-                } label: {
-                    Label("Cancel Fake Subscription", systemImage: "xmark.circle.fill")
-                }
-            }
-
-            Divider()
-
-            // Demo Social Mode Toggle
-            // Only show if Remote Config hasn't globally disabled demo mode
-            if DemoSocialGate.shared.isRemotelyAvailable {
-                Toggle(isOn: Binding(
-                    get: {
-                        !DemoSocialGate.shared.isLocallyDisabled
-                    },
-                    set: { enabled in
-                        DemoSocialGate.shared.setLocallyDisabled(!enabled)
-
-                        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                        if enabled {
-                            toastManager.info(
-                                title: "Demo Mode Enabled",
-                                message: "Demo accounts will appear in search and auto-accept invites"
-                            )
-                        } else {
-                            toastManager.info(
-                                title: "Demo Mode Disabled",
-                                message: "Demo accounts hidden and behaviors stopped"
-                            )
-                        }
-
-                        Log.info("Demo social mode: \(enabled ? "ENABLED" : "DISABLED")", category: .general)
-                    }
-                )) {
-                    HStack {
-                        Image(systemName: "person.2.fill")
-                            .foregroundStyle(HeirloomColors.familyGreen)
-                        VStack(alignment: .leading) {
-                            Text("Demo Social Mode")
-                            Text("Simulated demo accounts will auto-accept invites and share sample recipes")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                .tint(HeirloomColors.familyGreen)
-            }
-
-            Divider()
-
-            // Screen Recording Tools
-            screenRecordingSection
-
-            Divider()
-
-            // Debug Log Viewer - FILE-BASED LOGGING FOR DEVICE VISIBILITY
             NavigationLink {
-                DebugLogView()
+                DeveloperSettingsView()
             } label: {
-                HStack {
-                    Image(systemName: "doc.text.magnifyingglass")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("View Debug Log")
-                    Spacer()
-                    Text("📁")
-                        .font(HeirloomFonts.caption1)
-                }
+                Label("Developer Tools", systemImage: "hammer.fill")
             }
 
-            // Trial Debug View - TEST TRIAL PERIOD SCENARIOS
-            NavigationLink {
-                TrialDebugView()
-            } label: {
-                HStack {
-                    Image(systemName: "calendar.badge.clock")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Trial Debug")
-                    Spacer()
-                    Text("🔬")
-                        .font(HeirloomFonts.caption1)
-                }
-            }
-
-            // Credits System Test - TEST PDF IMPORT CREDITS
-            NavigationLink {
-                CreditsTestView()
-            } label: {
-                HStack {
-                    Image(systemName: "giftcard.fill")
-                        .foregroundStyle(HeirloomColors.familyGreen)
-                    Text("Credits System Test")
-                    Spacer()
-                    Text("💳")
-                        .font(HeirloomFonts.caption1)
-                }
-            }
-
-            #if DEBUG
-            // Test Crashlytics Reporting - VERIFY CRASH REPORTING
             Button(role: .destructive) {
-                Crashlytics.crashlytics().log("User triggered test crash from Settings")
-                fatalError("Test crash for Crashlytics verification")
+                showClearDataConfirmation = true
             } label: {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                    VStack(alignment: .leading) {
-                        Text("Test Crash Reporting")
-                        Text("Verify Crashlytics is working")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            #endif
-
-            // Feature Flags Debug - VIEW AND TOGGLE FEATURE FLAGS
-            NavigationLink {
-                FeatureFlagsDebugView()
-            } label: {
-                HStack {
-                    Image(systemName: "flag.checkered")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Feature Flags")
-                    Spacer()
-                    Text("🚩")
-                        .font(HeirloomFonts.caption1)
-                }
-            }
-
-            Divider()
-
-            // Clear Collections - FOR CLEAN TESTING
-            Button(role: .destructive) {
-                showClearCollectionsConfirmation = true
-            } label: {
-                HStack {
-                    Image(systemName: "folder.fill.badge.minus")
-                        .foregroundStyle(.red)
-                    VStack(alignment: .leading) {
-                        Text("Clear All Collections")
-                        Text("Removes all collections (keeps recipes)")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                Label("Clear Local Data", systemImage: "trash")
+                    .foregroundStyle(.red)
             }
         } header: {
-            Text("Developer Testing")
+            Text("Developer")
         } footer: {
-            Text("Debug features for testing subscription flows and app behavior:\n\n• Auto Premium: See paywalls without blocking access (default ON in debug)\n• Fake Payments: Grant premium without real transactions\n• Force Non-Premium: Test progressive heritage unlock (7 recipes/day)\n• Demo Social: \(DemoSocialGate.shared.debugStatus)\n• Build: \(BuildChannel.current.displayName)\n\nThese tools are for development only and help ensure the app works correctly for both free and premium users.")
+            Text("Build: \(BuildChannel.current.displayName)")
         }
     }
 
-    // MARK: - Screen Recording Section
+    // MARK: - Developer Access Section (Password Protected)
 
-    private var screenRecordingSection: some View {
-        Group {
-            // Hide Theme Collections Toggle
-            Toggle(isOn: $resetService.hideThemeCollections) {
-                HStack {
-                    Image(systemName: "eye.slash.fill")
-                        .foregroundStyle(.purple)
-                        .font(.title2)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Hide Theme Collections")
-                            .font(HeirloomFonts.bodyBold)
-                        Text("Hides heritage/discovery collections for recording")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .tint(.purple)
-
-            // Hide Demo Seed Collections Toggle
-            Toggle(isOn: $resetService.hideDemoSeedCollections) {
-                HStack {
-                    Image(systemName: "theatermask.and.paintbrush.fill")
-                        .foregroundStyle(.orange)
-                        .font(.title2)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Hide Demo Collections")
-                            .font(HeirloomFonts.bodyBold)
-                        Text("Hides your collections marked as demo seed")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .tint(.orange)
-
-            // First Time User Reset
-            Button(role: .destructive) {
-                showFirstTimeUserReset = true
+    private var developerAccessSection: some View {
+        Section {
+            Button {
+                showDeveloperPasswordAlert = true
             } label: {
-                HStack {
-                    Image(systemName: "arrow.counterclockwise.circle.fill")
-                        .foregroundStyle(.orange)
-                        .font(.title2)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("First Time User Reset")
-                            .font(HeirloomFonts.bodyBold)
-                        Text("Clear all data, reset to fresh start")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if resetService.isResetting {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    }
-                }
+                Label("Developer Access", systemImage: "lock.fill")
             }
-            .disabled(resetService.isResetting)
-            .confirmationDialog(
-                "Reset to First Time User",
-                isPresented: $showFirstTimeUserReset,
-                titleVisibility: .visible
-            ) {
-                Button("Reset Everything", role: .destructive) {
-                    performFirstTimeUserReset()
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This will:\n• Delete all your recipes and collections\n• Clear cloud data and connections\n• Reset to first-time user experience\n\nTheme recipes will be preserved.")
-            }
-
-            // Show reset progress
-            if resetService.isResetting {
-                HStack {
-                    Text(resetService.resetProgress)
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                }
-            }
-
-            // Show last verification result
-            if let verification = resetService.lastResetVerification {
-                HStack {
-                    Image(systemName: verification.success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(verification.success ? .green : .orange)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verification.success ? "Reset Verified" : "Reset Issues")
-                            .font(HeirloomFonts.caption1Bold)
-                        Text(verification.summary)
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                }
-            }
+        } footer: {
+            Text("Build: \(BuildChannel.current.displayName)")
+        }
+        .sheet(isPresented: $showDeveloperPasswordAlert) {
+            DeveloperPasswordSheet(
+                isPresented: $showDeveloperPasswordAlert,
+                onUnlock: { showDeveloperSection = true }
+            )
+            .presentationDetents([.height(200)])
         }
     }
+}
 
-    private func performFirstTimeUserReset() {
-        Task {
-            do {
-                let verification = try await resetService.resetToFirstTimeUser(context: modelContext)
-                if verification.success {
-                    toastManager.success(
-                        title: "Reset Complete",
-                        message: "App reset to first-time user state"
-                    )
-                } else {
-                    toastManager.warning(
-                        title: "Reset Completed with Issues",
-                        message: verification.errors.first ?? "Check verification details"
-                    )
+// MARK: - Developer Password Sheet
+
+private struct DeveloperPasswordSheet: View {
+    @Binding var isPresented: Bool
+    let onUnlock: () -> Void
+
+    @State private var password = ""
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Developer Access")
+                .font(HeirloomFonts.title3)
+
+            SecureField("Password", text: $password)
+                .textFieldStyle(.roundedBorder)
+                .focused($isFocused)
+                .onSubmit { tryUnlock() }
+                .padding(.horizontal)
+
+            HStack(spacing: 16) {
+                Button("Cancel") {
+                    isPresented = false
                 }
-            } catch {
-                toastManager.error(
-                    title: "Reset Failed",
-                    message: error.localizedDescription
-                )
+                .foregroundStyle(.secondary)
+
+                Button("Unlock") {
+                    tryUnlock()
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
+        .padding()
+        .onAppear { isFocused = true }
     }
 
+    private func tryUnlock() {
+        if password == "18" {
+            onUnlock()
+        }
+        isPresented = false
+    }
+}
+
+// MARK: - SettingsView Extensions
+
+extension SettingsView {
     // MARK: - User Experience Section
 
-    private var userExperienceSection: some View {
+    var userExperienceSection: some View {
         Section {
-            Picker("Measurement System", selection: $unitsConfig.preferredSystem) {
-                ForEach(UnitSystem.allCases) { system in
-                    Text(system.displayName).tag(system)
+            // Using LabeledContent wrapper fixes menu anchor alignment
+            LabeledContent("Measurement System") {
+                Picker("", selection: $unitsConfig.preferredSystem) {
+                    ForEach(UnitSystem.allCases) { system in
+                        Text(system.displayName).tag(system)
+                    }
                 }
+                .pickerStyle(.menu)
+                .labelsHidden()
             }
-            .pickerStyle(.menu)
 
             // Visual Style for AI-generated images
             NavigationLink {
@@ -854,42 +511,17 @@ struct SettingsView: View {
 
             Button {
                 analytics.track(event: .contactSupportTapped, properties: nil)
-                if let url = URL(string: "mailto:support@heirloom.app") {
+                if let url = URL(string: "https://discord.gg/tfrMzefJFj") {
                     UIApplication.shared.open(url)
                 }
             } label: {
-                Label("Contact Support", systemImage: "envelope")
+                Label("Contact Support", systemImage: "bubble.left.and.bubble.right")
                     .foregroundStyle(HeirloomColors.primaryText)
             }
 
             Button {
-                let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-                let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-                let deviceModel = UIDevice.current.model
-                let systemVersion = UIDevice.current.systemVersion
-
-                let subject = "Bug Report - Heirloom v\(appVersion)"
-                let body = """
-
-
-                ---
-                Please describe the bug above this line.
-
-                App Version: \(appVersion) (\(buildNumber))
-                Device: \(deviceModel)
-                iOS Version: \(systemVersion)
-                """
-
-                let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-                let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-
-                analytics.track(event: .bugReportSubmitted, properties: [
-                    "app_version": appVersion,
-                    "device_model": deviceModel,
-                    "ios_version": systemVersion
-                ])
-
-                if let url = URL(string: "mailto:support@heirloom.app?subject=\(encodedSubject)&body=\(encodedBody)") {
+                analytics.track(event: .bugReportSubmitted, properties: nil)
+                if let url = URL(string: "https://discord.gg/tfrMzefJFj") {
                     UIApplication.shared.open(url)
                 }
             } label: {
@@ -898,20 +530,8 @@ struct SettingsView: View {
             }
 
             Button {
-                let subject = "Feature Request - Heirloom"
-                let body = """
-
-
-                ---
-                Please describe your feature request above this line.
-                """
-
-                let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-                let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-
                 analytics.track(event: .featureRequestSubmitted, properties: nil)
-
-                if let url = URL(string: "mailto:support@heirloom.app?subject=\(encodedSubject)&body=\(encodedBody)") {
+                if let url = URL(string: "https://discord.gg/tfrMzefJFj") {
                     UIApplication.shared.open(url)
                 }
             } label: {
@@ -919,23 +539,27 @@ struct SettingsView: View {
                     .foregroundStyle(HeirloomColors.primaryText)
             }
 
-            Link(destination: URL(string: "https://heirloom.app/privacy")!) {
-                Label("Privacy Policy", systemImage: "hand.raised")
-            }
-
-            Link(destination: URL(string: "https://heirloom.app/terms")!) {
-                Label("Terms of Service", systemImage: "doc.text")
-            }
         } header: {
             Text("Help & Support")
         } footer: {
-            Text("Need help? Browse our Help Center, report bugs, or suggest new features to make Heirloom better.")
+            Text("Need help? Browse our Help Center, report bugs, or suggest new features.")
         }
     }
 
     // MARK: - Subscription Helpers
 
     private var subscriptionStatusText: String {
+        // Demo account: always show "Expired" for App Store Review
+        if subscriptionManager.isDemoAccountConfigured && !subscriptionManager.isPremium {
+            return "Expired"
+        }
+
+        // Use statusDisplayText for cancelled subscription status
+        // (shows "Cancelled - X days left on Monthly/Annual")
+        if subscriptionManager.status.isSubscription && !subscriptionManager.willRenew {
+            return subscriptionManager.statusDisplayText
+        }
+
         switch subscriptionManager.status {
         case .none:
             return "Free"
@@ -964,11 +588,11 @@ struct SettingsView: View {
     private var subscriptionDateText: String? {
         if let expiryDate = subscriptionManager.subscriptionExpiryDate {
             let formatter = DateFormatter()
-            formatter.dateStyle = .medium
+            formatter.dateFormat = "MMM d, yyyy" // Always show year explicitly
             return formatter.string(from: expiryDate)
         } else if let trialExpiry = subscriptionManager.trialExpiryDate {
             let formatter = DateFormatter()
-            formatter.dateStyle = .medium
+            formatter.dateFormat = "MMM d, yyyy" // Always show year explicitly
             return formatter.string(from: trialExpiry)
         }
         return nil
@@ -979,6 +603,8 @@ struct SettingsView: View {
             return "Trial Ends"
         } else if subscriptionManager.status == .expired {
             return "Ended"
+        } else if !subscriptionManager.willRenew {
+            return "Expires"
         } else {
             return "Renews"
         }
@@ -994,154 +620,6 @@ struct SettingsView: View {
 
     // MARK: - Actions
 
-    private func exportRecipes() {
-        isExporting = true
-
-        Task {
-            do {
-                // Filter out theme recipes - only export user-created recipes
-                let userRecipes = recipes.filter { !$0.isThemeRecipe }
-                Log.info("Exporting user recipes", category: .storage, metadata: [
-                    "total": recipes.count,
-                    "userOnly": userRecipes.count,
-                    "filtered": recipes.count - userRecipes.count
-                ])
-
-                // Create backup directory with JSON + images
-                let backupURL = try await createBackupWithImages(recipes: userRecipes)
-
-                await MainActor.run {
-                    // Show share sheet
-                    let activityVC = UIActivityViewController(
-                        activityItems: [backupURL],
-                        applicationActivities: nil
-                    )
-
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let window = windowScene.windows.first,
-                       let rootVC = window.rootViewController {
-                        activityVC.completionWithItemsHandler = { _, _, _, _ in
-                            // Clean up temp directory
-                            try? FileManager.default.removeItem(at: backupURL)
-                        }
-                        rootVC.present(activityVC, animated: true)
-                    }
-
-                    isExporting = false
-
-                    // Count recipes with images
-                    let recipesWithImages = userRecipes.filter { $0.imageFileName != nil }.count
-                    toastManager.success(
-                        title: "Recipes exported",
-                        message: "Saved \(userRecipes.count) recipes (\(recipesWithImages) with images)"
-                    )
-                }
-
-                analytics.track(event: .recipesExported, properties: ["count": userRecipes.count])
-
-            } catch {
-                await MainActor.run {
-                    isExporting = false
-                    toastManager.error(title: "Export failed", message: error.localizedDescription)
-                }
-            }
-        }
-    }
-
-    /// Creates a backup directory containing recipes.json and an images/ folder
-    private func createBackupWithImages(recipes: [Recipe]) async throws -> URL {
-        let fileManager = FileManager.default
-        let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
-        let backupDirName = "RecipeBackup_\(timestamp)"
-        let backupURL = fileManager.temporaryDirectory.appendingPathComponent(backupDirName)
-
-        // Create backup directory structure
-        try fileManager.createDirectory(at: backupURL, withIntermediateDirectories: true)
-
-        // 1. Export recipes to JSON
-        let jsonData = try recipeExporter.exportToJSON(recipes: recipes)
-        let jsonURL = backupURL.appendingPathComponent("recipes.json")
-        try jsonData.write(to: jsonURL)
-
-        Log.info("Created recipes.json", category: .storage, metadata: [
-            "recipeCount": recipes.count,
-            "path": jsonURL.path
-        ])
-
-        // 2. Copy recipe images to images/ folder
-        let recipesWithImages = recipes.filter { $0.imageFileName != nil }
-
-        if !recipesWithImages.isEmpty {
-            let imagesURL = backupURL.appendingPathComponent("images")
-            try fileManager.createDirectory(at: imagesURL, withIntermediateDirectories: true)
-
-            // Get images directory from ImageStorageService
-            let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let sourceImagesDir = documentsPath.appendingPathComponent("RecipeImages", isDirectory: true)
-
-            var copiedCount = 0
-            for recipe in recipesWithImages {
-                guard let imageFileName = recipe.imageFileName else { continue }
-
-                let sourceURL = sourceImagesDir.appendingPathComponent(imageFileName)
-                let destURL = imagesURL.appendingPathComponent(imageFileName)
-
-                // Copy image if it exists
-                if fileManager.fileExists(atPath: sourceURL.path) {
-                    try? fileManager.copyItem(at: sourceURL, to: destURL)
-                    copiedCount += 1
-                }
-            }
-
-            Log.info("Copied recipe images to backup", category: .storage, metadata: [
-                "totalRecipes": recipes.count,
-                "recipesWithImages": recipesWithImages.count,
-                "imagesCopied": copiedCount
-            ])
-        }
-
-        return backupURL
-    }
-
-    private func restorePurchases() {
-        isRestoringPurchases = true
-
-        Task {
-            do {
-                let transactions = try await storeManager.restorePurchases()
-
-                await MainActor.run {
-                    isRestoringPurchases = false
-
-                    if !transactions.isEmpty {
-                        toastManager.success(
-                            title: "Purchases restored",
-                            message: "Your subscription has been restored"
-                        )
-
-                        // Refresh subscription status
-                        Task {
-                            await subscriptionManager.refreshStatus(force: true)
-                        }
-                    } else {
-                        toastManager.info(
-                            title: "No purchases found",
-                            message: "We couldn't find any previous purchases to restore"
-                        )
-                    }
-                }
-
-                analytics.track(event: .purchasesRestored, properties: ["count": transactions.count])
-
-            } catch {
-                await MainActor.run {
-                    isRestoringPurchases = false
-                    toastManager.error(title: "Restore failed", message: error.localizedDescription)
-                }
-            }
-        }
-    }
-
     private func openManageSubscription() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
             toastManager.error(title: "Could not open", message: "Unable to find window scene")
@@ -1152,6 +630,10 @@ struct SettingsView: View {
             do {
                 try await AppStore.showManageSubscriptions(in: windowScene)
                 analytics.track(event: .manageSubscriptionOpened)
+
+                // Refresh subscription status after returning from App Store
+                // User may have cancelled, renewed, or changed their subscription
+                await subscriptionManager.refreshStatus(force: true)
             } catch {
                 // Log the actual error for debugging
                 await MainActor.run {
@@ -1177,34 +659,6 @@ struct SettingsView: View {
                 }
             }
         }
-    }
-
-    // ⭐ NEW: Cancel Fake Subscription (DEBUG ONLY)
-    private func cancelFakeSubscription() {
-        // Reset to trial state
-        UserDefaults.standard.removeObject(forKey: "subscription_status")
-        UserDefaults.standard.removeObject(forKey: "subscription_expiry_date")
-        UserDefaults.standard.removeObject(forKey: "cached_product_id")
-
-        // Re-enable trial
-        let now = Date()
-        let trialExpiry = Calendar.current.date(byAdding: .day, value: 14, to: now)!
-        UserDefaults.standard.set(now, forKey: "first_launch_date")
-        UserDefaults.standard.set(trialExpiry, forKey: "trial_expiry_date")
-        UserDefaults.standard.set("trial", forKey: "subscription_status")
-        UserDefaults.standard.synchronize()
-
-        // Trigger refresh
-        Task {
-            await subscriptionManager.refreshStatus(force: true)
-        }
-
-        toastManager.success(
-            title: "Fake Subscription Cancelled",
-            message: "Restored to 14-day trial period"
-        )
-
-        Log.info("Cancelled fake subscription, restored trial", category: .store)
     }
 
     private func calculateStorageSize() async {
@@ -1457,40 +911,6 @@ struct SettingsView: View {
                 title: "Sign out failed",
                 message: error.localizedDescription
             )
-        }
-    }
-
-    private func clearAllCollections() {
-        Task {
-            await MainActor.run {
-                do {
-                    // Fetch all collections
-                    let descriptor = FetchDescriptor<RecipeCollection>()
-                    let collections = try modelContext.fetch(descriptor)
-
-                    Log.info("Clearing all collections", category: .general, metadata: ["count": collections.count])
-
-                    // Delete each collection
-                    for collection in collections {
-                        modelContext.delete(collection)
-                    }
-
-                    // Save changes
-                    try modelContext.save()
-
-                    Log.info("All collections cleared successfully", category: .general)
-                    toastManager.success(
-                        title: "Collections Cleared",
-                        message: "All \(collections.count) collections removed. Recipes are safe."
-                    )
-                } catch {
-                    Log.error("Failed to clear collections", category: .general, metadata: ["error": error.localizedDescription])
-                    toastManager.error(
-                        title: "Clear Failed",
-                        message: error.localizedDescription
-                    )
-                }
-            }
         }
     }
 

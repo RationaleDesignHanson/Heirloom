@@ -84,7 +84,7 @@ struct RecipeDiffView: View {
                 if !diffs.isEmpty {
                     VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         HStack {
-                            Image(systemName: "list.bullet.badge.plus")
+                            Image(systemName: "list.bullet")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.success)
                             Text("Ingredients Modified")
@@ -141,7 +141,7 @@ struct RecipeDiffView: View {
                 if !diffs.isEmpty {
                     VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         HStack {
-                            Image(systemName: "list.number.badge.plus")
+                            Image(systemName: "list.number")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.success)
                             Text("Instructions Modified")
@@ -287,12 +287,48 @@ struct RecipeDiffView: View {
             )
         }
 
-        // Normalize plural units to singular
-        normalized = normalized.replacingOccurrences(of: "\\bteaspoons\\b", with: "teaspoon", options: .regularExpression)
-        normalized = normalized.replacingOccurrences(of: "\\btablespoons\\b", with: "tablespoon", options: .regularExpression)
-        normalized = normalized.replacingOccurrences(of: "\\bounces\\b", with: "ounce", options: .regularExpression)
-        normalized = normalized.replacingOccurrences(of: "\\bpounds\\b", with: "pound", options: .regularExpression)
-        normalized = normalized.replacingOccurrences(of: "\\bcups\\b", with: "cup", options: .regularExpression)
+        // Normalize plural units to singular (must match IngredientParser normalization)
+        let pluralMappings: [(String, String)] = [
+            // Volume
+            ("teaspoons", "teaspoon"),
+            ("tablespoons", "tablespoon"),
+            ("cups", "cup"),
+            ("pints", "pint"),
+            ("quarts", "quart"),
+            ("gallons", "gallon"),
+            ("liters", "liter"),
+            ("milliliters", "milliliter"),
+            // Weight
+            ("ounces", "ounce"),
+            ("pounds", "pound"),
+            ("grams", "gram"),
+            ("kilograms", "kilogram"),
+            // Count/piece units
+            ("slices", "slice"),
+            ("pieces", "piece"),
+            ("cloves", "clove"),
+            ("sticks", "stick"),
+            ("pinches", "pinch"),
+            ("dashes", "dash"),
+            ("cans", "can"),
+            ("boxes", "box"),
+            ("jars", "jar"),
+            ("bottles", "bottle"),
+            ("packages", "package"),
+            ("bunches", "bunch"),
+            ("heads", "head"),
+            ("stalks", "stalk"),
+            ("sprigs", "sprig"),
+            ("leaves", "leaf"),
+        ]
+
+        for (plural, singular) in pluralMappings {
+            normalized = normalized.replacingOccurrences(
+                of: "\\b\(plural)\\b",
+                with: singular,
+                options: .regularExpression
+            )
+        }
 
         // Normalize decimal representations (0.50 → 0.5, but also 0.33 → 0.33)
         let decimalPattern = "\\b0\\.(\\d*?)0+\\b"

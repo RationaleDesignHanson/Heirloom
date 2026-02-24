@@ -5,7 +5,7 @@
     {
       "id": "navy-mess-001",
       "title": "Navy S.O.S. (Creamed Chipped Beef)",
-      "description": "The legendary Navy breakfast that sailors loved to hate\u2014and secretly craved. Creamy, savory, and utterly satisfying.",
+      "description": "The legendary Navy breakfast that sailors loved to hate—and secretly craved. Creamy, savory, and utterly satisfying.",
       "ingredients": [
         {
           "name": "dried chipped beef",
@@ -68,7 +68,7 @@
     {
       "id": "navy-mess-002",
       "title": "Navy Goulash (American Chop Suey)",
-      "description": "Not quite Hungarian, not quite Chinese\u2014this uniquely American one-pot wonder fed mess halls coast to coast.",
+      "description": "Not quite Hungarian, not quite Chinese—this uniquely American one-pot wonder fed mess halls coast to coast.",
       "ingredients": [
         {
           "name": "elbow macaroni",
@@ -234,7 +234,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 325\u00b0F (165\u00b0C).",
+        "Preheat oven to 325°F (165°C).",
         "Season roast generously with salt and pepper.",
         "Heat oil in a Dutch oven over high heat. Sear roast on all sides until well browned, about 10 minutes. Remove.",
         "Add onions, carrots, celery. Cook 5 minutes.",
@@ -262,7 +262,7 @@
     {
       "id": "navy-mess-004",
       "title": "Navy Sloppy Joes",
-      "description": "Tangy, sweet ground beef spooned over soft buns\u2014mess hall comfort at its finest.",
+      "description": "Tangy, sweet ground beef spooned over soft buns—mess hall comfort at its finest.",
       "ingredients": [
         {
           "name": "ground beef",
@@ -341,7 +341,7 @@
       "servings": 10,
       "source": "US Navy Cook Book, 1944",
       "story": "Mess cooks made hundreds of pounds of sloppy joe filling at a time. The sweet-tangy sauce became a nostalgic favorite that sailors continued making long after their service ended.",
-      "unlockDay": 5,
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -439,7 +439,7 @@
       "servings": 6,
       "source": "US Navy Cook Book, 1944",
       "story": "Meatballs stretched meat further than burgers or steaks, making them mess hall favorites. The rich brown gravy made even the simplest meal feel special.",
-      "unlockDay": 7,
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -524,7 +524,7 @@
       "servings": 6,
       "source": "US Navy Cook Book, 1944",
       "story": "Creamed chicken was a mess hall go-to when chicken was available. The white sauce stretched the protein while making it feel substantial and satisfying.",
-      "unlockDay": 9,
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -613,7 +613,7 @@
       "instructions": [
         "Season beef with salt and pepper.",
         "Melt 2 tablespoons butter in a large skillet over high heat. Brown beef in batches. Remove and set aside.",
-        "Add remaining butter. Saut\u00e9 onion and mushrooms until golden, about 8 minutes. Add garlic and cook 1 minute.",
+        "Add remaining butter. Sauté onion and mushrooms until golden, about 8 minutes. Add garlic and cook 1 minute.",
         "Sprinkle flour over vegetables and stir. Cook 1 minute.",
         "Add broth and Worcestershire. Bring to a simmer.",
         "Return beef to skillet. Simmer 5 minutes.",
@@ -625,7 +625,7 @@
       "servings": 6,
       "source": "US Navy Cook Book, 1944",
       "story": "This Russian-inspired dish became an American mess hall favorite. The creamy mushroom sauce made even tougher cuts of beef taste elegant.",
-      "unlockDay": 11,
+      "unlockDay": 7,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -637,7 +637,7 @@
     {
       "id": "navy-mess-008",
       "title": "Navy Bean Soup",
-      "description": "The soup that's served in the U.S. Senate dining room to this day\u2014hearty, humble, and historic.",
+      "description": "The soup that's served in the U.S. Senate dining room to this day—hearty, humble, and historic.",
       "ingredients": [
         {
           "name": "navy beans",
@@ -717,7 +717,7 @@
       "servings": 8,
       "source": "US Navy Cook Book, 1944",
       "story": "This soup has been served in the U.S. Senate dining room since 1903. The Navy's version fed thousands of sailors daily. Simple, filling, and budget-friendly, it's American culinary democracy at its finest.",
-      "unlockDay": 1,
+      "unlockDay": 8,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -776,7 +776,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 450\u00b0F (230\u00b0C). Line a baking sheet with parchment.",
+        "Preheat oven to 450°F (230°C). Line a baking sheet with parchment.",
         "Whisk flour, baking powder, sugar, salt, and baking soda.",
         "Cut in cold butter using a pastry blender until mixture resembles coarse crumbs.",
         "Add buttermilk and stir just until dough comes together.",
@@ -792,7 +792,7 @@
       "servings": 8,
       "source": "US Navy Cook Book, 1944",
       "story": "Ship's cooks baked hundreds of biscuits daily in galleys pitching with the waves. The secret to tall, flaky biscuits is cold butter and handling the dough as little as possible.",
-      "unlockDay": 2,
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -855,7 +855,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 325\u00b0F (165\u00b0C). Butter an 8x8 baking dish.",
+        "Preheat oven to 325°F (165°C). Butter an 8x8 baking dish.",
         "Whisk eggs, milk, sugar, vanilla, and cinnamon until combined.",
         "Stir in rice and raisins.",
         "Pour into prepared dish. Dot with butter. Sprinkle with nutmeg.",
@@ -867,7 +867,7 @@
       "servings": 8,
       "source": "US Navy Cook Book, 1944",
       "story": "Rice was a mess hall staple, and this pudding transformed leftovers into comfort dessert. It was served warm from massive baking pans, a sweet ending to days at sea.",
-      "unlockDay": 3,
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -935,8 +935,8 @@
       "cookTime": 0,
       "servings": 8,
       "source": "US Navy Cook Book, 1944",
-      "story": "Coleslaw was served at nearly every meal\u2014it kept well, used readily available ingredients, and provided essential vitamins during long deployments.",
-      "unlockDay": 5,
+      "story": "Coleslaw was served at nearly every meal—it kept well, used readily available ingredients, and provided essential vitamins during long deployments.",
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -992,7 +992,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 400\u00b0F (200\u00b0C). Grease an 8x8 or 9x9 baking pan.",
+        "Preheat oven to 400°F (200°C). Grease an 8x8 or 9x9 baking pan.",
         "Whisk cornmeal, flour, sugar, baking powder, and salt.",
         "Beat egg with milk and oil.",
         "Add wet ingredients to dry and stir just until combined.",
@@ -1005,7 +1005,7 @@
       "servings": 9,
       "source": "US Navy Cook Book, 1944",
       "story": "This Northern-style cornbread, slightly sweeter than its Southern cousin, was baked in massive sheet pans and cut into squares for easy serving in the chow line.",
-      "unlockDay": 7,
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1075,7 +1075,7 @@
       "servings": 6,
       "source": "US Navy Cook Book, 1944",
       "story": "Chocolate pudding made from scratch was a treat at sea. Mess cooks made it in massive batches, and sailors who got seconds considered themselves lucky.",
-      "unlockDay": 9,
+      "unlockDay": 13,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1145,7 +1145,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 375\u00b0F (190\u00b0C). Butter an 8x8 baking dish.",
+        "Preheat oven to 375°F (190°C). Butter an 8x8 baking dish.",
         "Toss bread cubes with melted butter.",
         "Mix brown sugar, cinnamon, nutmeg, and salt.",
         "Layer one-third of bread cubes in dish. Top with half the apples and half the sugar mixture.",
@@ -1160,7 +1160,7 @@
       "servings": 8,
       "source": "US Navy Cook Book, 1944",
       "story": "Apple Brown Betty was a thrifty way to use stale bread and abundant apples. It emerged from Navy ovens fragrant with cinnamon, a homey dessert far from home.",
-      "unlockDay": 11,
+      "unlockDay": 14,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [

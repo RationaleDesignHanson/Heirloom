@@ -71,6 +71,7 @@ enum ASMRProcessingState: Equatable {
 // MARK: - Processor Protocol
 
 /// Protocol for ASMR video processing
+/// Note: Credit handling is done by callers (VideoProcessingJobManager), not by the processor
 @MainActor
 protocol ASMRProcessorProtocol: AnyObject {
     var state: ASMRProcessingState { get }
@@ -82,8 +83,7 @@ protocol ASMRProcessorProtocol: AnyObject {
         userCaption: String,
         videoHash: String?,
         skipSoundAnalysis: Bool,
-        dishNameHint: String?,
-        creditsPreCharged: Bool
+        dishNameHint: String?
     ) async throws -> ASMRRecipeExtraction
 
     func cancel()
@@ -102,8 +102,7 @@ extension ASMRProcessorProtocol {
             userCaption: userCaption,
             videoHash: videoHash,
             skipSoundAnalysis: skipSoundAnalysis,
-            dishNameHint: dishNameHint,
-            creditsPreCharged: false
+            dishNameHint: dishNameHint
         )
     }
 }

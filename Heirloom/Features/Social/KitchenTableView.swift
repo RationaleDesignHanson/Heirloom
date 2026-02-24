@@ -7,11 +7,15 @@
 //
 
 import SwiftUI
+import SwiftData
 import FirebaseAuth
 import FirebaseFirestore
 
 struct KitchenTableView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseAuth) private var firebaseAuth
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allUserCredits: [UserCredits]
 
     private var connectionService: ConnectionServiceProtocol {
         ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
@@ -23,6 +27,12 @@ struct KitchenTableView: View {
 
     private var toastManager: ToastManager {
         ServiceContainer.shared.resolve(ToastManager.self)
+    }
+
+    /// Current user's credits
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
     }
 
     // MARK: - State
@@ -56,6 +66,9 @@ struct KitchenTableView: View {
     // Share counts for profile header
     @State private var directSharesCount: Int = 0
     @State private var publicSharesCount: Int = 0
+
+    // Credits store
+    @State private var showCreditsStore = false
 
     // MARK: - Body
 
@@ -149,6 +162,17 @@ struct KitchenTableView: View {
             .sheet(isPresented: $showShareAnalytics) {
                 ShareAnalyticsDashboard()
             }
+            .sheet(isPresented: $showCreditsStore) {
+                if let userId = firebaseAuth.currentUserId {
+                    let storeManager = CreditStoreManager(
+                        logger: ServiceContainer.shared.resolve(LoggingService.self),
+                        analytics: ServiceContainer.shared.resolve(AnalyticsService.self),
+                        modelContext: modelContext,
+                        userId: userId
+                    )
+                    CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
+                }
+            }
             .sheet(isPresented: $showSettings) {
                 NavigationStack {
                     SettingsView()
@@ -215,6 +239,8 @@ struct KitchenTableView: View {
                     connectionsCount: connections.count,
                     directSharesCount: directSharesCount,
                     publicSharesCount: publicSharesCount,
+                    creditsCount: userCredits?.availableCredits ?? 0,
+                    onCredits: { showCreditsStore = true },
                     onEditProfile: { showEditProfile = true }
                 )
                 .padding(.horizontal, HeirloomSpacing.md)

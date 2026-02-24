@@ -1,0 +1,1804 @@
+{
+  "themeId": "quick-weeknight",
+  "themeName": "Quick Weeknight Classics",
+  "themeData": {
+    "id": "quick-weeknight",
+    "name": "Quick Weeknight Classics",
+    "tagline": "Delicious meals in 30 minutes or less",
+    "description": "Busy schedules demand efficient cooking. These recipes deliver big flavor in minimal time, perfect for weeknight dinners.",
+    "iconName": "clock.fill",
+    "category": "difficulty",
+    "totalRecipes": 14,
+    "unlockSchedule": [
+      1,
+      2,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 9,
+    "coverImagePrompt": "Modern efficient kitchen with fresh ingredients and quick prep setup, bright clean aesthetic, contemporary illustration",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/quick-weeknight.webp",
+    "updatedAt": "2026-01-27T01:51:35.825Z"
+  },
+  "recipes": [
+    {
+      "id": "quick-weeknight-001",
+      "title": "Classic Tuna Noodle Casserole",
+      "description": "The ultimate pantry-staple dinner—creamy, comforting, and ready in under an hour.",
+      "prepTime": 15,
+      "cookTime": 35,
+      "servings": 6,
+      "source": "Mid-century American home cooking",
+      "story": "This casserole became a weeknight staple in the 1950s when canned tuna and convenience foods made quick dinners possible. The potato chip topping is non-negotiable.",
+      "difficulty": "easy",
+      "tags": [
+        "casserole",
+        "quick",
+        "budget-friendly",
+        "kid-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-tuna-noodle-casserole.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:44.487Z",
+      "updatedAt": "2026-02-06T03:53:44.487Z",
+      "ingredients": [
+        {
+          "name": "egg noodles",
+          "amount": 12,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "12 ounces egg noodles",
+          "order": 0
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 small onion",
+          "order": 2
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced",
+          "group": null,
+          "text": "2 stalks celery",
+          "order": 3
+        },
+        {
+          "name": "flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons flour",
+          "order": 4
+        },
+        {
+          "name": "milk",
+          "amount": 2.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2.5 cups milk",
+          "order": 5
+        },
+        {
+          "name": "canned tuna",
+          "amount": 12,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "12 ounces canned tuna",
+          "order": 6
+        },
+        {
+          "name": "frozen peas",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup frozen peas",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 8
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 9
+        },
+        {
+          "name": "crushed potato chips",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For topping",
+          "text": "1 cup crushed potato chips",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 375°F (190°C). Cook noodles according to package directions; drain.",
+        "Melt butter in a large saucepan. Add onion and celery; cook 5 minutes.",
+        "Whisk in flour; cook 1 minute.",
+        "Gradually whisk in milk. Cook until thickened, about 5 minutes.",
+        "Stir in tuna, peas, salt, and pepper.",
+        "Fold in noodles. Transfer to a 9x13 baking dish.",
+        "Top with crushed potato chips.",
+        "Bake 25-30 minutes until bubbly and golden."
+      ]
+    },
+    {
+      "id": "quick-weeknight-002",
+      "title": "Shake-and-Bake Style Pork Chops",
+      "description": "Crispy-coated pork chops without the frying—a 1960s shortcut that still works.",
+      "prepTime": 10,
+      "cookTime": 30,
+      "servings": 6,
+      "source": "Mid-century American home cooking",
+      "story": "Shake 'n Bake launched in 1965, promising crispy pork without frying. This homemade version uses real Parmesan and herbs for a coating that's actually worth making.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "quick",
+        "pork",
+        "kid-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-baked-pork-chops.webp",
+      "sortOrder": 1,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:44.752Z",
+      "updatedAt": "2026-02-06T03:53:44.752Z",
+      "ingredients": [
+        {
+          "name": "bone-in pork chops",
+          "amount": 6,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6  bone-in pork chops",
+          "order": 0
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup breadcrumbs",
+          "order": 1
+        },
+        {
+          "name": "grated Parmesan",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup grated Parmesan",
+          "order": 2
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon paprika",
+          "order": 3
+        },
+        {
+          "name": "garlic powder",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon garlic powder",
+          "order": 4
+        },
+        {
+          "name": "onion powder",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon onion powder",
+          "order": 5
+        },
+        {
+          "name": "dried thyme",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon dried thyme",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 8
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 400°F (200°C). Line a baking sheet with foil; place a wire rack on top.",
+        "Mix breadcrumbs, Parmesan, paprika, garlic powder, onion powder, thyme, salt, and pepper in a shallow dish.",
+        "Brush pork chops with melted butter on both sides.",
+        "Press each chop into breadcrumb mixture, coating well.",
+        "Place on prepared rack.",
+        "Bake 25-30 minutes until coating is golden and pork reaches 145°F (63°C) internal temperature.",
+        "Let rest 5 minutes before serving."
+      ]
+    },
+    {
+      "id": "quick-weeknight-003",
+      "title": "Classic Sloppy Joes",
+      "description": "Sweet, tangy, saucy ground beef on soft buns—20 minutes to family favorite status.",
+      "prepTime": 5,
+      "cookTime": 20,
+      "servings": 8,
+      "source": "American home cooking classic",
+      "story": "The Sloppy Joe's origin is disputed—possibly a café in Iowa, maybe New Jersey—but its place at American tables is undeniable. The messier, the better.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "quick",
+        "kid-friendly",
+        "budget-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-sloppy-joes-quick.webp",
+      "sortOrder": 1,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:44.965Z",
+      "updatedAt": "2026-02-06T03:53:44.965Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 pounds ground beef",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 1
+        },
+        {
+          "name": "green bell pepper",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced",
+          "group": null,
+          "text": "0.5 cup green bell pepper",
+          "order": 2
+        },
+        {
+          "name": "ketchup",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup ketchup",
+          "order": 3
+        },
+        {
+          "name": "water",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup water",
+          "order": 4
+        },
+        {
+          "name": "brown sugar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons brown sugar",
+          "order": 5
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Worcestershire sauce",
+          "order": 6
+        },
+        {
+          "name": "yellow mustard",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon yellow mustard",
+          "order": 7
+        },
+        {
+          "name": "cider vinegar",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cider vinegar",
+          "order": 8
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 9
+        },
+        {
+          "name": "hamburger buns",
+          "amount": 8,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "8  hamburger buns",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Brown ground beef in a large skillet, breaking into small crumbles. Drain fat.",
+        "Add onion and bell pepper. Cook until softened, about 5 minutes.",
+        "Add ketchup, water, brown sugar, Worcestershire, mustard, vinegar, and salt.",
+        "Simmer 10-15 minutes until thick and saucy.",
+        "Spoon onto hamburger buns."
+      ]
+    },
+    {
+      "id": "quick-weeknight-004",
+      "title": "Sheet Pan Chicken and Vegetables",
+      "description": "Chicken thighs and vegetables roasted together—minimal prep, maximum flavor.",
+      "prepTime": 15,
+      "cookTime": 45,
+      "servings": 4,
+      "source": "Modern American cooking",
+      "story": "Sheet pan dinners are the modern answer to the casserole—everything on one pan, minimal dishes. The key is adding vegetables at the right time so everything finishes together.",
+      "difficulty": "easy",
+      "tags": [
+        "one-pan",
+        "healthy",
+        "quick"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-sheet-pan-chicken.webp",
+      "sortOrder": 1,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:45.201Z",
+      "updatedAt": "2026-02-06T03:53:45.201Z",
+      "ingredients": [
+        {
+          "name": "bone-in chicken thighs",
+          "amount": 6,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6  bone-in chicken thighs",
+          "order": 0
+        },
+        {
+          "name": "red potatoes",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": "quartered",
+          "group": null,
+          "text": "1 pound red potatoes",
+          "order": 1
+        },
+        {
+          "name": "broccoli",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "florets",
+          "group": null,
+          "text": "2 cups broccoli",
+          "order": 2
+        },
+        {
+          "name": "red bell pepper",
+          "amount": 1,
+          "unit": null,
+          "preparation": "chunked",
+          "group": null,
+          "text": "1  red bell pepper",
+          "order": 3
+        },
+        {
+          "name": "olive oil",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons olive oil",
+          "order": 4
+        },
+        {
+          "name": "Italian seasoning",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Italian seasoning",
+          "order": 5
+        },
+        {
+          "name": "garlic powder",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon garlic powder",
+          "order": 6
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon paprika",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons salt",
+          "order": 8
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 425°F (220°C).",
+        "Toss potatoes with 1 tablespoon oil, salt, and pepper. Spread on a sheet pan.",
+        "Mix Italian seasoning, garlic powder, paprika, remaining salt, and pepper.",
+        "Rub chicken with remaining oil and seasoning mix. Nestle among potatoes.",
+        "Roast 25 minutes.",
+        "Add broccoli and bell pepper to pan. Toss with pan juices.",
+        "Roast 15-20 more minutes until chicken reaches 165°F (74°C) and vegetables are tender."
+      ]
+    },
+    {
+      "id": "quick-weeknight-005",
+      "title": "Classic Ground Beef Tacos",
+      "description": "Seasoned taco meat with all the fixings—Tuesday's answer to 'what's for dinner?'",
+      "prepTime": 10,
+      "cookTime": 20,
+      "servings": 6,
+      "source": "Tex-Mex home cooking",
+      "story": "The hard-shell taco is a Tex-Mex invention, not traditional Mexican. This homemade seasoning beats any packet—and once you taste it, you'll never go back to store-bought.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "quick",
+        "kid-friendly",
+        "Tex-Mex"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-tacos-ground-beef.webp",
+      "sortOrder": 1,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:45.398Z",
+      "updatedAt": "2026-02-06T03:53:45.398Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound ground beef",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced",
+          "group": null,
+          "text": "0.5 cup onion",
+          "order": 1
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 cloves garlic",
+          "order": 2
+        },
+        {
+          "name": "chili powder",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons chili powder",
+          "order": 3
+        },
+        {
+          "name": "cumin",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cumin",
+          "order": 4
+        },
+        {
+          "name": "paprika",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon paprika",
+          "order": 5
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "tomato sauce",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup tomato sauce",
+          "order": 7
+        },
+        {
+          "name": "water",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup water",
+          "order": 8
+        },
+        {
+          "name": "taco shells",
+          "amount": 12,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "12  taco shells",
+          "order": 9
+        },
+        {
+          "name": "shredded lettuce",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "shredded lettuce",
+          "order": 10
+        },
+        {
+          "name": "diced tomatoes",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "diced tomatoes",
+          "order": 11
+        },
+        {
+          "name": "shredded cheese",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "shredded cheese",
+          "order": 12
+        },
+        {
+          "name": "sour cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "sour cream",
+          "order": 13
+        }
+      ],
+      "instructions": [
+        "Brown ground beef in a skillet, breaking into crumbles. Drain fat.",
+        "Add onion and garlic; cook 3 minutes.",
+        "Stir in chili powder, cumin, paprika, and salt. Cook 1 minute.",
+        "Add tomato sauce and water. Simmer 10 minutes until thickened.",
+        "Warm taco shells according to package directions.",
+        "Serve meat in shells with toppings."
+      ]
+    },
+    {
+      "id": "quick-weeknight-006",
+      "title": "Easy Fried Rice",
+      "description": "Restaurant-style fried rice at home—the secret is day-old rice and high heat.",
+      "prepTime": 10,
+      "cookTime": 10,
+      "servings": 4,
+      "source": "Chinese-American cooking",
+      "story": "Leftover rice is the key—fresh rice is too moist and will turn mushy. Plan ahead and cook extra rice the day before, or use rice from takeout containers.",
+      "difficulty": "easy",
+      "tags": [
+        "quick",
+        "one-pan",
+        "Asian-inspired"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-fried-rice-quick.webp",
+      "sortOrder": 1,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:45.587Z",
+      "updatedAt": "2026-02-06T03:53:45.587Z",
+      "ingredients": [
+        {
+          "name": "cooked rice",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "4 cups cooked rice",
+          "order": 0
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons vegetable oil",
+          "order": 1
+        },
+        {
+          "name": "eggs",
+          "amount": 3,
+          "unit": "large",
+          "preparation": "beaten",
+          "group": null,
+          "text": "3 large eggs",
+          "order": 2
+        },
+        {
+          "name": "frozen peas and carrots",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup frozen peas and carrots",
+          "order": 3
+        },
+        {
+          "name": "green onions",
+          "amount": 4,
+          "unit": null,
+          "preparation": "sliced",
+          "group": null,
+          "text": "4  green onions",
+          "order": 4
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 cloves garlic",
+          "order": 5
+        },
+        {
+          "name": "soy sauce",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons soy sauce",
+          "order": 6
+        },
+        {
+          "name": "sesame oil",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon sesame oil",
+          "order": 7
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon white pepper",
+          "order": 8
+        },
+        {
+          "name": "cooked chicken or shrimp",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup cooked chicken or shrimp",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Heat 1 tablespoon oil in a wok or large skillet over high heat.",
+        "Add beaten eggs. Scramble until just set. Remove and set aside.",
+        "Add remaining oil to wok. Add peas and carrots; stir-fry 2 minutes.",
+        "Add garlic and white parts of green onions; stir-fry 30 seconds.",
+        "Add rice, breaking up any clumps. Stir-fry 3-4 minutes until heated through.",
+        "Add soy sauce and toss to coat.",
+        "Return eggs to wok. Add protein if using.",
+        "Drizzle with sesame oil. Top with green onion tops."
+      ]
+    },
+    {
+      "id": "quick-weeknight-007",
+      "title": "Quick Chicken Stir-Fry",
+      "description": "Tender chicken and crisp vegetables in a glossy ginger-soy sauce. Faster than takeout.",
+      "prepTime": 15,
+      "cookTime": 12,
+      "servings": 4,
+      "source": "Chinese-American home cooking",
+      "story": "The key to great stir-fry is having everything prepped before you start—once cooking begins, there's no time to chop. High heat and quick cooking keep vegetables crisp.",
+      "difficulty": "easy",
+      "tags": [
+        "quick",
+        "healthy",
+        "Asian-inspired"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-chicken-stir-fry.webp",
+      "sortOrder": 1,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:45.792Z",
+      "updatedAt": "2026-02-06T03:53:45.792Z",
+      "ingredients": [
+        {
+          "name": "boneless chicken breast",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": "sliced thin",
+          "group": null,
+          "text": "1.5 pounds boneless chicken breast",
+          "order": 0
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons vegetable oil",
+          "order": 1
+        },
+        {
+          "name": "broccoli florets",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups broccoli florets",
+          "order": 2
+        },
+        {
+          "name": "bell peppers",
+          "amount": 2,
+          "unit": null,
+          "preparation": "sliced",
+          "group": null,
+          "text": "2  bell peppers",
+          "order": 3
+        },
+        {
+          "name": "snap peas",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup snap peas",
+          "order": 4
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "3 cloves garlic",
+          "order": 5
+        },
+        {
+          "name": "fresh ginger",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "minced",
+          "group": null,
+          "text": "1 tablespoon fresh ginger",
+          "order": 6
+        },
+        {
+          "name": "soy sauce",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For sauce",
+          "text": "0.33 cup soy sauce",
+          "order": 7
+        },
+        {
+          "name": "chicken broth",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For sauce",
+          "text": "0.25 cup chicken broth",
+          "order": 8
+        },
+        {
+          "name": "brown sugar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For sauce",
+          "text": "2 tablespoons brown sugar",
+          "order": 9
+        },
+        {
+          "name": "cornstarch",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": "For sauce",
+          "text": "1 tablespoon cornstarch",
+          "order": 10
+        },
+        {
+          "name": "cooked rice",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "cooked rice",
+          "order": 11
+        }
+      ],
+      "instructions": [
+        "Whisk sauce ingredients together until cornstarch dissolves.",
+        "Heat 1 tablespoon oil in a wok or large skillet over high heat.",
+        "Stir-fry chicken until cooked through, about 4 minutes. Remove.",
+        "Add remaining oil. Stir-fry broccoli 2 minutes.",
+        "Add peppers and snap peas; stir-fry 2 minutes.",
+        "Add garlic and ginger; stir-fry 30 seconds.",
+        "Return chicken to wok. Add sauce.",
+        "Cook until sauce thickens and coats everything, about 1 minute.",
+        "Serve over rice."
+      ]
+    },
+    {
+      "id": "quick-weeknight-008",
+      "title": "Homemade Beef Stroganoff Skillet",
+      "description": "Better than the box—creamy beef and noodles ready in 30 minutes.",
+      "prepTime": 10,
+      "cookTime": 20,
+      "servings": 4,
+      "source": "American home cooking",
+      "story": "This homemade version of the boxed classic is just as fast but infinitely more flavorful. Everything cooks in one skillet, and the sour cream stirred in at the end creates that nostalgic creaminess.",
+      "difficulty": "easy",
+      "tags": [
+        "one-pan",
+        "quick",
+        "kid-friendly",
+        "comfort food"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-hamburger-helper-style.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:45.997Z",
+      "updatedAt": "2026-02-06T03:53:45.997Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound ground beef",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 1
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 cloves garlic",
+          "order": 2
+        },
+        {
+          "name": "mushrooms",
+          "amount": 8,
+          "unit": "ounces",
+          "preparation": "sliced",
+          "group": null,
+          "text": "8 ounces mushrooms",
+          "order": 3
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups beef broth",
+          "order": 4
+        },
+        {
+          "name": "egg noodles",
+          "amount": 8,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "8 ounces egg noodles",
+          "order": 5
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Worcestershire sauce",
+          "order": 6
+        },
+        {
+          "name": "sour cream",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup sour cream",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 8
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 9
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": null,
+          "text": "2 tablespoons fresh parsley",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Brown ground beef in a large skillet, breaking into crumbles. Drain excess fat.",
+        "Add onion, garlic, and mushrooms. Cook until softened, about 5 minutes.",
+        "Add broth, Worcestershire, salt, and pepper. Bring to a boil.",
+        "Add noodles. Cover and simmer, stirring occasionally, until noodles are tender, about 10-12 minutes.",
+        "Remove from heat. Stir in sour cream.",
+        "Garnish with parsley and serve immediately."
+      ]
+    },
+    {
+      "id": "quick-weeknight-009",
+      "title": "Chicken and Rice Casserole",
+      "description": "Tender chicken baked right on top of creamy rice—one dish, complete dinner.",
+      "prepTime": 10,
+      "cookTime": 90,
+      "servings": 6,
+      "source": "1950s American convenience cooking",
+      "story": "This hands-off casserole was a revelation for busy homemakers. The chicken juices flavor the rice as everything bakes together under foil. Simple, satisfying, and foolproof.",
+      "difficulty": "easy",
+      "tags": [
+        "casserole",
+        "one-dish",
+        "comfort food"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-chicken-rice-casserole.webp",
+      "sortOrder": 2,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:46.200Z",
+      "updatedAt": "2026-02-06T03:53:46.200Z",
+      "ingredients": [
+        {
+          "name": "long-grain white rice",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups long-grain white rice",
+          "order": 0
+        },
+        {
+          "name": "cream of mushroom soup",
+          "amount": 10.5,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "10.5 ounces cream of mushroom soup",
+          "order": 1
+        },
+        {
+          "name": "cream of chicken soup",
+          "amount": 10.5,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "10.5 ounces cream of chicken soup",
+          "order": 2
+        },
+        {
+          "name": "water",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup water",
+          "order": 3
+        },
+        {
+          "name": "bone-in chicken pieces",
+          "amount": 3,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "3 pounds bone-in chicken pieces",
+          "order": 4
+        },
+        {
+          "name": "onion soup mix",
+          "amount": 1,
+          "unit": "envelope",
+          "preparation": null,
+          "group": null,
+          "text": "1 envelope onion soup mix",
+          "order": 5
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon paprika",
+          "order": 6
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "cut into pieces",
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C).",
+        "Spread uncooked rice in a 9x13 baking dish.",
+        "Mix soups and water; pour over rice.",
+        "Arrange chicken pieces on top. Sprinkle with onion soup mix and paprika.",
+        "Dot with butter.",
+        "Cover tightly with foil.",
+        "Bake 1.5 hours until chicken is cooked through and rice is tender.",
+        "Let rest 10 minutes before serving."
+      ]
+    },
+    {
+      "id": "quick-weeknight-010",
+      "title": "Stovetop Mac and Cheese",
+      "description": "Creamy from-scratch mac and cheese, no oven required. Ready in 25 minutes.",
+      "prepTime": 5,
+      "cookTime": 20,
+      "servings": 6,
+      "source": "American home cooking",
+      "story": "The American cheese is the secret—it melts smoothly and prevents the sauce from breaking. Combined with sharp cheddar for flavor, it creates the creamiest stovetop mac.",
+      "difficulty": "easy",
+      "tags": [
+        "quick",
+        "vegetarian",
+        "kid-friendly",
+        "comfort food"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-skillet-mac-cheese.webp",
+      "sortOrder": 2,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:46.408Z",
+      "updatedAt": "2026-02-06T03:53:46.408Z",
+      "ingredients": [
+        {
+          "name": "elbow macaroni",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound elbow macaroni",
+          "order": 0
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons flour",
+          "order": 2
+        },
+        {
+          "name": "milk",
+          "amount": 3,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "3 cups milk",
+          "order": 3
+        },
+        {
+          "name": "sharp cheddar",
+          "amount": 3,
+          "unit": "cups",
+          "preparation": "shredded",
+          "group": null,
+          "text": "3 cups sharp cheddar",
+          "order": 4
+        },
+        {
+          "name": "American cheese",
+          "amount": 4,
+          "unit": "slices",
+          "preparation": null,
+          "group": null,
+          "text": "4 slices American cheese",
+          "order": 5
+        },
+        {
+          "name": "dry mustard",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon dry mustard",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Cook macaroni according to package directions. Drain and set aside.",
+        "In the same pot, melt butter over medium heat.",
+        "Whisk in flour; cook 1 minute.",
+        "Gradually whisk in milk. Cook until thickened, about 5 minutes.",
+        "Remove from heat. Stir in cheeses, mustard, salt, and pepper until melted.",
+        "Add macaroni and stir to coat.",
+        "Serve immediately."
+      ]
+    },
+    {
+      "id": "quick-weeknight-011",
+      "title": "Quick Salisbury Steak",
+      "description": "Seasoned beef patties in mushroom gravy—TV dinner nostalgia made fresh.",
+      "prepTime": 15,
+      "cookTime": 25,
+      "servings": 6,
+      "source": "American home cooking, mid-century",
+      "story": "Salisbury steak was invented by a 19th-century doctor who believed in the health benefits of beef. It became a TV dinner icon, but this fresh version reminds you why it became a classic.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "quick",
+        "comfort food"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-salisbury-steak-quick.webp",
+      "sortOrder": 2,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:46.625Z",
+      "updatedAt": "2026-02-06T03:53:46.625Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 pounds ground beef",
+          "order": 0
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup breadcrumbs",
+          "order": 1
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "minced",
+          "group": null,
+          "text": "0.25 cup onion",
+          "order": 3
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon Worcestershire sauce",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 6
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 tablespoons butter",
+          "order": 7
+        },
+        {
+          "name": "mushrooms",
+          "amount": 8,
+          "unit": "ounces",
+          "preparation": "sliced",
+          "group": "For gravy",
+          "text": "8 ounces mushrooms",
+          "order": 8
+        },
+        {
+          "name": "flour",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 tablespoons flour",
+          "order": 9
+        },
+        {
+          "name": "beef broth",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "1.5 cups beef broth",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Mix beef, breadcrumbs, egg, onion, Worcestershire, salt, and pepper. Form into 6 oval patties.",
+        "Cook patties in a large skillet over medium-high heat, 4 minutes per side. Remove.",
+        "Add butter and mushrooms to skillet. Cook until golden, about 5 minutes.",
+        "Sprinkle flour over mushrooms; stir 1 minute.",
+        "Add broth and bring to a simmer, scraping up browned bits.",
+        "Return patties to skillet. Cover and simmer 10 minutes.",
+        "Serve patties topped with mushroom gravy."
+      ]
+    },
+    {
+      "id": "quick-weeknight-012",
+      "title": "Baked Spaghetti",
+      "description": "Spaghetti and meat sauce baked with cheese until bubbly—casserole meets pasta night.",
+      "prepTime": 20,
+      "cookTime": 45,
+      "servings": 8,
+      "source": "American-Italian home cooking",
+      "story": "Baked spaghetti bridges Italian tradition and American casserole culture. The layers of ricotta create pockets of creaminess that make it special.",
+      "difficulty": "easy",
+      "tags": [
+        "casserole",
+        "pasta",
+        "crowd-pleaser"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-baked-spaghetti.webp",
+      "sortOrder": 2,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:46.837Z",
+      "updatedAt": "2026-02-06T03:53:46.837Z",
+      "ingredients": [
+        {
+          "name": "spaghetti",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound spaghetti",
+          "order": 0
+        },
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound ground beef",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 2
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "3 cloves garlic",
+          "order": 3
+        },
+        {
+          "name": "marinara sauce",
+          "amount": 24,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "24 ounces marinara sauce",
+          "order": 4
+        },
+        {
+          "name": "Italian seasoning",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon Italian seasoning",
+          "order": 5
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "ricotta cheese",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup ricotta cheese",
+          "order": 7
+        },
+        {
+          "name": "mozzarella cheese",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "shredded",
+          "group": null,
+          "text": "2 cups mozzarella cheese",
+          "order": 8
+        },
+        {
+          "name": "Parmesan cheese",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "grated",
+          "group": null,
+          "text": "0.5 cup Parmesan cheese",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 375°F (190°C). Cook spaghetti; drain.",
+        "Brown beef with onion. Add garlic, marinara, Italian seasoning, and salt. Simmer 10 minutes.",
+        "Spread half the spaghetti in a 9x13 dish.",
+        "Top with half the meat sauce, dollops of ricotta, and half the mozzarella.",
+        "Repeat layers. Top with Parmesan.",
+        "Cover with foil and bake 25 minutes.",
+        "Uncover and bake 10 more minutes until bubbly.",
+        "Let rest 10 minutes before serving."
+      ]
+    },
+    {
+      "id": "quick-weeknight-013",
+      "title": "Classic Stuffed Peppers",
+      "description": "Bell peppers filled with seasoned beef and rice, topped with melted cheese.",
+      "prepTime": 20,
+      "cookTime": 55,
+      "servings": 6,
+      "source": "American home cooking",
+      "story": "Stuffed peppers traveled from Eastern Europe to American kitchens, where they became a budget-friendly way to stretch ground beef into a complete meal.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "one-dish",
+        "budget-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-stuffed-peppers-quick.webp",
+      "sortOrder": 2,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:47.048Z",
+      "updatedAt": "2026-02-06T03:53:47.048Z",
+      "ingredients": [
+        {
+          "name": "bell peppers",
+          "amount": 6,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "6 large bell peppers",
+          "order": 0
+        },
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound ground beef",
+          "order": 1
+        },
+        {
+          "name": "cooked rice",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups cooked rice",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced",
+          "group": null,
+          "text": "0.5 cup onion",
+          "order": 3
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 cloves garlic",
+          "order": 4
+        },
+        {
+          "name": "diced tomatoes",
+          "amount": 14.5,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "14.5 ounces diced tomatoes",
+          "order": 5
+        },
+        {
+          "name": "tomato sauce",
+          "amount": 8,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "8 ounces tomato sauce",
+          "order": 6
+        },
+        {
+          "name": "Italian seasoning",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon Italian seasoning",
+          "order": 7
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 8
+        },
+        {
+          "name": "shredded mozzarella",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups shredded mozzarella",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 375°F (190°C).",
+        "Cut tops off peppers; remove seeds and membranes.",
+        "Brown beef with onion. Add garlic, diced tomatoes, Italian seasoning, and salt. Simmer 5 minutes.",
+        "Stir in rice and half the cheese.",
+        "Stuff peppers with filling. Stand in a baking dish.",
+        "Pour tomato sauce around peppers.",
+        "Cover with foil. Bake 45 minutes.",
+        "Uncover, top with remaining cheese. Bake 10 more minutes until cheese is melted."
+      ]
+    },
+    {
+      "id": "quick-weeknight-014",
+      "title": "Beef and Bean Burritos",
+      "description": "Hearty burritos stuffed with seasoned beef, beans, rice, and cheese.",
+      "prepTime": 10,
+      "cookTime": 15,
+      "servings": 8,
+      "source": "Tex-Mex home cooking",
+      "story": "The burrito is a 20th-century Tex-Mex invention—the perfect vehicle for combining proteins, grains, and vegetables into one handheld meal.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "quick",
+        "Tex-Mex",
+        "kid-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/quick-weeknight/quick-weeknight-beef-bean-burritos.webp",
+      "sortOrder": 2,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:47.264Z",
+      "updatedAt": "2026-02-06T03:53:47.264Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound ground beef",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced",
+          "group": null,
+          "text": "0.5 cup onion",
+          "order": 1
+        },
+        {
+          "name": "taco seasoning",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons taco seasoning",
+          "order": 2
+        },
+        {
+          "name": "refried beans",
+          "amount": 16,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "16 ounces refried beans",
+          "order": 3
+        },
+        {
+          "name": "cooked rice",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup cooked rice",
+          "order": 4
+        },
+        {
+          "name": "shredded cheddar",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups shredded cheddar",
+          "order": 5
+        },
+        {
+          "name": "flour tortillas",
+          "amount": 8,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "8 large flour tortillas",
+          "order": 6
+        },
+        {
+          "name": "salsa",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "salsa",
+          "order": 7
+        },
+        {
+          "name": "sour cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "sour cream",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Brown beef with onion. Drain fat.",
+        "Stir in taco seasoning and 1/4 cup water. Simmer 5 minutes.",
+        "Warm refried beans in a separate pan.",
+        "Warm tortillas according to package directions.",
+        "Spread beans down center of each tortilla.",
+        "Top with beef, rice, and cheese.",
+        "Fold sides in, then roll up burrito-style.",
+        "Serve with salsa and sour cream."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:30:53.416Z"
+}

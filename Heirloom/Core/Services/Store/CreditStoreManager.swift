@@ -103,6 +103,29 @@ final class CreditStoreManager {
     /// Active transaction listener task
     private var transactionListener: Task<Void, Never>?
 
+    // MARK: - Transaction Deduplication
+
+    /// Key for storing processed transaction IDs
+    private static let processedTransactionsKey = "credit_store_processed_transaction_ids"
+
+    /// In-memory set of transaction IDs currently being processed (prevents race conditions)
+    /// Thread-safe via actor isolation (@MainActor on class ensures single-threaded access)
+    private static var processingTransactionIds: Set<UInt64> = []
+
+    /// Get processed transaction IDs from UserDefaults
+    /// Uses String conversion since UserDefaults doesn't handle UInt64 arrays well
+    private var processedTransactionIds: Set<UInt64> {
+        get {
+            let strings = UserDefaults.standard.stringArray(forKey: Self.processedTransactionsKey) ?? []
+            return Set(strings.compactMap { UInt64($0) })
+        }
+        set {
+            // Keep only recent transactions (last 100) to prevent unbounded growth
+            let strings = Array(newValue.suffix(100)).map { String($0) }
+            UserDefaults.standard.set(strings, forKey: Self.processedTransactionsKey)
+        }
+    }
+
     // MARK: - Dependencies
 
     private let logger: LoggingService
@@ -124,12 +147,16 @@ final class CreditStoreManager {
     /// Debug flag to enable fake purchases (grants credits without payment)
     private let debugFakePurchasesKey = "debug_fake_credit_purchases_enabled"
 
-    /// Check if fake purchases are enabled (defaults to TRUE for easy testing)
+    /// Check if fake purchases are enabled (DEBUG builds only)
     var isFakePurchasesEnabled: Bool {
+        #if DEBUG
         if UserDefaults.standard.object(forKey: debugFakePurchasesKey) == nil {
             return true  // Default to true for development
         }
         return UserDefaults.standard.bool(forKey: debugFakePurchasesKey)
+        #else
+        return false  // Never enable fake purchases in production
+        #endif
     }
 
     // MARK: - Initialization
@@ -246,6 +273,22 @@ final class CreditStoreManager {
                     return .failed(.verificationFailed)
                 }
 
+                let transactionId = transaction.id
+
+                // DEDUPLICATION: Mark transaction as processed BEFORE adding credits
+                // This prevents the transaction listener from also adding credits
+                var processed = processedTransactionIds
+                if processed.contains(transactionId) {
+                    // Transaction already processed (e.g., by listener) - skip adding credits
+                    logger.log("Purchase transaction already processed", category: .store, level: .info, metadata: [
+                        "transactionId": transactionId
+                    ])
+                    await transaction.finish()
+                    return .success(creditsAdded: productID.creditAmount, transaction: transaction)
+                }
+                processed.insert(transactionId)
+                processedTransactionIds = processed
+
                 // Add credits to user account
                 let creditsAdded = try await addCreditsToAccount(
                     amount: productID.creditAmount,
@@ -258,12 +301,12 @@ final class CreditStoreManager {
                 analytics.track(event: .purchaseSuccess, properties: [
                     "product": productID.rawValue,
                     "credits": creditsAdded,
-                    "transactionId": transaction.id
+                    "transactionId": transactionId
                 ])
 
                 logger.log("Purchase successful", category: .store, level: .info, metadata: [
                     "credits": creditsAdded,
-                    "transactionId": transaction.id
+                    "transactionId": transactionId
                 ])
 
                 return .success(creditsAdded: creditsAdded, transaction: transaction)
@@ -426,18 +469,55 @@ final class CreditStoreManager {
     /// Handle transaction updates from StoreKit
     private func handleTransactionUpdate(_ transaction: Transaction) async {
         // Determine product and add credits if needed
+        // NOTE: This listener receives ALL transactions (subscriptions and credits)
+        // We only care about credit pack transactions here
         guard let productID = CreditProductIdentifier(rawValue: transaction.productID) else {
-            logger.log("Unknown product in transaction", category: .store, level: .warning, metadata: [
+            // Not a credit pack - likely a subscription transaction, ignore silently
+            logger.log("Ignoring non-credit transaction", category: .store, level: .debug, metadata: [
                 "productId": transaction.productID
             ])
             return
         }
+
+        // DEDUPLICATION: Check if this transaction was already processed
+        // This prevents StoreKit sandbox from adding credits multiple times
+        let transactionId = transaction.id
+
+        // Check in-memory guard first (for race conditions within same process)
+        guard !Self.processingTransactionIds.contains(transactionId) else {
+            logger.log("Skipping transaction (in-flight)", category: .store, level: .debug, metadata: [
+                "transactionId": transactionId
+            ])
+            return
+        }
+
+        // Check persistent storage
+        guard !processedTransactionIds.contains(transactionId) else {
+            logger.log("Skipping already-processed transaction", category: .store, level: .debug, metadata: [
+                "transactionId": transactionId
+            ])
+            return
+        }
+
+        // Mark as processing (in-memory guard)
+        Self.processingTransactionIds.insert(transactionId)
+        defer { Self.processingTransactionIds.remove(transactionId) }
 
         do {
             _ = try await addCreditsToAccount(
                 amount: productID.creditAmount,
                 transaction: transaction
             )
+
+            // Mark as processed AFTER successful credit addition
+            var processed = processedTransactionIds
+            processed.insert(transactionId)
+            processedTransactionIds = processed
+
+            logger.log("Transaction processed successfully", category: .store, level: .info, metadata: [
+                "transactionId": transactionId,
+                "productId": productID.rawValue
+            ])
         } catch {
             logger.log("Failed to add credits from transaction update", category: .store, level: .error, metadata: [
                 "error": error.localizedDescription

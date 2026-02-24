@@ -101,7 +101,7 @@
         "Remove beef and pat dry. Strain marinade and reserve liquid and vegetables separately.",
         "Heat oil in a Dutch oven. Brown beef on all sides. Remove.",
         "Add reserved vegetables and cook 5 minutes. Return beef to pot.",
-        "Add reserved marinade liquid. Bring to a boil, cover, and braise at 325\u00b0F (165\u00b0C) for 3 hours.",
+        "Add reserved marinade liquid. Bring to a boil, cover, and braise at 325°F (165°C) for 3 hours.",
         "Remove beef. Strain cooking liquid into a saucepan.",
         "Add crushed gingersnaps and raisins. Simmer until thickened.",
         "Slice beef and serve with gravy."
@@ -110,7 +110,7 @@
       "cookTime": 180,
       "servings": 8,
       "source": "Pennsylvania Dutch tradition",
-      "story": "Sauerbraten ('sour roast') was born of necessity\u2014vinegar preserved meat before refrigeration. German immigrants brought this technique to America, where it became a special-occasion dish in Pennsylvania Dutch country.",
+      "story": "Sauerbraten ('sour roast') was born of necessity—vinegar preserved meat before refrigeration. German immigrants brought this technique to America, where it became a special-occasion dish in Pennsylvania Dutch country.",
       "unlockDay": 1,
       "sortOrder": 1,
       "difficulty": "medium",
@@ -123,7 +123,7 @@
     {
       "id": "german-american-002",
       "title": "Wiener Schnitzel",
-      "description": "Thin pork cutlets pounded tender, breaded, and fried golden\u2014the quintessential German comfort food.",
+      "description": "Thin pork cutlets pounded tender, breaded, and fried golden—the quintessential German comfort food.",
       "ingredients": [
         {
           "name": "boneless pork loin chops",
@@ -205,7 +205,7 @@
     },
     {
       "id": "german-american-003",
-      "title": "Sp\u00e4tzle (German Egg Noodles)",
+      "title": "Spätzle (German Egg Noodles)",
       "description": "Tiny, tender egg dumplings that are the perfect bed for gravy or simply tossed with butter.",
       "ingredients": [
         {
@@ -249,17 +249,17 @@
         "Whisk flour, eggs, milk, salt, and nutmeg until smooth. Batter should be thick but pourable.",
         "Let rest 15 minutes.",
         "Bring a large pot of salted water to a boil.",
-        "Working in batches, push batter through a sp\u00e4tzle maker, colander, or cut from a board into boiling water.",
-        "Cook until sp\u00e4tzle float and are cooked through, about 2-3 minutes.",
+        "Working in batches, push batter through a spätzle maker, colander, or cut from a board into boiling water.",
+        "Cook until spätzle float and are cooked through, about 2-3 minutes.",
         "Remove with a slotted spoon to a bowl.",
-        "Melt butter in a large skillet. Add cooked sp\u00e4tzle and toss until lightly golden.",
+        "Melt butter in a large skillet. Add cooked spätzle and toss until lightly golden.",
         "Season with salt and pepper. Garnish with parsley."
       ],
       "prepTime": 15,
       "cookTime": 20,
       "servings": 6,
       "source": "German-American immigrant tradition",
-      "story": "Every German grandmother had her own sp\u00e4tzle technique. Some use a press, others scrape batter from a wet board. The result is the same\u2014pillowy noodles perfect for soaking up gravy.",
+      "story": "Every German grandmother had her own spätzle technique. Some use a press, others scrape batter from a wet board. The result is the same—pillowy noodles perfect for soaking up gravy.",
       "unlockDay": 3,
       "sortOrder": 1,
       "difficulty": "medium",
@@ -273,7 +273,7 @@
     {
       "id": "german-american-004",
       "title": "German Apple Cake (Apfelkuchen)",
-      "description": "A tender butter cake topped with cinnamon apples\u2014served for coffee or dessert.",
+      "description": "A tender butter cake topped with cinnamon apples—served for coffee or dessert.",
       "ingredients": [
         {
           "name": "butter",
@@ -343,7 +343,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C). Butter a 9-inch springform pan.",
+        "Preheat oven to 350°F (175°C). Butter a 9-inch springform pan.",
         "Beat butter and 3/4 cup sugar until fluffy. Add eggs and vanilla.",
         "Whisk flour, baking powder, and salt. Add to butter mixture alternately with milk.",
         "Spread batter in prepared pan.",
@@ -358,7 +358,7 @@
       "servings": 10,
       "source": "German-American immigrant tradition",
       "story": "Apfelkuchen is the cake that appears at every German coffee hour (Kaffee und Kuchen). It showcases whatever apples are in season, with a simple batter that lets the fruit shine.",
-      "unlockDay": 5,
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -371,7 +371,7 @@
     {
       "id": "german-american-005",
       "title": "German Potato Salad (Warm)",
-      "description": "Warm potatoes dressed in a tangy bacon vinaigrette\u2014nothing like the cold, creamy American version.",
+      "description": "Warm potatoes dressed in a tangy bacon vinaigrette—nothing like the cold, creamy American version.",
       "ingredients": [
         {
           "name": "red potatoes",
@@ -441,7 +441,7 @@
       "servings": 8,
       "source": "German-American immigrant tradition",
       "story": "Real German potato salad is served warm, dressed with bacon fat and vinegar. It's a revelation compared to the mayonnaise-laden American picnic version.",
-      "unlockDay": 7,
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -453,7 +453,7 @@
     {
       "id": "german-american-006",
       "title": "Lebkuchen (German Spice Cookies)",
-      "description": "Soft, chewy spice cookies topped with white glaze\u2014traditional Christmas treats.",
+      "description": "Soft, chewy spice cookies topped with white glaze—traditional Christmas treats.",
       "ingredients": [
         {
           "name": "honey",
@@ -542,16 +542,16 @@
         "Fold in almonds and citron. Dough will be sticky.",
         "Refrigerate overnight.",
         "Roll dough to 1/4-inch thickness. Cut into rectangles or rounds.",
-        "Bake at 350\u00b0F (175\u00b0C) for 10-12 minutes until set but still soft.",
+        "Bake at 350°F (175°C) for 10-12 minutes until set but still soft.",
         "Mix powdered sugar and lemon juice for glaze. Brush over warm cookies.",
-        "Let set before serving. Store in airtight container\u2014they improve with age."
+        "Let set before serving. Store in airtight container—they improve with age."
       ],
       "prepTime": 30,
       "cookTime": 12,
       "servings": 36,
       "source": "German-American Christmas tradition",
-      "story": "Lebkuchen date to medieval times and are essential to German Christmas. The name means 'life cake'\u2014originally made by monks, they improve over time and can be kept for months.",
-      "unlockDay": 9,
+      "story": "Lebkuchen date to medieval times and are essential to German Christmas. The name means 'life cake'—originally made by monks, they improve over time and can be kept for months.",
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -564,7 +564,7 @@
     {
       "id": "german-american-007",
       "title": "Christmas Stollen",
-      "description": "A rich, fruit-studded bread shaped to resemble the swaddled Christ child\u2014the taste of German Christmas.",
+      "description": "A rich, fruit-studded bread shaped to resemble the swaddled Christ child—the taste of German Christmas.",
       "ingredients": [
         {
           "name": "raisins",
@@ -660,15 +660,15 @@
         "Fold in soaked fruits and almonds. Let rise 2 hours.",
         "Roll dough into an oval. Place marzipan log off-center.",
         "Fold larger portion over marzipan, creating characteristic shape.",
-        "Let rise 1 hour. Bake at 350\u00b0F (175\u00b0C) for 45-50 minutes.",
+        "Let rise 1 hour. Bake at 350°F (175°C) for 45-50 minutes.",
         "Brush hot stollen generously with melted butter. Dust heavily with powdered sugar."
       ],
       "prepTime": 45,
       "cookTime": 50,
       "servings": 16,
       "source": "German-American Christmas tradition",
-      "story": "Stollen is a Christmas tradition dating to 15th-century Dresden. The folded shape represents the Christ child in swaddling clothes. It's best made weeks ahead\u2014the flavors mature over time.",
-      "unlockDay": 11,
+      "story": "Stollen is a Christmas tradition dating to 15th-century Dresden. The folded shape represents the Christ child in swaddling clothes. It's best made weeks ahead—the flavors mature over time.",
+      "unlockDay": 7,
       "sortOrder": 1,
       "difficulty": "hard",
       "tags": [
@@ -742,8 +742,8 @@
       "cookTime": 20,
       "servings": 12,
       "source": "German-American immigrant tradition",
-      "story": "Potato pancakes appear throughout German, Polish, and Jewish traditions. German-American versions are typically served with applesauce\u2014the sweet-savory combination is irresistible.",
-      "unlockDay": 1,
+      "story": "Potato pancakes appear throughout German, Polish, and Jewish traditions. German-American versions are typically served with applesauce—the sweet-savory combination is irresistible.",
+      "unlockDay": 8,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -756,7 +756,7 @@
     {
       "id": "german-american-009",
       "title": "Rotkohl (German Red Cabbage)",
-      "description": "Sweet and sour braised red cabbage studded with apple\u2014the classic accompaniment to roasted meats.",
+      "description": "Sweet and sour braised red cabbage studded with apple—the classic accompaniment to roasted meats.",
       "ingredients": [
         {
           "name": "red cabbage",
@@ -829,8 +829,8 @@
       "cookTime": 90,
       "servings": 8,
       "source": "Pennsylvania Dutch tradition",
-      "story": "Rotkohl improves with time\u2014make it a day ahead and the flavors deepen. This sweet-sour cabbage is essential alongside sauerbraten, schnitzel, or roast pork.",
-      "unlockDay": 2,
+      "story": "Rotkohl improves with time—make it a day ahead and the flavors deepen. This sweet-sour cabbage is essential alongside sauerbraten, schnitzel, or roast pork.",
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -910,7 +910,7 @@
         "Add any remaining onion and cook until softened.",
         "Stir in tomato paste, then add broth and wine.",
         "Return rouladen to pot. Bring to a simmer.",
-        "Cover and braise at 325\u00b0F (165\u00b0C) for 1.5-2 hours until tender.",
+        "Cover and braise at 325°F (165°C) for 1.5-2 hours until tender.",
         "Remove rouladen. Whisk flour into cooking liquid and simmer until thickened.",
         "Serve rouladen with gravy."
       ],
@@ -919,7 +919,7 @@
       "servings": 4,
       "source": "German-American immigrant tradition",
       "story": "Rouladen is a Sunday dinner tradition in German families. The pickle inside provides a surprising burst of flavor, and the mustard and bacon create depth in the braising liquid.",
-      "unlockDay": 3,
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -991,7 +991,7 @@
       "servings": 8,
       "source": "Wisconsin German tradition",
       "story": "Wisconsin's German immigrants perfected the beer brat. Simmering in beer keeps them juicy, while the final grilling adds char. The beer onions are as important as the sausage itself.",
-      "unlockDay": 5,
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1003,7 +1003,7 @@
     {
       "id": "german-american-012",
       "title": "Black Forest Cake",
-      "description": "Layers of chocolate cake, cherries, and whipped cream\u2014the legendary German torte.",
+      "description": "Layers of chocolate cake, cherries, and whipped cream—the legendary German torte.",
       "ingredients": [
         {
           "name": "all-purpose flour",
@@ -1101,7 +1101,7 @@
         }
       ],
       "instructions": [
-        "Bake chocolate cake: Mix dry ingredients, add wet, pour into three 9-inch pans. Bake at 350\u00b0F for 30-35 minutes. Cool.",
+        "Bake chocolate cake: Mix dry ingredients, add wet, pour into three 9-inch pans. Bake at 350°F for 30-35 minutes. Cool.",
         "Mix 1/4 cup reserved cherry juice with kirsch. Brush over cake layers.",
         "Whip cream with powdered sugar to stiff peaks.",
         "Place one layer on plate. Spread with cream, top with cherries.",
@@ -1113,8 +1113,8 @@
       "cookTime": 35,
       "servings": 12,
       "source": "German-American tradition",
-      "story": "Schwarzw\u00e4lder Kirschtorte originated in Germany's Black Forest region. The key is the kirsch\u2014cherry brandy that soaks into the chocolate layers, creating a sophisticated, boozy flavor.",
-      "unlockDay": 7,
+      "story": "Schwarzwälder Kirschtorte originated in Germany's Black Forest region. The key is the kirsch—cherry brandy that soaks into the chocolate layers, creating a sophisticated, boozy flavor.",
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "hard",
       "tags": [
@@ -1127,7 +1127,7 @@
     },
     {
       "id": "german-american-013",
-      "title": "J\u00e4gerschnitzel (Hunter's Schnitzel)",
+      "title": "Jägerschnitzel (Hunter's Schnitzel)",
       "description": "Crispy breaded pork cutlets topped with a rich mushroom gravy.",
       "ingredients": [
         {
@@ -1205,7 +1205,7 @@
       ],
       "instructions": [
         "Bread and fry schnitzels as in Wiener Schnitzel recipe. Keep warm.",
-        "For gravy: Melt butter in skillet. Saut\u00e9 mushrooms until golden, about 8 minutes.",
+        "For gravy: Melt butter in skillet. Sauté mushrooms until golden, about 8 minutes.",
         "Add shallots and cook 2 minutes.",
         "Add wine and simmer until reduced by half.",
         "Add broth and thyme. Simmer 5 minutes.",
@@ -1217,8 +1217,8 @@
       "cookTime": 25,
       "servings": 4,
       "source": "German-American immigrant tradition",
-      "story": "J\u00e4gerschnitzel means 'hunter's schnitzel'\u2014the mushroom gravy represents foraged forest mushrooms. This heartier version of schnitzel became popular in German-American restaurants.",
-      "unlockDay": 9,
+      "story": "Jägerschnitzel means 'hunter's schnitzel'—the mushroom gravy represents foraged forest mushrooms. This heartier version of schnitzel became popular in German-American restaurants.",
+      "unlockDay": 13,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -1230,7 +1230,7 @@
     {
       "id": "german-american-014",
       "title": "German Lentil Soup (Linsensuppe)",
-      "description": "Hearty lentil soup with sausage and a splash of vinegar\u2014a winter warming classic.",
+      "description": "Hearty lentil soup with sausage and a splash of vinegar—a winter warming classic.",
       "ingredients": [
         {
           "name": "bacon",
@@ -1317,8 +1317,8 @@
       "cookTime": 50,
       "servings": 8,
       "source": "German-American immigrant tradition",
-      "story": "Linsensuppe is German comfort food at its finest. The splash of vinegar at the end is traditional\u2014it brightens the earthy lentils and cuts through the richness of the sausage.",
-      "unlockDay": 11,
+      "story": "Linsensuppe is German comfort food at its finest. The splash of vinegar at the end is traditional—it brightens the earthy lentils and cuts through the richness of the sausage.",
+      "unlockDay": 14,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [

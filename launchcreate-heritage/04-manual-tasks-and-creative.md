@@ -1,0 +1,1020 @@
+# Manual Tasks & Creative Assets
+
+> **Purpose:** Detailed instructions for screenshots, AI image generation, design templates, and all manual pre-launch tasks.
+>
+> **Cross-references:**
+> - Screenshot usage: See `02-app-store-submission.md` Section G
+> - Onboarding captures: See `01-app-onboarding-changes.md`
+> - Landing page images: See `03-landing-pages.md`
+
+---
+
+## A. App Screenshots to Capture (22 captures + 1 removed)
+
+> **Master Usage Map:** See `05-video-creative-production.md` **Section E** for a comprehensive table showing where each capture is used across screenshots, video, and landing pages.
+
+### Capture Environment Setup
+
+**Device:** iPhone 15 Pro Max Simulator (or physical device)
+**Mode:** Light Mode
+**Time:** 9:41 AM (Apple convention)
+**Battery:** 100% / Full
+**Carrier:** Hidden or "Carrier"
+**WiFi:** Full signal
+**Notifications:** Do Not Disturb enabled
+
+### Capture Instructions
+
+For each capture:
+1. Set up the exact app state described
+2. Use Cmd+S in Simulator to capture (or physical screenshot)
+3. Save with the specified filename
+4. Note any issues for later
+
+---
+
+### CAP_01: Onboarding Welcome Screen
+
+**Filename:** `CAP_01_ONBOARDING_WELCOME.png`
+**App State:** First onboarding screen after fresh install
+**Setup Steps:**
+1. Delete app and reinstall (or reset UserDefaults)
+2. Launch app
+3. Wait for animations to complete
+4. Capture
+
+**Used In:** SS_01 (possibly), Landing hero
+
+---
+
+### CAP_02: Onboarding Subscription Screen
+
+**Filename:** `CAP_02_ONBOARDING_SUBSCRIPTION.png`
+**App State:** Onboarding subscription screen showing free tier + premium features
+**Setup Steps:**
+1. From CAP_01, tap "Continue"
+2. Wait for subscription screen to load
+3. Capture showing: "Always free" features, "Heritage unlocks" list, 50 trial credits mention, pricing ($6.99/mo or $39.99/yr, $149 Founding Member Lifetime)
+
+**Used In:** SS_10
+
+---
+
+### CAP_02B: Credits Explanation Modal
+
+**Filename:** `CAP_02B_CREDITS_MODAL.png`
+**App State:** "How credits work" modal open
+**Setup Steps:**
+1. From CAP_02 screen, tap "How credits work" link
+2. Wait for modal to appear
+3. Verify it shows: 50 trial credits, credit costs (PDF 1-5, Video audio 1, ASMR 5), URL import FREE
+4. Capture
+
+**Used In:** Internal reference
+
+---
+
+### CAP_03: iOS Share Sheet with Heirloom
+
+**Filename:** `CAP_03_SHARE_SHEET.png`
+**App State:** Safari showing recipe, share sheet open with Heirloom visible
+**Setup Steps:**
+1. Open Safari in Simulator
+2. Navigate to a recipe website (e.g., seriouseats.com)
+3. Tap Share button
+4. Ensure Heirloom icon is visible (may need to enable in More)
+5. Capture share sheet
+
+**Used In:** SS_02, Onboarding mockup
+
+---
+
+### CAP_03B: Import Progress
+
+**Filename:** `CAP_03B_IMPORT_PROGRESS.png`
+**App State:** Recipe import in progress
+**Setup Steps:**
+1. From share sheet, tap Heirloom
+2. Capture during loading/extraction phase
+3. Should show progress indicator
+
+**Used In:** Onboarding animation
+
+---
+
+### CAP_03C: Saved Toast
+
+**Filename:** `CAP_03C_SAVED_TOAST.png`
+**App State:** "Saved to [Collection]" success toast
+**Setup Steps:**
+1. Complete a recipe save
+2. Capture immediately when toast appears
+3. Should show collection name
+
+**Used In:** SS_02, Onboarding
+
+---
+
+### CAP_04: Share Send Flow
+
+**Filename:** `CAP_04_SHARE_SEND.png`
+**App State:** Sending a recipe to a friend
+**Setup Steps:**
+1. Open any recipe
+2. Tap Share → "Send to Friend"
+3. Enter a sample email
+4. Capture before sending
+
+**Used In:** SS_07
+
+---
+
+### CAP_04B: Accept Sheet (Recipient View)
+
+**Filename:** `CAP_04B_ACCEPT_SHEET.png`
+**App State:** Recipient's accept recipe sheet
+**Setup Steps:**
+1. Send a recipe from one account
+2. Open accept link on different device/account
+3. Capture the accept confirmation sheet
+
+**Used In:** SS_07, Onboarding
+
+---
+
+### CAP_04C: Added Success
+
+**Filename:** `CAP_04C_ADDED_SUCCESS.png`
+**App State:** "Added to your recipe box" success
+**Setup Steps:**
+1. Accept a shared recipe
+2. Capture success confirmation
+
+**Used In:** Onboarding
+
+---
+
+### CAP_05: Visibility Pills
+
+**Filename:** `CAP_05_VISIBILITY_PILLS.png`
+**App State:** Privacy screen showing Private/Shared/Public pills
+**Setup Steps:**
+1. Navigate to onboarding screen 5/5
+2. Or: Recipe privacy settings if implemented
+3. Capture showing all three options
+
+**Used In:** SS_08
+
+---
+
+### CAP_05B: Private Pill Selected
+
+**Filename:** `CAP_05B_PILL_PRIVATE.png`
+**App State:** Private option highlighted/selected
+**Setup Steps:**
+1. From visibility pills screen
+2. Ensure "Private" is selected/filled
+3. Capture
+
+**Used In:** Privacy explanation
+
+---
+
+### CAP_05C: Public Pill Selected
+
+**Filename:** `CAP_05C_PILL_PUBLIC.png`
+**App State:** Public option highlighted/selected
+**Setup Steps:**
+1. From visibility pills screen
+2. Select "Public" option
+3. Capture
+
+**Used In:** Privacy explanation
+
+---
+
+### CAP_06: Quick Start Screen
+
+**Filename:** `CAP_06_QUICK_START.png`
+**App State:** Post-onboarding Quick Start with two cards
+**Setup Steps:**
+1. Complete full onboarding flow
+2. Capture Quick Start screen before dismissing
+
+**Used In:** Internal reference
+
+---
+
+### CAP_07: Collections Empty State
+
+**Filename:** `CAP_07_COLLECTIONS_EMPTY.png`
+**App State:** Collections view with only Inbox, no recipes
+**Setup Steps:**
+1. Fresh account with no recipes
+2. Navigate to Collections tab
+3. Should show Inbox + empty state CTA
+
+**Used In:** Onboarding reference
+
+---
+
+### CAP_07B: Collections Populated
+
+**Filename:** `CAP_07B_COLLECTIONS_POPULATED.png`
+**App State:** Collections view with 6-10 collections
+**Setup Steps:**
+1. Use demo account or create collections:
+   - Inbox (2 recipes)
+   - Weeknight Dinners (6 recipes)
+   - Holiday Baking (4 recipes)
+   - Quick Lunches (3 recipes)
+   - Desserts (5 recipes)
+   - Family Favorites (4 recipes)
+2. Capture showing grid of collections
+
+**Used In:** SS_01
+
+---
+
+### CAP_07C: Quick Actions Bar
+
+**Filename:** `CAP_07C_QUICK_ACTIONS.png`
+**App State:** Collections view with quick action chips visible
+**Setup Steps:**
+1. Fresh account with few recipes
+2. Quick action bar should be visible
+3. Capture showing "+ Save from link" etc.
+
+**Used In:** Activation flow reference
+
+---
+
+### CAP_08: Scan Attestation
+
+**Filename:** `CAP_08_SCAN_ATTESTATION.png`
+**App State:** First-scan attestation interstitial
+**Setup Steps:**
+1. Fresh account (never scanned)
+2. Tap + → Scan Recipe
+3. Attestation sheet should appear
+4. Capture before dismissing
+
+**Used In:** Trust contract reference
+
+---
+
+### CAP_09: Ownership Verification
+
+**Filename:** `CAP_09_OWNERSHIP_VERIFY.png`
+**App State:** Ownership verification sheet before publishing
+**Setup Steps:**
+1. Open a camera-captured recipe
+2. Tap ... → "Share Publicly"
+3. Ownership sheet should appear
+4. Capture with checkbox visible
+
+**Used In:** SS_09
+
+---
+
+### CAP_10: AI Generated Badge
+
+**Filename:** `CAP_10_GENERATED_BADGE.png`
+**App State:** Recipe detail showing "AI Generated" source
+**Setup Steps:**
+1. Generate a recipe using AI
+2. Open recipe detail
+3. Source should show "AI Generated" with sparkles icon
+4. Capture
+
+**Used In:** SS_06
+
+---
+
+### CAP_11: Share Extension Toast
+
+**Filename:** `CAP_11_SHARE_TOAST.png`
+**App State:** Success toast with collection name
+**Setup Steps:**
+1. Save recipe via share extension
+2. Capture toast immediately: "Saved to [Collection Name]"
+3. "View in Heirloom" link visible
+
+**Used In:** SS_02
+
+---
+
+### CAP_12: Video Import Result
+
+**Filename:** `CAP_12_VIDEO_RESULT.png`
+**App State:** Video import result showing extracted recipe
+**Setup Steps:**
+1. Import recipe from TikTok or YouTube
+2. Wait for extraction to complete
+3. Capture result showing:
+   - Recipe title
+   - "Source: Video" badge
+   - @creator attribution
+
+**Used In:** SS_03
+
+---
+
+### CAP_13: Discover Card with Attribution
+
+**Filename:** `CAP_13_DISCOVER_CARD.png`
+**App State:** Discover feed showing cards with creator names
+**Setup Steps:**
+1. Navigate to Discover tab
+2. Ensure cards show:
+   - Recipe title
+   - Creator name ("by @username")
+   - Public badge
+   - Save count (if applicable)
+3. Capture
+
+**Used In:** SS_09
+
+---
+
+### CAP_14: Publishing Rules Sheet
+
+**Filename:** `CAP_14_PUBLISHING_RULES.png`
+**App State:** Publishing rules info sheet
+**Setup Steps:**
+1. Navigate to Discover
+2. Tap info button / "What can I publish?"
+3. Capture rules explanation sheet
+
+**Used In:** Internal reference
+
+---
+
+### CAP_15: Recipe Detail with Source
+
+**Filename:** `CAP_15_RECIPE_DETAIL.png`
+**App State:** Full recipe detail view
+**Setup Steps:**
+1. Open any recipe with complete info
+2. Scroll to show:
+   - Image
+   - Title
+   - Source attribution
+   - Metadata (time, servings)
+3. Capture
+
+**Used In:** General marketing
+
+---
+
+### CAP_16: + Menu Open
+
+**Filename:** `CAP_16_PLUS_MENU.png`
+**App State:** Add recipe menu showing all options
+**Setup Steps:**
+1. From Collections, tap + button
+2. Menu should show all import options
+3. Capture
+
+**Used In:** Feature demonstration
+
+---
+
+### CAP_17: Camera Scan UI
+
+**Filename:** `CAP_17_CAMERA_SCAN.png`
+**App State:** Camera viewfinder for cookbook scan
+**Setup Steps:**
+1. Tap + → Scan Recipe
+2. Point at cookbook page (or any text)
+3. Capture viewfinder with detection overlay
+
+**Used In:** SS_04
+
+---
+
+### CAP_18: Scan Result
+
+**Filename:** `CAP_18_SCAN_RESULT.png`
+**App State:** Result after scanning cookbook page
+**Setup Steps:**
+1. Complete a cookbook scan
+2. Capture extracted recipe result
+
+**Used In:** SS_04
+
+---
+
+### ~~CAP_19: Read Aloud UI~~ (REMOVED)
+
+> **Note:** "Read Aloud" feature does not exist. This capture has been replaced by **CAP_22 (Read Recipe)** — voice dictation, not text-to-speech. See CAP_22 below.
+
+---
+
+### CAP_20: Generate Input
+
+**Filename:** `CAP_20_GENERATE_INPUT.png`
+**App State:** AI generation input screen
+**Setup Steps:**
+1. Tap + → "Make with AI" (or similar)
+2. Enter sample ingredients or description
+3. Capture before generating
+
+**Used In:** SS_06
+
+---
+
+### CAP_21: Credits Balance / Premium Paywall
+
+**Filename:** `CAP_21_CREDITS_PREMIUM.png`
+**App State:** Settings subscription section + credits balance indicator, OR premium upgrade screen
+**Setup Steps:**
+1. Open Settings > Subscription
+2. Capture showing credits balance and subscription status
+3. OR: As free user, trigger paywall showing:
+   - Heritage features list
+   - Pricing ($6.99/mo, $39.99/yr Best Value, $149 Founding Member Lifetime)
+   - Start trial CTA
+
+**Used In:** SS_10, Ad #10
+
+---
+
+### CAP_22: Read Recipe (Voice Dictation) **NEW**
+
+**Filename:** `CAP_22_READ_RECIPE.png`
+**App State:** ReadRecipeView showing active voice recording with live transcription
+**Setup Steps:**
+1. Tap + > Read Recipe
+2. Grant microphone permission if prompted
+3. Tap microphone button to start recording
+4. Dictate a recipe aloud (practice for clean transcription)
+5. Screenshot while recording is active and transcription is populating
+6. Should show: large mic button in recording state (red), real-time transcription text below, recording duration timer (e.g., "00:42")
+
+**Used In:** SS_05, App Store Preview (0:17-0:21), Ad #9 (Grandma's Recipe)
+
+---
+
+### CAP_23: Buy More Credits Sheet
+
+**Filename:** `CAP_23_BUY_CREDITS.png`
+**App State:** Credit pack purchase options
+**Setup Steps:**
+1. Exhaust daily credits (or simulate)
+2. Tap "Get more" or trigger purchase sheet
+3. Capture credit pack options (if applicable)
+
+**Used In:** Pricing reference
+
+---
+
+## B. AI Image Generation Prompts (9 assets)
+
+### AI_01: Onboarding Hero Image
+
+**Filename:** `AI_01_onboarding_hero.png`
+**Dimensions:** 1200 x 800 px
+**Usage:** Onboarding Screen 1 hero area
+
+**Prompt:**
+```
+Professional food photography, warm golden hour lighting, rustic wooden table
+with a neat stack of handwritten recipe cards next to scattered loose papers
+and a phone showing a recipe, cozy home kitchen background slightly blurred,
+cream and amber color palette, soft natural shadows, overhead angle, inviting
+and organized, high quality, detailed, 8k resolution, no text no labels no words
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, 3D render, dark colors, cold colors, blue,
+purple, cluttered, busy, text, words, logos, faces, people, hands, neon,
+harsh lighting, restaurant styling, modern plating
+```
+
+**Style Notes:**
+- Match the app's "vintage cookbook food photography" visual style
+- Communicate "chaos to order" through the physical props (loose papers vs neat cards)
+- Warm, photographic, home-kitchen feel — NOT illustrative
+
+---
+
+### AI_02: Collection Header - Weeknight Dinners
+
+**Filename:** `AI_02_collection_weeknight.png`
+**Dimensions:** 800 x 400 px
+**Usage:** Collection card background
+
+**Prompt:**
+```
+Professional food photography of simple weeknight dinner ingredients, pasta
+and fresh vegetables on a rustic wooden cutting board, warm golden hour
+lighting, overhead flat lay, cream and terracotta tones, shallow depth of
+field, home-cooked aesthetic, high quality, 8k resolution, no text no labels
+no words, horizontal composition
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, busy, cluttered, cold colors, text, people,
+hands, faces, restaurant styling, modern plating, harsh lighting
+```
+
+---
+
+### AI_03: Collection Header - Holiday Baking
+
+**Filename:** `AI_03_collection_holiday.png`
+**Dimensions:** 800 x 400 px
+**Usage:** Collection card background
+
+**Prompt:**
+```
+Professional food photography of holiday baking scene, fresh cookies on a
+cooling rack, cinnamon sticks, star anise, flour-dusted wooden surface, warm
+spice colors, cream and rich brown tones, golden hour lighting, overhead
+angle, nostalgic cozy atmosphere, high quality, 8k resolution, no text no
+labels no words, horizontal composition
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, Christmas specific, snow, neon red and green,
+text, people, hands, faces, harsh lighting
+```
+
+---
+
+### AI_04: Collection Header - Quick Lunches
+
+**Filename:** `AI_04_collection_lunches.png`
+**Dimensions:** 800 x 400 px
+**Usage:** Collection card background
+
+**Prompt:**
+```
+Professional food photography of a fresh lunch spread, colorful salad bowls
+and sandwiches on a clean white marble surface, bright natural daylight,
+overhead flat lay, light and fresh feeling, cream and sage green accents,
+modern minimalist food photography, high quality, 8k resolution, no text no
+labels no words, horizontal composition
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, heavy, dark colors, text, people, hands,
+faces, cluttered, harsh lighting
+```
+
+---
+
+### AI_05: Collection Header - Family Favorites
+
+**Filename:** `AI_05_collection_family.png`
+**Dimensions:** 800 x 400 px
+**Usage:** Collection card background
+
+**Prompt:**
+```
+Professional food photography evoking family cooking, vintage ceramic serving
+dishes on a worn wooden farmhouse table, warm golden hour lighting, nostalgic
+cozy atmosphere, cream and soft orange tones, slightly overhead angle, shallow
+depth of field, home-cooked heritage aesthetic, high quality, 8k resolution,
+no text no labels no words, horizontal composition
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, modern, cold, text, specific faces, people,
+hands, restaurant styling, harsh lighting
+```
+
+---
+
+### AI_06: Open Graph Image
+
+**Filename:** `AI_06_og_image.png`
+**Dimensions:** 1200 x 630 px
+**Usage:** Social sharing preview
+
+**Prompt:**
+```
+Professional food photography, warm overhead flat lay of beautifully arranged
+recipe cards and fresh ingredients on a rustic wooden table, soft natural
+lighting, cream and terracotta color palette, shallow depth of field with
+left third slightly out of focus for text overlay space, inviting home kitchen
+feel, high quality, 8k resolution, no text no labels no words
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, cluttered, dark, cold colors, text, screenshots,
+faces, people, harsh lighting, modern plating
+```
+
+**Notes:**
+- Leave space on left third for "Heirloom" logo and tagline overlay
+- Should work with dark text overlaid
+- Photographic, not illustrated
+
+---
+
+### AI_07: Screenshot Frame Background
+
+**Filename:** `AI_07_screenshot_bg.png`
+**Dimensions:** 1290 x 2796 px (iPhone 15 Pro Max)
+**Usage:** App Store screenshot backgrounds
+
+**Prompt:**
+```
+Subtle warm gradient background for app store screenshot, cream to soft
+terracotta gradient, subtle ceramic texture, professional and clean, no
+distinct objects, suitable as background for device mockup, vertical
+orientation
+```
+
+**Negative Prompt:**
+```
+busy, patterns, objects, text, illustrations, food, faces, people
+```
+
+**Notes:**
+- This is the one asset that IS abstract/gradient (no food photography needed)
+- Should be subtle enough not to distract from device screenshot
+- May need variants with different gradient directions per screenshot
+
+---
+
+### AI_08: Landing Page Hero Background
+
+**Filename:** `AI_08_landing_hero_bg.png`
+**Dimensions:** 1920 x 1080 px
+**Usage:** Website hero section background
+
+**Prompt:**
+```
+Soft-focus food photography background, warm kitchen scene heavily blurred,
+golden hour light through a window, cream and pale terracotta tones, bokeh
+light circles, very minimal and professional, suitable as background for text
+and device mockups overlaid on top, horizontal composition, high quality,
+8k resolution
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, sharp focus on food, busy, text, dark, cold
+colors, faces, people, harsh lighting
+```
+
+---
+
+### AI_09: Press Kit Header
+
+**Filename:** `AI_09_presskit_header.png`
+**Dimensions:** 1200 x 400 px
+**Usage:** Press kit page header
+
+**Prompt:**
+```
+Professional food photography, warm overhead view of a curated recipe card
+collection on a clean wooden surface, vintage cookbook and fresh herbs visible,
+warm brand colors (cream, terracotta, sage), golden hour lighting, clean and
+press-worthy, shallow depth of field, horizontal banner composition with
+space for text overlay, high quality, 8k resolution, no text no labels no words
+```
+
+**Negative Prompt:**
+```
+illustration, vector, cartoon, casual, playful, busy, cold colors, faces,
+people, hands, harsh lighting, modern plating
+```
+
+---
+
+## C. Design Templates to Create
+
+### Template 1: Screenshot Frame (Figma)
+
+**Filename:** `Heirloom_Screenshot_Template.fig`
+
+**Components:**
+1. Device frame (iPhone 15 Pro Max, Space Black)
+2. Text block component (headline + subhead)
+3. Background variants (10 color combinations)
+4. Layout grid guides
+
+**Specifications:**
+- Canvas: 1290 x 2796 px
+- Device positioned: centered, 180px from top
+- Headline: SF Pro Display Bold, 72pt, centered
+- Subhead: SF Pro Display Regular, 42pt, centered
+
+---
+
+### Template 2: App Preview Video Project
+
+**Filename:** `Heirloom_AppPreview.fcpxproj` (or Premiere/DaVinci)
+
+**Timeline:**
+- 30 seconds total
+- 30fps
+- 1290 x 2796 resolution
+- H.264 export preset
+
+**Segments marked:**
+- 0:00-0:04 - Hook (collections grid)
+- 0:04-0:08 - Save (share extension flow)
+- 0:08-0:13 - Video (video import)
+- 0:13-0:17 - Scan (cookbook scan)
+- 0:17-0:21 - Voice (Read Recipe dictation)
+- 0:21-0:25 - Trust (privacy pills)
+- 0:25-0:30 - CTA (end card)
+
+---
+
+### Template 3: OG Image Template (Figma)
+
+**Filename:** `Heirloom_OG_Template.fig`
+
+**Variants:**
+1. Default (site root)
+2. Landing variants (/lp/video, /lp/scan, etc.)
+3. Support/legal pages
+
+**Specifications:**
+- Canvas: 1200 x 630 px
+- Logo placement: top-left or centered
+- Headline area: lower third
+- Background: AI_06 base image
+
+---
+
+## D. Accounts & Configuration Checklist
+
+### Apple Developer
+
+- [ ] Developer Program membership active ($99/year)
+- [ ] App ID registered
+- [ ] Provisioning profiles created
+- [ ] Push notification certificates configured
+- [ ] App Store Connect record created
+- [ ] IAP products submitted for review
+
+### App Store Connect
+
+- [ ] App listing created
+- [ ] App name reserved: "Heirloom"
+- [ ] Bundle ID confirmed
+- [ ] Primary category: Food & Drink
+- [ ] Secondary category: Lifestyle
+- [ ] Screenshots uploaded (all sizes)
+- [ ] App Preview uploaded
+- [ ] Description entered
+- [ ] Keywords configured
+- [ ] Privacy policy URL verified
+- [ ] Support URL verified
+- [ ] Pricing tier set (Free with IAP)
+
+### Netlify
+
+- [ ] Account created
+- [ ] Site deployed from git repo
+- [ ] Custom domain configured: heirloomrecipebox.app
+- [ ] HTTPS enabled (automatic)
+- [ ] Deploy previews enabled
+- [ ] Build notifications configured
+
+### DNS (Domain Registrar)
+
+- [ ] Domain registered: heirloomrecipebox.app
+- [ ] A record pointing to Netlify
+- [ ] CNAME for www → main domain
+- [ ] MX records for email (if using custom email)
+- [ ] SPF/DKIM for email deliverability
+
+### Email Setup
+
+- [ ] support@heirloomrecipebox.app functional
+- [ ] press@heirloomrecipebox.app functional
+- [ ] hello@heirloomrecipebox.app functional
+- [ ] privacy@heirloomrecipebox.app functional
+- [ ] Auto-responder configured (optional)
+
+### Discord Server
+
+- [ ] Server created
+- [ ] Channels configured:
+  - #welcome
+  - #general
+  - #feature-requests
+  - #recipe-sharing
+  - #support
+- [ ] Roles configured (Member, Beta Tester, Team)
+- [ ] Invite link generated
+- [ ] Server rules posted
+
+### Demo Account
+
+- [ ] Account created: demo@heirloomrecipebox.app
+- [ ] Password documented securely
+- [ ] Premium subscription applied
+- [ ] Sample recipes added (15 recipes, 3 collections)
+- [ ] Sample shared recipe set up
+- [ ] Tested login works
+
+---
+
+## E. Content to Write/Finalize
+
+### Legal (Needs Legal Review)
+
+- [ ] Privacy Policy final text
+- [ ] Terms of Service final text
+- [ ] GDPR compliance verification
+- [ ] CCPA compliance verification
+- [ ] App tracking transparency disclosure
+
+### App Store
+
+- [ ] App description (4000 chars)
+- [ ] Keywords (100 chars)
+- [ ] Promotional text (170 chars)
+- [ ] What's New text
+- [ ] App Review notes
+- [ ] Demo account credentials documented
+
+### Marketing
+
+- [ ] Homepage headline/subhead finalized
+- [ ] Feature descriptions (4 features)
+- [ ] FAQ answers (8-10 questions)
+- [ ] Email capture success message
+- [ ] Social media bios
+
+### Support
+
+- [ ] FAQ content (10 questions minimum)
+- [ ] Support page content
+- [ ] Bug report form questions
+- [ ] Auto-reply template for support emails
+
+### Pricing (Confirmed)
+
+| Item | Value |
+|------|-------|
+| Monthly | $6.99/month |
+| Monthly trial | 7 days |
+| Annual | $39.99/year (save 52%, Best Value) |
+| Annual trial | 14 days |
+| Lifetime | $149 one-time (Founding Member) |
+| Trial credits | 50 (at signup, no daily reset) |
+| Heritage credits | 100/month |
+| Credit Pack (Small) | $5 for 25 credits |
+| Credit Pack (Large) | $15 for 100 credits |
+| URL import | FREE (no credits) |
+
+### Beta User Testimonials
+
+- [ ] Collect 3-5 testimonials from beta testers
+- [ ] Get permission to use with name/initials
+- [ ] Format for website use
+
+---
+
+## F. App Preview Video Recording Plan
+
+### Equipment
+
+- iPhone 15 Pro Max (or latest)
+- Mac with QuickTime
+- Lightning/USB-C cable
+- Clean desk background (not visible in recording)
+
+### Recording Steps
+
+**Segment 1: Hook (4 seconds)**
+1. Start on populated Collections view
+2. Slow scroll down to show recipes
+3. End on a specific collection
+
+**Segment 2: Save (4 seconds)**
+1. Open Safari with recipe website
+2. Tap Share button
+3. Tap Heirloom in share sheet
+4. Show saving animation
+5. Show success toast
+
+**Segment 3: Video Import (5 seconds)**
+1. Tap + button
+2. Select "From Video"
+3. Paste TikTok URL
+4. Show extraction progress
+5. Show result
+
+**Segment 4: Scan (4 seconds)**
+1. Tap + button
+2. Select "Scan Recipe"
+3. Point camera at cookbook page
+4. Capture animation
+5. Show result
+
+**Segment 5: Share (4 seconds)**
+1. Open a recipe
+2. Tap Share → Send to Friend
+3. Show send animation
+4. (Optional) Show accept on recipient
+
+**Segment 6: CTA (4 seconds)**
+1. Show app icon centered
+2. Text overlay: "Download Heirloom"
+3. Fade to end
+
+### Export Settings
+
+- Format: H.264
+- Resolution: 1290 x 2796
+- Frame rate: 30fps
+- Audio: None (or subtle background)
+- Duration: Exactly 25 seconds
+
+---
+
+## G. Pre-Submission Checklist (Final Gate)
+
+### Creative Checklist
+
+- [ ] All 10 App Store screenshots created
+- [ ] Screenshots assembled in frames
+- [ ] App Preview video edited and exported
+- [ ] OG images created for all landing pages
+- [ ] Collection header images created
+- [ ] Landing page hero images ready
+
+### Web Checklist
+
+- [ ] Landing page deployed and live
+- [ ] Privacy policy page live
+- [ ] Terms of service page live
+- [ ] Support page live
+- [ ] All URLs verified accessible
+- [ ] Email capture working
+- [ ] Mobile responsive verified
+
+### App Store Connect Checklist
+
+- [ ] All metadata entered
+- [ ] All screenshots uploaded
+- [ ] App Preview uploaded
+- [ ] All IAP products approved
+- [ ] Privacy questionnaire complete
+- [ ] Export compliance answered
+- [ ] Build uploaded and processed
+- [ ] App Review notes complete
+
+### App Checklist
+
+- [ ] Onboarding flow complete
+- [ ] All new features working
+- [ ] No crashes on main flows
+- [ ] Premium features work
+- [ ] Share extension works
+- [ ] Deep links work
+- [ ] Analytics verified
+- [ ] Crash reporting verified
+
+### Final Verification
+
+- [ ] Demo account tested
+- [ ] Fresh install tested
+- [ ] Upgrade flow tested
+- [ ] Support email tested
+- [ ] Landing page CTA clicks tracked
+- [ ] Team sign-off obtained
+
+---
+
+## Asset Naming Convention
+
+| Prefix | Type | Example |
+|--------|------|---------|
+| CAP_ | App capture/screenshot | CAP_01_ONBOARDING_WELCOME |
+| AI_ | AI-generated image | AI_01_onboarding_hero |
+| SS_ | App Store screenshot | SS_01_collections_home |
+| OG_ | Open Graph image | OG_default |
+| TMPL_ | Design template | TMPL_screenshot_frame |
+
+### Cross-Reference Table
+
+| Capture | Used In Screenshot | Used In Landing |
+|---------|-------------------|-----------------|
+| CAP_07B | SS_01 | Homepage hero |
+| CAP_03 + CAP_11 | SS_02 | /lp/scan |
+| CAP_12 | SS_03 | /lp/video |
+| CAP_17 + CAP_18 | SS_04 | /lp/scan |
+| CAP_22 | SS_05 | - |
+| CAP_10 + CAP_20 | SS_06 | /lp/generate |
+| CAP_04 | SS_07 | /lp/share |
+| CAP_05 | SS_08 | Homepage |
+| CAP_13 + CAP_09 | SS_09 | - |
+| CAP_02 + CAP_21 | SS_10 | Homepage pricing |

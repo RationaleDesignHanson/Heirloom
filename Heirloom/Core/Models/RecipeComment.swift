@@ -250,7 +250,7 @@ extension RecipeComment {
 
     /// Whether this comment is from another user's recipe copy
     var isFromLineage: Bool {
-        originProvenanceHash != nil && originProvenanceHash != recipe?.provenance?.rootProvenanceHash
+        originProvenanceHash != nil && originProvenanceHash != recipe?.provenance.rootProvenanceHash
     }
 
     /// Total engagement score (upvotes + endorsements - downvotes)

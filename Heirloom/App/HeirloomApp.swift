@@ -318,6 +318,11 @@ struct HeirloomApp: App {
                 _syncService = State(wrappedValue: serviceContainer.resolve(FirebaseSyncService.self))
                 print("✅ [INIT] FirebaseSyncService resolved")
 
+                // Initialize NetworkMonitor early so it's monitoring before views need it
+                DeviceLogger.shared.log("🔧 [Heirloom] Resolving NetworkMonitor...")
+                _ = serviceContainer.resolve(NetworkMonitor.self)
+                print("✅ [INIT] NetworkMonitor resolved")
+
                 DeviceLogger.shared.log("🔧 [Heirloom] Resolving ThemeUnlockTracker...")
                 let tracker = serviceContainer.resolve(ThemeUnlockTracker.self)
                 _themeUnlockTracker = State(wrappedValue: tracker)
@@ -1052,7 +1057,7 @@ struct HeirloomApp: App {
                     }
 
                     // NEVER delete shared recipes
-                    if let provenance = recipe.provenance, provenance.sourceType == .shared {
+                    if recipe.provenance.sourceType == .shared {
                         Log.info("🛡️ PROTECTED: Skipping shared recipe from cleanup", category: .database, metadata: ["title": recipe.title])
                         return false
                     }
@@ -2191,6 +2196,10 @@ struct ContentView: View {
     @State private var needsHeritageSeeding = false
     @State private var isDownloadingHeritageAfterSignIn = false
 
+    // CRITICAL: Wait for auth state to settle before showing onboarding
+    // This prevents showing onboarding to returning users before Firebase check completes
+    @State private var isCheckingReturningUser = true
+
     // Deep link coordinator (injected via environment)
     @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
 
@@ -2221,6 +2230,12 @@ struct ContentView: View {
                     .environment(ServiceContainer.shared.resolve(SubscriptionManager.self))
                     .environment(ServiceContainer.shared.resolve(StoreManager.self))
                     .environment(ServiceContainer.shared.resolve(PaywallManager.self))
+            } else if isCheckingReturningUser {
+                // Show loading while checking if returning user
+                // This prevents flashing onboarding to users who have already completed it
+                ProgressView("Loading...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.systemBackground))
             } else {
                 OnboardingContainerView(
                     selectedTab: $tabCoordinator.selectedTab,
@@ -2243,70 +2258,92 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            // CRITICAL: On first launch, require sign-in before onboarding
-            if !hasCompletedOnboarding && !firebaseAuth.isAuthenticated {
-                showSignInSheet = true
-                needsHeritageSeeding = true
-            }
+            Log.info("ContentView.onAppear", category: .auth, metadata: [
+                "hasCompletedOnboarding": hasCompletedOnboarding,
+                "isAuthenticated": firebaseAuth.isAuthenticated,
+                "userId": firebaseAuth.currentUserId ?? "nil"
+            ])
 
-            // CRITICAL: Handle authenticated user with cleared onboarding state
-            // This happens when: user signs out (clears state), then signs back in (auto-authenticated)
-            // We need to check if they're a returning user with existing data
-            if !hasCompletedOnboarding && firebaseAuth.isAuthenticated {
-                Task { @MainActor in
-                    let isReturningUser = await checkForExistingUserData()
-                    if isReturningUser {
-                        Log.info("Returning user detected on appear - skipping onboarding", category: .auth)
-                        hasCompletedOnboarding = true
-
-                        // Sync theme data for returning users
-                        await syncThemeDataOnLogin()
-
-                        // Start services for existing users
-                        DemoSocialBehaviorService.shared.start()
-                        DemoSocialBehaviorService.shared.onOnboardingComplete()
-                    } else {
-                        // User is authenticated but has no data - show onboarding
-                        Log.info("Authenticated user with no data - showing onboarding", category: .auth)
-                        needsHeritageSeeding = true
-                    }
-                }
-            }
-
-            // CRITICAL: Auto-recover Heritage recipes on every app launch if user is already authenticated
-            // This handles case where recipes were lost between sessions (SwiftData WAL not checkpointed)
-            if firebaseAuth.isAuthenticated && hasCompletedOnboarding {
-                Task { @MainActor in
-                    guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
-                        return
-                    }
-                    await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
-                }
+            // If already completed onboarding, we're done checking
+            if hasCompletedOnboarding {
+                isCheckingReturningUser = false
 
                 // Start demo social behavior service for existing users
                 DemoSocialBehaviorService.shared.start()
-
-                // Trigger welcome shares for existing users who haven't received them yet
-                // (The service has duplicate prevention, so this is safe to call)
                 DemoSocialBehaviorService.shared.onOnboardingComplete()
+
+                // Auto-recover Heritage recipes
+                if firebaseAuth.isAuthenticated {
+                    Task { @MainActor in
+                        guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+                            return
+                        }
+                        await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
+                    }
+                }
+                return
+            }
+
+            // Not completed onboarding - need to check status
+            Task { @MainActor in
+                // If not authenticated, show sign-in sheet and wait for auth
+                if !firebaseAuth.isAuthenticated {
+                    Log.info("Not authenticated - showing sign-in sheet", category: .auth)
+                    showSignInSheet = true
+                    needsHeritageSeeding = true
+                    isCheckingReturningUser = false // Allow onboarding to show (behind sign-in sheet)
+                    return
+                }
+
+                // User IS authenticated but hasCompletedOnboarding is false
+                // This is the RETURNING USER case - check Firebase BEFORE showing onboarding
+                Log.info("Authenticated but no local onboarding flag - checking Firebase", category: .auth)
+
+                let isReturningUser = await checkForExistingUserData()
+                if isReturningUser {
+                    Log.info("RETURNING USER DETECTED - skipping onboarding", category: .auth)
+                    hasCompletedOnboarding = true
+
+                    // Sync theme data for returning users
+                    await syncThemeDataOnLogin()
+
+                    // Start services for existing users
+                    DemoSocialBehaviorService.shared.start()
+                    DemoSocialBehaviorService.shared.onOnboardingComplete()
+                } else {
+                    // User is authenticated but has no data - show onboarding
+                    Log.info("Authenticated user with no Firebase data - showing onboarding", category: .auth)
+                    needsHeritageSeeding = true
+                }
+
+                // Now we know the status - stop showing loading
+                isCheckingReturningUser = false
             }
         }
         .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in
-            // Sign-IN handling
+            Log.info("Auth state changed", category: .auth, metadata: [
+                "oldValue": oldValue,
+                "newValue": newValue,
+                "needsHeritageSeeding": needsHeritageSeeding,
+                "hasCompletedOnboarding": hasCompletedOnboarding
+            ])
+
+            // Sign-IN handling (user just signed in after seeing sign-in sheet)
             if newValue && needsHeritageSeeding {
-                // CRITICAL: Check if this is a returning user on a new device
-                // If they have existing data in Firebase, skip onboarding
+                // CRITICAL: Check if this is a returning user
+                // Show loading state while we check Firebase
+                isCheckingReturningUser = true
                 isDownloadingHeritageAfterSignIn = true
+
                 Task { @MainActor in
                     // Check for existing user data before showing onboarding
                     let isReturningUser = await checkForExistingUserData()
                     if isReturningUser {
-                        Log.info("Returning user detected - skipping onboarding", category: .auth)
+                        Log.info("RETURNING USER DETECTED (via onChange) - skipping onboarding", category: .auth)
                         hasCompletedOnboarding = true
                         needsHeritageSeeding = false
 
-                        // CRITICAL: Sync theme data for returning users (same as new users in onboarding)
-                        // This ensures theme collections appear after login without manual reload
+                        // Sync theme data for returning users
                         await syncThemeDataOnLogin()
 
                         isDownloadingHeritageAfterSignIn = false
@@ -2315,17 +2352,20 @@ struct ContentView: View {
                         DemoSocialBehaviorService.shared.onOnboardingComplete()
                     } else {
                         // New user - proceed with normal onboarding flow
+                        Log.info("New user detected - seeding heritage and showing onboarding", category: .auth)
                         await seedHeritageRecipesAfterAuth()
                         needsHeritageSeeding = false
                         isDownloadingHeritageAfterSignIn = false
                     }
+
+                    // Check complete - allow view to update
+                    isCheckingReturningUser = false
                 }
             }
 
             // CRITICAL: Handle case where hasCompletedOnboarding is true but user has no Firebase data
             // This happens when: user completed onboarding, signed out, Firebase data was deleted
             // (e.g., for testing), but UserDefaults still has hasCompletedOnboarding = true.
-            // On sign-in, we need to check if they actually have data or need re-onboarding.
             if newValue && hasCompletedOnboarding && !needsHeritageSeeding {
                 Task { @MainActor in
                     let hasData = await checkForExistingUserData()
@@ -2689,14 +2729,27 @@ struct ContentView: View {
     /// This loads RecipeTheme objects from Firebase and downloads theme recipes
     /// so that theme collections appear automatically without requiring UI interaction
     private func syncThemeDataOnLogin() async {
+        // Step 0: ALWAYS restore theme selections from Firebase first
+        // This doesn't need ModelContainer and must happen before anything else
+        if let profileService = ServiceContainer.shared.resolveOptional(FirebaseUserProfileService.self) {
+            let restored = await profileService.restoreThemeSelectionsFromFirebase()
+            if restored {
+                Log.info("Restored theme selections from Firebase profile", category: .theme)
+                // Force ThemeUnlockTracker to reload from UserDefaults
+                themeUnlockTracker.objectWillChange.send()
+            }
+        }
+
+        // Step 1+: Download recipes requires ModelContainer
         guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
-            Log.warning("ModelContainer not available for theme sync", category: .theme)
+            Log.warning("ModelContainer not available for theme recipe download - will sync on next refresh", category: .theme)
             return
         }
 
         let modelContext = modelContainer.mainContext
 
         do {
+
             // Step 1: Load RecipeTheme objects from Firebase into SwiftData
             // (same as done during onboarding in OnboardingContainerView)
             let loader = ThemeLoader()
@@ -2706,11 +2759,11 @@ struct ContentView: View {
             ])
 
             // Step 2: Download theme recipes for selected themes
-            // selectedThemeIds comes from local UserDefaults via ThemeUnlockTracker
+            // selectedThemeIds should now be restored from Firebase (Step 0 above)
             let selectedThemeIds = themeUnlockTracker.selectedThemeIds
 
             guard !selectedThemeIds.isEmpty else {
-                Log.info("No selected themes - skipping recipe download", category: .theme)
+                Log.info("No selected themes after restore - user may need to re-select themes", category: .theme)
                 return
             }
 
@@ -2734,7 +2787,7 @@ struct ContentView: View {
     }
 
     /// Check if user has existing data in Firebase (returning user on new device)
-    /// Returns true if user has recipes or collections, indicating they should skip onboarding
+    /// Returns true if user has completed onboarding before, indicating they should skip it
     private func checkForExistingUserData() async -> Bool {
         guard let userId = firebaseAuth.currentUserId else {
             return false
@@ -2743,11 +2796,30 @@ struct ContentView: View {
         let db = Firestore.firestore()
 
         do {
-            // Check for existing recipes ONLY - if user has any, they're a returning user
-            // NOTE: We don't check collections because:
-            // 1. Empty system collections (Favorites, etc.) may exist without recipes
-            // 2. Test accounts (tester01@) may have leftover empty collections
-            // 3. The presence of recipes is the true indicator of prior app usage
+            // FIRST: Check for hasCompletedOnboarding flag in user profile
+            // This is the authoritative source - survives sign-out/sign-in cycles
+            let profileDoc = try await db.collection("users").document(userId)
+                .collection("profile").document("data").getDocument()
+
+            let profileExists = profileDoc.exists
+            let profileData = profileDoc.data()
+            let hasCompletedFlag = profileData?["hasCompletedOnboarding"] as? Bool
+
+            Log.info("Checking Firebase profile for onboarding state", category: .auth, metadata: [
+                "userId": userId,
+                "profileExists": profileExists,
+                "hasData": profileData != nil,
+                "hasCompletedOnboarding": hasCompletedFlag as Any
+            ])
+
+            if let hasCompleted = hasCompletedFlag, hasCompleted {
+                Log.info("User has completed onboarding (from profile) - returning user detected", category: .auth, metadata: [
+                    "userId": userId
+                ])
+                return true
+            }
+
+            // FALLBACK: Check for existing recipes (for users who completed onboarding before this fix)
             let recipesQuery = db.collection("users").document(userId).collection("recipes").limit(to: 1)
             let recipesSnapshot = try await recipesQuery.getDocuments()
 
@@ -2755,10 +2827,14 @@ struct ContentView: View {
                 Log.info("Found existing recipes for user - returning user detected", category: .auth, metadata: [
                     "userId": userId
                 ])
+                // Migrate: Set the flag for next time
+                try? await db.collection("users").document(userId)
+                    .collection("profile").document("data")
+                    .setData(["hasCompletedOnboarding": true], merge: true)
                 return true
             }
 
-            Log.info("No existing recipes found - new user (will show onboarding)", category: .auth, metadata: ["userId": userId])
+            Log.info("No onboarding flag or recipes found - new user (will show onboarding)", category: .auth, metadata: ["userId": userId])
             return false
 
         } catch {

@@ -15,7 +15,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 async function fix() {
-  const rootRecipeId = '7EE0A981-0DD2-4105-AA26-AB941C23D688';
+  const rootRecipeId = '7ee0a981-0dd2-4105-aa26-ab941c23d688';
   const userId = 'TuQgh4k7HSY8p5eDk90ja53u9ki2';
 
   // Find the user's lineage record

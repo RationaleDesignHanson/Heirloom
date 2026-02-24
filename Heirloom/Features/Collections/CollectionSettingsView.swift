@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import PhotosUI
 import UIKit
 
@@ -6,6 +7,7 @@ struct CollectionSettingsView: View {
     @Bindable var collection: RecipeCollection
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseAuth) private var firebaseAuth
 
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
@@ -14,6 +16,27 @@ struct CollectionSettingsView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isProcessingImage = false
     @State private var isGeneratingImage = false
+    @State private var showNeedCreditsSheet = false
+    @State private var showCreditsStore = false
+    @State private var showPaywall = false
+
+    // Query for user credits
+    @Query private var allUserCredits: [UserCredits]
+
+    /// Cost for generating one AI background image
+    private let aiBackgroundCost = 1
+
+    /// Current user's credits
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
+    }
+
+    /// Whether user can afford AI background generation
+    private var canAffordAIGeneration: Bool {
+        guard let credits = userCredits else { return false }
+        return credits.availableCredits >= aiBackgroundCost
+    }
 
     var body: some View {
         NavigationStack {
@@ -87,8 +110,12 @@ struct CollectionSettingsView: View {
                         }
 
                         Button {
-                            Task {
-                                await generateBackground()
+                            if canAffordAIGeneration {
+                                Task {
+                                    await generateBackground()
+                                }
+                            } else {
+                                showNeedCreditsSheet = true
                             }
                         } label: {
                             HStack {
@@ -97,6 +124,9 @@ struct CollectionSettingsView: View {
                                 Text("Generate with AI")
                                     .foregroundStyle(isGeneratingImage ? .secondary : .primary)
                                 Spacer()
+                                Text("\(aiBackgroundCost) credit")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(.secondary)
                                 if isGeneratingImage {
                                     ProgressView()
                                         .tint(HeirloomColors.tomato)
@@ -104,7 +134,6 @@ struct CollectionSettingsView: View {
                             }
                         }
                         .disabled(isGeneratingImage)
-                        .opacity(isGeneratingImage ? 0.6 : 1.0)
 
                         if isGeneratingImage {
                             Text("Generating themed image...")
@@ -140,8 +169,69 @@ struct CollectionSettingsView: View {
             }
             .navigationTitle("Collection Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showNeedCreditsSheet) {
+                needCreditsSheetContent
+            }
+            .sheet(isPresented: $showCreditsStore, onDismiss: {
+                // User might have purchased credits - UI will auto-update via @Query
+            }) {
+                creditsStoreContent
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(trigger: .urlImport)
+            }
         }
     }
+
+    // MARK: - Sheet Content
+
+    @ViewBuilder
+    private var needCreditsSheetContent: some View {
+        NeedCreditsSheet(
+            creditsNeeded: aiBackgroundCost,
+            currentCredits: userCredits?.availableCredits ?? 0,
+            featureName: "AI Background Generation",
+            onBuyCredits: {
+                showNeedCreditsSheet = false
+                showCreditsStore = true
+            },
+            onCancel: {
+                showNeedCreditsSheet = false
+            },
+            onViewSubscription: {
+                showNeedCreditsSheet = false
+                showPaywall = true
+            }
+        )
+        .presentationDetents([.medium])
+    }
+
+    @ViewBuilder
+    private var creditsStoreContent: some View {
+        if let userId = firebaseAuth.currentUserId {
+            let storeManager = CreditStoreManager(
+                logger: ServiceContainer.shared.resolve(LoggingService.self),
+                analytics: ServiceContainer.shared.resolve(AnalyticsService.self),
+                modelContext: modelContext,
+                userId: userId
+            )
+            CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
+        } else {
+            VStack(spacing: 16) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+                Text("Unable to load credits store")
+                    .font(.headline)
+                Text("Please sign in to purchase credits")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+    }
+
+    // MARK: - Photo Handling
 
     private func loadPhoto(from item: PhotosPickerItem?) async {
         guard let item = item else { return }
@@ -193,6 +283,29 @@ struct CollectionSettingsView: View {
                 collection.lastImageGenerationDate = Date()
                 collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
                 collection.useCustomBackground = true
+
+                // Deduct credits for successful generation
+                if let credits = userCredits {
+                    do {
+                        try credits.deductCredits(aiBackgroundCost)
+
+                        // Track credit analytics
+                        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                        CreditAnalytics.trackDeduction(
+                            analytics: analytics,
+                            userCredits: credits,
+                            operationType: .aiBackground,
+                            amount: aiBackgroundCost,
+                            subscriptionManager: subscriptionManager
+                        )
+
+                        DeviceLogger.shared.log("💳 [Credits] Deducted \(aiBackgroundCost) credit for AI background generation", level: .info)
+                    } catch {
+                        DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)
+                    }
+                }
+
                 try? modelContext.save()
 
                 // Show success toast

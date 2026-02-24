@@ -1,0 +1,1702 @@
+{
+  "themeId": "victory-kitchen",
+  "themeName": "Victory Kitchen",
+  "themeData": {
+    "id": "victory-kitchen",
+    "name": "Victory Kitchen",
+    "tagline": "Ingenious recipes from the WWII rationing era",
+    "description": "When sugar, butter, and meat were rationed, American home cooks got creative. These recipes show remarkable ingenuity in the face of scarcity.",
+    "iconName": "leaf.fill",
+    "category": "era",
+    "source": "WWII Ration Cookbooks, Betty Crocker Archives",
+    "era": "1941-1945",
+    "region": "United States",
+    "totalRecipes": 14,
+    "unlockSchedule": [
+      1,
+      2,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 3,
+    "coverImagePrompt": "1940s kitchen with victory garden vegetables and ration books, warm homey atmosphere, vintage advertisement style",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/victory-kitchen.webp",
+    "updatedAt": "2026-01-27T01:51:34.442Z"
+  },
+  "recipes": [
+    {
+      "id": "victory-kitchen-001",
+      "title": "Victory Garden Vegetable Soup",
+      "description": "A hearty, meatless soup that made the most of backyard produce when meat was scarce.",
+      "prepTime": 20,
+      "cookTime": 30,
+      "servings": 8,
+      "source": "USDA Victory Garden Guide, 1943",
+      "story": "Victory Gardens provided up to 40% of America's vegetables during WWII. This soup turned whatever was ripe into a nourishing meal, stretching limited resources with creativity and patriotism.",
+      "difficulty": "easy",
+      "tags": [
+        "soup",
+        "vegetarian",
+        "budget-friendly",
+        "healthy"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-victory-garden-soup.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:13.433Z",
+      "updatedAt": "2026-02-06T03:53:13.433Z",
+      "ingredients": [
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons vegetable oil",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 large onion",
+          "order": 1
+        },
+        {
+          "name": "carrots",
+          "amount": 3,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "3 medium carrots",
+          "order": 2
+        },
+        {
+          "name": "celery",
+          "amount": 3,
+          "unit": "stalks",
+          "preparation": "diced",
+          "group": null,
+          "text": "3 stalks celery",
+          "order": 3
+        },
+        {
+          "name": "potatoes",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "2 medium potatoes",
+          "order": 4
+        },
+        {
+          "name": "green beans",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "cut into pieces",
+          "group": null,
+          "text": "1 cup green beans",
+          "order": 5
+        },
+        {
+          "name": "tomatoes",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups tomatoes",
+          "order": 6
+        },
+        {
+          "name": "vegetable broth",
+          "amount": 6,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "6 cups vegetable broth",
+          "order": 7
+        },
+        {
+          "name": "cabbage",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "shredded",
+          "group": null,
+          "text": "2 cups cabbage",
+          "order": 8
+        },
+        {
+          "name": "peas",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup peas",
+          "order": 9
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1  bay leaf",
+          "order": 10
+        },
+        {
+          "name": "thyme",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon thyme",
+          "order": 11
+        },
+        {
+          "name": "salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "salt and pepper",
+          "order": 12
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": null,
+          "text": "2 tablespoons fresh parsley",
+          "order": 13
+        }
+      ],
+      "instructions": [
+        "Heat oil in a large pot over medium heat. Add onion, carrots, and celery. Cook until softened, about 5 minutes.",
+        "Add potatoes, green beans, tomatoes, broth, bay leaf, and thyme.",
+        "Bring to a boil, then reduce heat and simmer 15 minutes.",
+        "Add cabbage and peas. Continue simmering until all vegetables are tender, about 10 minutes.",
+        "Remove bay leaf. Season with salt and pepper.",
+        "Ladle into bowls and garnish with parsley."
+      ]
+    },
+    {
+      "id": "victory-kitchen-002",
+      "title": "Oatmeal War Bread",
+      "description": "A hearty, satisfying bread made with oats to stretch precious wheat flour.",
+      "prepTime": 20,
+      "cookTime": 40,
+      "servings": 12,
+      "source": "USDA War Food Administration, 1943",
+      "story": "With wheat rationed, homemakers learned to stretch flour with oats, corn, and other grains. This bread became a household staple, filling and nutritious when other foods were scarce.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "baking",
+        "hearty"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-oatmeal-war-bread.webp",
+      "sortOrder": 1,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:13.780Z",
+      "updatedAt": "2026-02-06T03:53:13.780Z",
+      "ingredients": [
+        {
+          "name": "warm water",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup warm water",
+          "order": 0
+        },
+        {
+          "name": "active dry yeast",
+          "amount": 2.25,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "2.25 teaspoons active dry yeast",
+          "order": 1
+        },
+        {
+          "name": "honey",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup honey",
+          "order": 2
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons vegetable oil",
+          "order": 3
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons salt",
+          "order": 4
+        },
+        {
+          "name": "rolled oats",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup rolled oats",
+          "order": 5
+        },
+        {
+          "name": "boiling water",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup boiling water",
+          "order": 6
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "3 cups all-purpose flour",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Pour boiling water over oats. Let stand 30 minutes until softened and cooled.",
+        "Dissolve yeast in warm water (110°F). Let stand 5 minutes until foamy.",
+        "Add honey, oil, and salt to yeast mixture.",
+        "Stir in oatmeal mixture. Gradually add flour to form a soft dough.",
+        "Knead until smooth and elastic, about 8 minutes.",
+        "Place in a greased bowl, cover, and let rise until doubled, about 1 hour.",
+        "Punch down and shape into a loaf. Place in a greased 9x5 loaf pan.",
+        "Cover and let rise 45 minutes until doubled.",
+        "Bake at 375°F (190°C) for 35-40 minutes until golden and sounds hollow when tapped.",
+        "Cool on a wire rack before slicing."
+      ]
+    },
+    {
+      "id": "victory-kitchen-003",
+      "title": "Sugarless Spice Cookies",
+      "description": "Sweetened with molasses and spices when sugar was rationed, these chewy cookies became wartime favorites.",
+      "prepTime": 15,
+      "cookTime": 12,
+      "servings": 30,
+      "source": "USDA Sugar Rationing Cookbook, 1942",
+      "story": "Sugar was one of the first items rationed during WWII. Resourceful bakers turned to molasses, honey, and corn syrup to satisfy sweet cravings. These spice cookies used the molasses's natural sweetness to delicious effect.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "cookies",
+        "baking",
+        "wartime"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-sugarless-spice-cookies.webp",
+      "sortOrder": 1,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:14.140Z",
+      "updatedAt": "2026-02-06T03:53:14.140Z",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups all-purpose flour",
+          "order": 0
+        },
+        {
+          "name": "baking soda",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking soda",
+          "order": 1
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 2
+        },
+        {
+          "name": "ginger",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon ginger",
+          "order": 3
+        },
+        {
+          "name": "cloves",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon cloves",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "butter or shortening",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup butter or shortening",
+          "order": 6
+        },
+        {
+          "name": "molasses",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup molasses",
+          "order": 7
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 8
+        },
+        {
+          "name": "hot water",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup hot water",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Line baking sheets with parchment.",
+        "Whisk flour, baking soda, cinnamon, ginger, cloves, and salt.",
+        "Beat butter until creamy. Add molasses and egg; beat well.",
+        "Add flour mixture alternately with hot water, mixing just until combined.",
+        "Drop by rounded tablespoons onto prepared sheets, spacing 2 inches apart.",
+        "Bake 10-12 minutes until set but still slightly soft.",
+        "Cool on pan 5 minutes before transferring to rack."
+      ]
+    },
+    {
+      "id": "victory-kitchen-004",
+      "title": "Eggless Milkless Cake",
+      "description": "Also called 'Depression Cake' or 'War Cake,' this surprisingly moist cake uses no rationed ingredients.",
+      "prepTime": 15,
+      "cookTime": 45,
+      "servings": 12,
+      "source": "Great Depression and WWII Home Front",
+      "story": "When eggs, butter, and milk were scarce, this remarkable cake proved dessert was still possible. The boiled mixture creates steam that helps the cake rise, while spices and raisins add richness without rationed ingredients.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "cake",
+        "wartime",
+        "no-eggs"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-eggless-milkless-cake.webp",
+      "sortOrder": 1,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:14.396Z",
+      "updatedAt": "2026-02-06T03:53:14.396Z",
+      "ingredients": [
+        {
+          "name": "water",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups water",
+          "order": 0
+        },
+        {
+          "name": "brown sugar",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup brown sugar",
+          "order": 1
+        },
+        {
+          "name": "shortening or lard",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup shortening or lard",
+          "order": 2
+        },
+        {
+          "name": "raisins",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup raisins",
+          "order": 3
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 4
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon nutmeg",
+          "order": 5
+        },
+        {
+          "name": "cloves",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon cloves",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups all-purpose flour",
+          "order": 8
+        },
+        {
+          "name": "baking soda",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon baking soda",
+          "order": 9
+        },
+        {
+          "name": "baking powder",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon baking powder",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Combine water, brown sugar, shortening, raisins, cinnamon, nutmeg, cloves, and salt in a saucepan.",
+        "Bring to a boil, stirring occasionally. Boil for 5 minutes.",
+        "Remove from heat and cool completely (this is important for texture).",
+        "Preheat oven to 325°F (165°C). Grease and flour a 9x13 pan or bundt pan.",
+        "Whisk flour, baking soda, and baking powder. Add to cooled mixture and stir until just combined.",
+        "Pour into prepared pan.",
+        "Bake 35-45 minutes until a toothpick comes out clean.",
+        "Cool in pan. Dust with powdered sugar if available."
+      ]
+    },
+    {
+      "id": "victory-kitchen-005",
+      "title": "Scalloped Potatoes",
+      "description": "Creamy, comforting potatoes that needed no meat—just vegetables from the Victory Garden.",
+      "prepTime": 20,
+      "cookTime": 90,
+      "servings": 8,
+      "source": "Victory Garden Cookbook, 1943",
+      "story": "Potatoes were never rationed and Victory Gardens produced them abundantly. This dish could be a side or the main event, stretching limited resources while providing satisfaction and warmth.",
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "vegetarian",
+        "comfort food"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-potato-scallop.webp",
+      "sortOrder": 1,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:14.640Z",
+      "updatedAt": "2026-02-06T03:53:14.640Z",
+      "ingredients": [
+        {
+          "name": "russet potatoes",
+          "amount": 3,
+          "unit": "pounds",
+          "preparation": "peeled and sliced 1/8-inch thick",
+          "group": null,
+          "text": "3 pounds russet potatoes",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "thinly sliced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 1
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 2
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons all-purpose flour",
+          "order": 3
+        },
+        {
+          "name": "milk",
+          "amount": 2.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2.5 cups milk",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons salt",
+          "order": 5
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon white pepper",
+          "order": 6
+        },
+        {
+          "name": "paprika",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon paprika",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Butter a 9x13 baking dish.",
+        "Melt butter in a saucepan. Whisk in flour and cook 1 minute.",
+        "Gradually whisk in milk. Cook until thickened, about 5 minutes. Season with salt and pepper.",
+        "Layer half the potatoes in the dish. Top with half the onions and half the sauce.",
+        "Repeat layers. Sprinkle with paprika.",
+        "Cover with foil and bake 1 hour.",
+        "Uncover and bake 30 minutes more until golden and potatoes are tender."
+      ]
+    },
+    {
+      "id": "victory-kitchen-006",
+      "title": "Liver and Onions",
+      "description": "Organ meats cost fewer ration points, making this nutritious dish an economical choice.",
+      "prepTime": 40,
+      "cookTime": 25,
+      "servings": 4,
+      "source": "Wartime Home Economics Guide",
+      "story": "Organ meats required fewer ration points than muscle meat, making liver an economical protein source. Soaking in milk and smothering in caramelized onions made it palatable even to skeptics.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "budget-friendly",
+        "protein-rich"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-liver-and-onions.webp",
+      "sortOrder": 1,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:14.877Z",
+      "updatedAt": "2026-02-06T03:53:14.877Z",
+      "ingredients": [
+        {
+          "name": "beef or calf liver",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": "sliced 1/2-inch thick",
+          "group": null,
+          "text": "1.5 pounds beef or calf liver",
+          "order": 0
+        },
+        {
+          "name": "milk",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup milk",
+          "order": 1
+        },
+        {
+          "name": "onions",
+          "amount": 3,
+          "unit": "large",
+          "preparation": "sliced into rings",
+          "group": null,
+          "text": "3 large onions",
+          "order": 2
+        },
+        {
+          "name": "bacon",
+          "amount": 4,
+          "unit": "slices",
+          "preparation": null,
+          "group": null,
+          "text": "4 slices bacon",
+          "order": 3
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup all-purpose flour",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 6
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Soak liver in milk for 30 minutes to 1 hour. This removes strong flavor.",
+        "Cook bacon in a large skillet until crisp. Remove and crumble; reserve drippings.",
+        "Add butter to drippings. Cook onions until golden and caramelized, about 15 minutes. Remove and keep warm.",
+        "Drain liver and pat dry. Season flour with salt and pepper. Dredge liver in flour.",
+        "Cook liver in the skillet over medium-high heat, about 3-4 minutes per side. Don't overcook—it should be slightly pink inside.",
+        "Serve liver topped with onions and crumbled bacon."
+      ]
+    },
+    {
+      "id": "victory-kitchen-007",
+      "title": "Victory Salmon Loaf",
+      "description": "Canned salmon was abundant when fresh fish was scarce—this loaf made the most of shelf-stable protein.",
+      "prepTime": 15,
+      "cookTime": 50,
+      "servings": 6,
+      "source": "Wartime Seafood Recipes, 1943",
+      "story": "Canned goods required no refrigeration and were easily transported. Salmon loaf became a wartime standby, transforming pantry staples into a presentable main course.",
+      "difficulty": "easy",
+      "tags": [
+        "seafood",
+        "main dish",
+        "budget-friendly"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-salmon-loaf.webp",
+      "sortOrder": 1,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:15.125Z",
+      "updatedAt": "2026-02-06T03:53:15.125Z",
+      "ingredients": [
+        {
+          "name": "canned salmon",
+          "amount": 15,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "15 ounces canned salmon",
+          "order": 0
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup breadcrumbs",
+          "order": 1
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "minced",
+          "group": null,
+          "text": "0.25 cup onion",
+          "order": 3
+        },
+        {
+          "name": "celery",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "minced",
+          "group": null,
+          "text": "0.25 cup celery",
+          "order": 4
+        },
+        {
+          "name": "lemon juice",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons lemon juice",
+          "order": 5
+        },
+        {
+          "name": "milk",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup milk",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 8
+        },
+        {
+          "name": "dill",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon dill",
+          "order": 9
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For topping",
+          "text": "2 tablespoons butter",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Grease a 9x5 loaf pan.",
+        "Flake salmon into a large bowl.",
+        "Add breadcrumbs, eggs, onion, celery, lemon juice, milk, salt, pepper, and dill. Mix well.",
+        "Pack into prepared pan. Brush top with melted butter.",
+        "Bake 45-50 minutes until firm and golden.",
+        "Let rest 5 minutes before slicing. Serve with lemon wedges or white sauce."
+      ]
+    },
+    {
+      "id": "victory-kitchen-008",
+      "title": "Mock Apple Pie (Ritz Cracker)",
+      "description": "The famous wartime pie that fooled everyone—made with crackers instead of apples when fruit was unavailable.",
+      "prepTime": 20,
+      "cookTime": 35,
+      "servings": 8,
+      "source": "Ritz Cracker Box Recipe, 1940s",
+      "story": "When apples were scarce, Nabisco printed this ingenious recipe on Ritz cracker boxes. The cream of tartar creates a tartness that mimics apples, while the crackers become tender and flaky. Many families were fooled into thinking it was the real thing.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "pie",
+        "creative",
+        "wartime"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-mock-apple-pie.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:15.385Z",
+      "updatedAt": "2026-02-06T03:53:15.385Z",
+      "ingredients": [
+        {
+          "name": "pie crust",
+          "amount": 2,
+          "unit": "9-inch rounds",
+          "preparation": null,
+          "group": null,
+          "text": "2 9-inch rounds pie crust",
+          "order": 0
+        },
+        {
+          "name": "Ritz crackers",
+          "amount": 36,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "36  Ritz crackers",
+          "order": 1
+        },
+        {
+          "name": "water",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups water",
+          "order": 2
+        },
+        {
+          "name": "sugar",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups sugar",
+          "order": 3
+        },
+        {
+          "name": "cream of tartar",
+          "amount": 2,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 teaspoons cream of tartar",
+          "order": 4
+        },
+        {
+          "name": "lemon zest",
+          "amount": 2,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 teaspoons lemon zest",
+          "order": 5
+        },
+        {
+          "name": "lemon juice",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons lemon juice",
+          "order": 6
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon cinnamon",
+          "order": 7
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "cut into pieces",
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 425°F (220°C).",
+        "Line a 9-inch pie plate with one crust.",
+        "Combine water, sugar, and cream of tartar in a saucepan. Bring to a boil and simmer 15 minutes.",
+        "Add lemon zest, lemon juice, and cinnamon. Cool slightly.",
+        "Place crackers in the pie crust.",
+        "Pour syrup over crackers. Dot with butter.",
+        "Top with second crust and crimp edges. Cut vents.",
+        "Bake 30-35 minutes until golden brown.",
+        "Cool completely before slicing. The texture is remarkably apple-like."
+      ]
+    },
+    {
+      "id": "victory-kitchen-009",
+      "title": "Meatless Monday Lentil Loaf",
+      "description": "A satisfying protein-rich loaf that made meatless days possible when meat was rationed.",
+      "prepTime": 20,
+      "cookTime": 50,
+      "servings": 6,
+      "source": "Betty Crocker's 'Your Share' Cookbook, 1943",
+      "story": "Meatless Tuesdays became a patriotic duty during WWII. This lentil loaf provided the satisfying, savory experience of meatloaf while saving precious meat for the troops.",
+      "difficulty": "easy",
+      "tags": [
+        "vegetarian",
+        "main dish",
+        "protein-rich"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-meatless-monday-loaf.webp",
+      "sortOrder": 2,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:15.635Z",
+      "updatedAt": "2026-02-06T03:53:15.635Z",
+      "ingredients": [
+        {
+          "name": "green or brown lentils",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup green or brown lentils",
+          "order": 0
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup breadcrumbs",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "finely diced",
+          "group": null,
+          "text": "1 small onion",
+          "order": 2
+        },
+        {
+          "name": "celery",
+          "amount": 1,
+          "unit": "stalk",
+          "preparation": "finely diced",
+          "group": null,
+          "text": "1 stalk celery",
+          "order": 3
+        },
+        {
+          "name": "carrot",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "grated",
+          "group": null,
+          "text": "1 small carrot",
+          "order": 4
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 5
+        },
+        {
+          "name": "tomato sauce",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup tomato sauce",
+          "order": 6
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon Worcestershire sauce",
+          "order": 7
+        },
+        {
+          "name": "thyme",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon thyme",
+          "order": 8
+        },
+        {
+          "name": "sage",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon sage",
+          "order": 9
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 10
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 11
+        },
+        {
+          "name": "ketchup",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For topping",
+          "text": "0.25 cup ketchup",
+          "order": 12
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Grease a 9x5 loaf pan.",
+        "Mash cooked lentils with a fork, leaving some texture.",
+        "Combine lentils, breadcrumbs, onion, celery, carrot, eggs, tomato sauce, Worcestershire, thyme, sage, salt, and pepper.",
+        "Pack mixture into prepared pan.",
+        "Spread ketchup over the top.",
+        "Bake 45-50 minutes until firm and browned.",
+        "Let rest 10 minutes before slicing."
+      ]
+    },
+    {
+      "id": "victory-kitchen-010",
+      "title": "Stretched Meat Patties",
+      "description": "Ground meat extended with oats and vegetables to make ration points go further.",
+      "prepTime": 15,
+      "cookTime": 10,
+      "servings": 8,
+      "source": "Betty Crocker Wartime Meals, 1943",
+      "story": "Meat rationing meant getting creative. By adding oats and vegetables, a pound of meat could feed twice as many people. The vegetables added moisture and nutrition while making the ration book stretch further.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "budget-friendly",
+        "family favorite"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-stretched-meat-patties.webp",
+      "sortOrder": 2,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:15.882Z",
+      "updatedAt": "2026-02-06T03:53:15.882Z",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": null,
+          "group": null,
+          "text": "1 pound ground beef",
+          "order": 0
+        },
+        {
+          "name": "rolled oats",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup rolled oats",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "finely grated",
+          "group": null,
+          "text": "0.5 cup onion",
+          "order": 2
+        },
+        {
+          "name": "carrot",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "finely grated",
+          "group": null,
+          "text": "0.5 cup carrot",
+          "order": 3
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 4
+        },
+        {
+          "name": "milk",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup milk",
+          "order": 5
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon Worcestershire sauce",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 8
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons vegetable oil",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Soak oats in milk for 5 minutes.",
+        "Combine beef, soaked oats, onion, carrot, egg, Worcestershire, salt, and pepper. Mix gently.",
+        "Form into 8 patties.",
+        "Heat oil in a large skillet over medium heat.",
+        "Cook patties 4-5 minutes per side until cooked through.",
+        "Serve with gravy, on buns, or alongside vegetables."
+      ]
+    },
+    {
+      "id": "victory-kitchen-011",
+      "title": "SPAM and Eggs",
+      "description": "The canned meat that kept America fed became a breakfast staple overnight.",
+      "prepTime": 5,
+      "cookTime": 10,
+      "servings": 4,
+      "source": "Hormel Foods Wartime Promotions",
+      "story": "Introduced in 1937, SPAM became essential during WWII when fresh meat was rationed. Over 100 million pounds were shipped to troops overseas. At home, it became a refrigerator staple that required no ration points.",
+      "difficulty": "easy",
+      "tags": [
+        "breakfast",
+        "quick",
+        "wartime"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-spam-and-eggs.webp",
+      "sortOrder": 2,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:16.162Z",
+      "updatedAt": "2026-02-06T03:53:16.162Z",
+      "ingredients": [
+        {
+          "name": "SPAM",
+          "amount": 12,
+          "unit": "ounces",
+          "preparation": "sliced into 8 pieces",
+          "group": null,
+          "text": "12 ounces SPAM",
+          "order": 0
+        },
+        {
+          "name": "eggs",
+          "amount": 8,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "8 large eggs",
+          "order": 1
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 2
+        },
+        {
+          "name": "salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "salt and pepper",
+          "order": 3
+        },
+        {
+          "name": "toast",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "toast",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Heat a large skillet over medium heat.",
+        "Add SPAM slices and cook until golden brown on both sides, about 3 minutes per side. Remove and keep warm.",
+        "Add butter to the skillet.",
+        "Crack eggs into the pan. Season with salt and pepper.",
+        "Cook to desired doneness—sunny-side up, over-easy, or scrambled.",
+        "Serve eggs alongside SPAM with toast."
+      ]
+    },
+    {
+      "id": "victory-kitchen-012",
+      "title": "Honey-Oatmeal Drop Cookies",
+      "description": "Chewy oat cookies sweetened with honey instead of rationed sugar.",
+      "prepTime": 15,
+      "cookTime": 12,
+      "servings": 36,
+      "source": "USDA Wartime Baking Guide",
+      "story": "Local honey wasn't rationed like sugar, and beekeeping became a patriotic hobby. These cookies used honey's natural sweetness and oats' heartiness to create treats without guilt or ration coupons.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "cookies",
+        "wartime"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-honey-oatmeal-cookies.webp",
+      "sortOrder": 2,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:16.390Z",
+      "updatedAt": "2026-02-06T03:53:16.390Z",
+      "ingredients": [
+        {
+          "name": "butter or shortening",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup butter or shortening",
+          "order": 0
+        },
+        {
+          "name": "honey",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup honey",
+          "order": 1
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 2
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla extract",
+          "order": 3
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup all-purpose flour",
+          "order": 4
+        },
+        {
+          "name": "baking soda",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon baking soda",
+          "order": 5
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon cinnamon",
+          "order": 7
+        },
+        {
+          "name": "rolled oats",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups rolled oats",
+          "order": 8
+        },
+        {
+          "name": "raisins",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup raisins",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Line baking sheets with parchment.",
+        "Beat butter and honey until combined. Add egg and vanilla; beat well.",
+        "Whisk flour, baking soda, salt, and cinnamon. Add to butter mixture.",
+        "Stir in oats and raisins.",
+        "Drop by rounded tablespoons onto prepared sheets.",
+        "Bake 10-12 minutes until edges are golden.",
+        "Cool on pan 5 minutes before transferring to rack."
+      ]
+    },
+    {
+      "id": "victory-kitchen-013",
+      "title": "Victory Carrot Cookies",
+      "description": "Sweet carrots from the Victory Garden made these cookies possible without using precious sugar.",
+      "prepTime": 20,
+      "cookTime": 15,
+      "servings": 30,
+      "source": "Victory Garden Cookbook, 1943",
+      "story": "Carrots' natural sweetness made them ideal for wartime baking. These soft cookies showcased Victory Garden produce while satisfying sweet cravings without raiding the sugar bowl.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "cookies",
+        "vegetable",
+        "wartime"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-carrot-cookies.webp",
+      "sortOrder": 2,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:16.608Z",
+      "updatedAt": "2026-02-06T03:53:16.608Z",
+      "ingredients": [
+        {
+          "name": "carrots",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "cooked and mashed",
+          "group": null,
+          "text": "1 cup carrots",
+          "order": 0
+        },
+        {
+          "name": "butter or shortening",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup butter or shortening",
+          "order": 1
+        },
+        {
+          "name": "honey or corn syrup",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup honey or corn syrup",
+          "order": 2
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 3
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla extract",
+          "order": 4
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups all-purpose flour",
+          "order": 5
+        },
+        {
+          "name": "baking powder",
+          "amount": 2,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 teaspoons baking powder",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon cinnamon",
+          "order": 8
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon nutmeg",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Line baking sheets with parchment.",
+        "Beat butter and honey until combined. Add mashed carrots, egg, and vanilla.",
+        "Whisk flour, baking powder, salt, cinnamon, and nutmeg. Add to butter mixture.",
+        "Drop by rounded tablespoons onto prepared sheets.",
+        "Bake 12-15 minutes until lightly browned.",
+        "Cool on wire rack. Can be frosted with a simple powdered sugar glaze."
+      ]
+    },
+    {
+      "id": "victory-kitchen-014",
+      "title": "Wheatless Cornmeal Muffins",
+      "description": "Made with cornmeal instead of scarce wheat flour, these golden muffins accompanied every wartime meal.",
+      "prepTime": 10,
+      "cookTime": 20,
+      "servings": 12,
+      "source": "USDA Wheat Conservation Program, 1943",
+      "story": "Wheat was needed for troops overseas, so homemakers turned to corn. These golden muffins proved that substitution didn't mean sacrifice—many families found they preferred them.",
+      "difficulty": "easy",
+      "tags": [
+        "bread",
+        "baking",
+        "quick"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/victory-kitchen/victory-kitchen-wheatless-cornmeal-muffins.webp",
+      "sortOrder": 2,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:16.801Z",
+      "updatedAt": "2026-02-06T03:53:16.801Z",
+      "ingredients": [
+        {
+          "name": "cornmeal",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups cornmeal",
+          "order": 0
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup all-purpose flour",
+          "order": 1
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons sugar",
+          "order": 2
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon baking powder",
+          "order": 3
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon salt",
+          "order": 4
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 5
+        },
+        {
+          "name": "milk",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup milk",
+          "order": 6
+        },
+        {
+          "name": "vegetable oil or melted shortening",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup vegetable oil or melted shortening",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 400°F (200°C). Grease a 12-cup muffin tin or line with papers.",
+        "Whisk cornmeal, flour, sugar, baking powder, and salt in a large bowl.",
+        "Beat egg with milk and oil in a small bowl.",
+        "Pour wet ingredients into dry; stir just until combined. Don't overmix.",
+        "Divide batter among muffin cups.",
+        "Bake 18-20 minutes until golden and a toothpick comes out clean.",
+        "Serve warm with butter if available."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:30:39.175Z"
+}

@@ -15,8 +15,16 @@ struct ASMRVideoImportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
-    @StateObject private var usageManager = ASMRUsageManager.shared
+    @Query private var allUserCredits: [UserCredits]
     @StateObject private var jobManager = VideoProcessingJobManager()
+
+    private var userCredits: UserCredits? {
+        allUserCredits.first
+    }
+
+    private var canAffordASMR: Bool {
+        userCredits?.canAfford(credits: 5) ?? false
+    }
 
     @State private var selectedVideoURL: URL?
     @State private var userCaption = ""
@@ -104,17 +112,16 @@ struct ASMRVideoImportView: View {
                             .foregroundStyle(.orange.gradient)
 
                         VStack(spacing: HeirloomSpacing.sm) {
-                            Text("No ASMR Credits Remaining")
+                            Text("Insufficient Credits")
                                 .font(.title2.bold())
 
-                            let summary = usageManager.getUsageSummary()
-                            Text("You've used \(summary.extractionsUsed) of \(summary.extractionsTotal) monthly extractions.")
+                            Text("ASMR extraction requires 5 credits. You have \(userCredits?.availableCredits ?? 0) credits available.")
                                 .font(HeirloomFonts.body)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                         }
 
-                        Text("Upgrade to Premium for unlimited ASMR video imports.")
+                        Text("Upgrade to Premium for 100 credits/month, or purchase additional credits.")
                             .font(.body)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
@@ -413,7 +420,7 @@ struct ASMRVideoImportView: View {
 
     private func processVideo() {
         guard canProcess else {
-            if !usageManager.canStartExtraction() {
+            if !canAffordASMR {
                 showPaywall = true
             }
             return
@@ -426,7 +433,7 @@ struct ASMRVideoImportView: View {
         selectedVideoURL != nil &&
         !userCaption.isEmpty &&
         userCaption.count >= 5 &&
-        usageManager.canStartExtraction()
+        canAffordASMR
     }
 
     private func createJob() {

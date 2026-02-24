@@ -18,6 +18,17 @@ struct GeneratedRecipeResponse: Codable {
     let instructions: [String]  // Direct match to Recipe.instructions
     let tags: [String]?      // Will create/link Tag models
     let cuisine: String?
+
+    // MARK: - Card Back Content (displayed on flip side of recipe card)
+
+    /// Interesting facts about the dish, its history, or ingredients
+    let funFacts: [String]?
+
+    /// Cultural background or historical significance of the dish
+    let culturalContext: String?
+
+    /// Professional cooking tips and suggestions
+    let chefTips: [String]?
 }
 
 /// Generated ingredient that maps to Ingredient model structure

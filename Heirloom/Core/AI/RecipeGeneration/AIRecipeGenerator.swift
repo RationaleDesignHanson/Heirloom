@@ -172,6 +172,9 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         - instructions (array of strings, one per step)
         - tags (array of strings like ["Italian", "Comfort Food", "Easy"])
         - cuisine (string, e.g., "Italian", "Mexican", "American")
+        - funFacts (array of 2-3 interesting facts about the dish, its history, or key ingredients)
+        - culturalContext (string, 1-2 sentences about the dish's cultural significance or origin)
+        - chefTips (array of 2-3 professional cooking tips for best results)
 
         Guidelines:
         - Be specific and realistic
@@ -179,6 +182,9 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         - Keep instructions clear and sequential
         - Suggest appropriate tags for discoverability
         - For category, use one of: Produce, Dairy & Eggs, Meat & Seafood, Bakery, Pantry, Frozen, Spices & Seasonings, Condiments & Sauces, Beverages, Other
+        - Fun facts should be genuinely interesting and accurate (e.g., origin stories, ingredient history, regional variations)
+        - Cultural context should be respectful and informative about the dish's place in its cuisine
+        - Chef tips should be practical and help achieve better results
         """
 
         return prompt
@@ -226,10 +232,54 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
             }
         }
 
+        // Create card back with AI-generated content
+        let cardBack = createCardBack(from: response, recipe: recipe, context: context)
+        recipe.cardBack = cardBack
+
+        // Store cultural context as historical text for card back display
+        if let culturalContext = response.culturalContext {
+            recipe.historicalText = culturalContext
+        }
+
         // Insert recipe into context
         context.insert(recipe)
 
         return recipe
+    }
+
+    private func createCardBack(from response: GeneratedRecipeResponse, recipe: Recipe, context: ModelContext) -> RecipeCardBack {
+        let cardBack = RecipeCardBack(recipe: recipe)
+
+        // Add chef tips as personal tips
+        if let tips = response.chefTips, !tips.isEmpty {
+            cardBack.personalTips = tips
+        }
+
+        // Combine fun facts into a note
+        if let funFacts = response.funFacts, !funFacts.isEmpty {
+            let factsText = funFacts.enumerated().map { index, fact in
+                "• \(fact)"
+            }.joined(separator: "\n")
+            cardBack.noteToFriends = "Did you know?\n\(factsText)"
+        }
+
+        // Configure visible sections for AI recipes
+        cardBack.visibleSections = [
+            .attribution,
+            .noteToFriends,  // Shows fun facts
+            .userTips,       // Shows chef tips
+            .historicalText  // Shows cultural context
+        ]
+
+        // Use standard styling (not vintage like heritage recipes)
+        cardBack.backgroundStyle = .cream
+        cardBack.layoutStyle = .standard
+        cardBack.showBorder = true
+        cardBack.isComplete = true
+
+        context.insert(cardBack)
+
+        return cardBack
     }
 
     private func parseCategory(_ categoryString: String?) -> GroceryCategory {

@@ -88,7 +88,12 @@ class UndoService: ObservableObject {
 
         // Social
         let sharedBy: String?
+        let sharedByUserId: String?
+        let sharedFromRecipeId: String?
         let sharedDate: Date?
+        let heritageChain: [String]?
+        let heritageChainNames: [String]?
+        let isDemoRecipe: Bool
         let passedDownBy: String?
         let passedDownDate: Date?
         let passedDownMessage: String?
@@ -195,7 +200,12 @@ class UndoService: ObservableObject {
                 scalingNote: recipe.scalingNote,
                 collectionIds: (recipe.collections ?? []).map { $0.id },
                 sharedBy: recipe.sharedBy,
+                sharedByUserId: recipe.sharedByUserId,
+                sharedFromRecipeId: recipe.sharedFromRecipeId,
                 sharedDate: recipe.sharedDate,
+                heritageChain: recipe.heritageChain,
+                heritageChainNames: recipe.heritageChainNames,
+                isDemoRecipe: recipe.isDemoRecipe,
                 passedDownBy: recipe.passedDownBy,
                 passedDownDate: recipe.passedDownDate,
                 passedDownMessage: recipe.passedDownMessage,
@@ -535,7 +545,12 @@ class UndoService: ObservableObject {
 
         // Social
         restoredRecipe.sharedBy = data.sharedBy
+        restoredRecipe.sharedByUserId = data.sharedByUserId
+        restoredRecipe.sharedFromRecipeId = data.sharedFromRecipeId
         restoredRecipe.sharedDate = data.sharedDate
+        restoredRecipe.heritageChain = data.heritageChain
+        restoredRecipe.heritageChainNames = data.heritageChainNames
+        restoredRecipe.isDemoRecipe = data.isDemoRecipe
         restoredRecipe.passedDownBy = data.passedDownBy
         restoredRecipe.passedDownDate = data.passedDownDate
         restoredRecipe.passedDownMessage = data.passedDownMessage
@@ -1088,7 +1103,12 @@ class UndoService: ObservableObject {
 
         // Social
         recipe.sharedBy = data.sharedBy
+        recipe.sharedByUserId = data.sharedByUserId
+        recipe.sharedFromRecipeId = data.sharedFromRecipeId
         recipe.sharedDate = data.sharedDate
+        recipe.heritageChain = data.heritageChain
+        recipe.heritageChainNames = data.heritageChainNames
+        recipe.isDemoRecipe = data.isDemoRecipe
         recipe.passedDownBy = data.passedDownBy
         recipe.passedDownDate = data.passedDownDate
         recipe.passedDownMessage = data.passedDownMessage

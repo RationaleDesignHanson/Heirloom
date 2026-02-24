@@ -642,27 +642,11 @@ struct CollectionsListView: View {
             .onChange(of: syncService.hasCompletedInitialSync) { _, hasCompleted in
                 // When sync completes:
                 // 1. Ensure theme collections have their relationships set
-                // 2. Create theme collections if missing (for fresh logins)
+                // 2. Download theme recipes if collections are empty (returning user)
                 if hasCompleted {
                     Log.info("Sync completed - ensuring theme collection relationships", category: .collections)
                     ensureThemeCollectionRelationships()
-
-                    // After sync, check if ANY selected theme is missing its collection
-                    // This handles fresh login where sync downloads recipes but theme collections don't exist yet
-                    // Note: themeCollections.isEmpty isn't enough - we need to check if ALL selected themes have collections
-                    let selectedIds = Set(themeUnlockTracker.selectedThemeIds)
-                    let existingThemeIds = Set(themeCollections.compactMap { $0.sourceThemeId })
-                    let missingThemeIds = selectedIds.subtracting(existingThemeIds)
-
-                    if !missingThemeIds.isEmpty {
-                        Log.info("Sync completed - some theme collections missing, creating now", category: .collections, metadata: [
-                            "selectedCount": selectedIds.count,
-                            "existingCount": existingThemeIds.count,
-                            "missingCount": missingThemeIds.count,
-                            "missing": Array(missingThemeIds).joined(separator: ", ")
-                        ])
-                        recreateThemeCollections()
-                    }
+                    checkAndDownloadThemeRecipesIfNeeded()
                 }
             }
         }
@@ -1348,7 +1332,17 @@ struct CollectionsListView: View {
                 Log.info("Sync already complete - some theme collections missing, recreating", category: .collections, metadata: [
                     "missing": Array(missingThemeIds).joined(separator: ", ")
                 ])
-                recreateThemeCollections()
+                // Load themes first if missing (after app reinstall)
+                Task {
+                    if allThemes.isEmpty {
+                        Log.info("Themes not loaded - fetching from Firebase", category: .collections)
+                        let themeLoader = ThemeLoader()
+                        _ = try? await themeLoader.loadThemes(into: modelContext)
+                    }
+                    await MainActor.run {
+                        recreateThemeCollections()
+                    }
+                }
             }
         } else {
             Log.info("Initial sync not complete - deferring theme collection check to onChange handler", category: .collections)
@@ -1831,6 +1825,18 @@ struct CollectionsListView: View {
                 if let credits = userCredits {
                     do {
                         try credits.deductCredits(aiBackgroundCost)
+
+                        // Track credit analytics
+                        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                        CreditAnalytics.trackDeduction(
+                            analytics: analytics,
+                            userCredits: credits,
+                            operationType: .aiBackground,
+                            amount: aiBackgroundCost,
+                            subscriptionManager: subscriptionManager
+                        )
+
                         DeviceLogger.shared.log("💳 [Credits] Deducted \(aiBackgroundCost) credit for AI background generation", level: .info)
                     } catch {
                         DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)
@@ -2059,6 +2065,62 @@ struct CollectionsListView: View {
 
         // After creating collections, link recipes to them
         linkThemeRecipesToCollections()
+    }
+
+    /// Download theme recipes for a returning user after sign-in
+    /// This is called when theme collections are created but recipes haven't been downloaded yet
+    private func downloadThemeRecipesForReturningUser(themeIds: [String]) async {
+        guard !themeIds.isEmpty else { return }
+
+        Log.info("Downloading theme recipes for returning user", category: .collections, metadata: [
+            "themeCount": themeIds.count
+        ])
+
+        do {
+            let recipeService = await MainActor.run { ThemeRecipeService() }
+            let recipes = try await recipeService.downloadRecipes(for: themeIds, into: modelContext)
+
+            await MainActor.run {
+                try? modelContext.save()
+                Log.info("Downloaded theme recipes for returning user", category: .collections, metadata: [
+                    "recipeCount": recipes.count
+                ])
+            }
+        } catch {
+            Log.error("Failed to download theme recipes for returning user", category: .collections, error: error)
+        }
+    }
+
+    /// Check if theme collections are empty and download recipes if needed (returning user case)
+    private func checkAndDownloadThemeRecipesIfNeeded() {
+        let selectedIds: [String] = themeUnlockTracker.selectedThemeIds
+
+        // Check if theme collections exist but are EMPTY (returning user case)
+        let themeCollectionsEmpty: Bool = themeCollections.allSatisfy { ($0.recipes ?? []).isEmpty }
+
+        if !selectedIds.isEmpty && themeCollectionsEmpty {
+            Log.info("Sync completed - theme collections empty, downloading recipes (returning user)", category: .collections, metadata: [
+                "selectedThemeCount": selectedIds.count,
+                "themeCollectionCount": themeCollections.count
+            ])
+
+            Task {
+                // First, ensure themes are loaded from Firebase (may be missing after app reinstall)
+                if allThemes.isEmpty {
+                    Log.info("Themes not loaded - fetching from Firebase for returning user", category: .collections)
+                    let themeLoader = ThemeLoader()
+                    _ = try? await themeLoader.loadThemes(into: modelContext)
+                }
+
+                // Now recreate collections (must be on main actor since we touch modelContext)
+                await MainActor.run {
+                    recreateThemeCollections()
+                }
+
+                // Download theme recipes - same as pull-to-refresh
+                await downloadThemeRecipesForReturningUser(themeIds: selectedIds)
+            }
+        }
     }
 
     // MARK: - Restore from File

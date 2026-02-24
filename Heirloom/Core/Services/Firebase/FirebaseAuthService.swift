@@ -90,17 +90,13 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
                 if let user = user {
                     self.logger.log("User signed in: \(user.uid)", category: .auth, level: .info, metadata: nil)
 
-                    // Sync user profile to Firestore for display names in lineage
-                    if let profileService = self.userProfileService {
-                        Task {
-                            do {
-                                try await profileService.syncCurrentUserProfile()
-                                self.logger.log("User profile synced to Firestore", category: .auth, level: .info, metadata: nil)
-                            } catch {
-                                self.logger.log("Failed to sync user profile: \(error.localizedDescription)", category: .auth, level: .warning, metadata: nil)
-                            }
-                        }
-                    }
+                    // NOTE: Do NOT sync profile here on sign-in!
+                    // For returning users, local state (hasCompletedOnboarding, selectedThemeIds) is empty
+                    // after sign-out. Syncing now would overwrite Firebase with empty data.
+                    // Profile sync happens:
+                    // 1. After onboarding completes (OnboardingContainerView.finalizeOnboarding)
+                    // 2. When user manually updates their profile
+                    // Returning user handling is in HeirloomApp.swift (checkForExistingUserData)
                 } else {
                     self.logger.log("User signed out", category: .auth, level: .info, metadata: nil)
 
@@ -139,10 +135,28 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         currentUser?.email
     }
 
+    /// Check if user signed in with Apple
+    var isAppleUser: Bool {
+        currentUser?.providerData.contains { $0.providerID == "apple.com" } ?? false
+    }
+
+    /// Check if user signed in with Google
+    var isGoogleUser: Bool {
+        currentUser?.providerData.contains { $0.providerID == "google.com" } ?? false
+    }
+
+    /// Check if user signed in with email/password
+    var isEmailUser: Bool {
+        currentUser?.providerData.contains { $0.providerID == "password" } ?? false
+    }
+
     // MARK: - Sign in with Apple State
 
     // Unhashed nonce for Sign in with Apple
     private var currentNonce: String?
+
+    // Continuation for async/await Apple sign-in
+    private var appleSignInContinuation: CheckedContinuation<Void, Error>?
 
     // MARK: - Authentication
 
@@ -163,13 +177,16 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         request.requestedScopes = [.fullName, .email]
         request.nonce = sha256(nonce)
 
-        // Present authorization UI
-        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-        authorizationController.delegate = self
-        authorizationController.presentationContextProvider = self
-        authorizationController.performRequests()
+        // Use continuation to wait for delegate callback
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            self.appleSignInContinuation = continuation
 
-        // Note: Completion handled in delegate methods
+            // Present authorization UI
+            let authorizationController = ASAuthorizationController(authorizationRequests: [request])
+            authorizationController.delegate = self
+            authorizationController.presentationContextProvider = self
+            authorizationController.performRequests()
+        }
     }
 
     /// Sign in with Google
@@ -294,6 +311,24 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         }
     }
 
+    /// Re-authenticate user with email and password (required before sensitive operations like delete)
+    func reauthenticateWithEmail(password: String) async throws {
+        guard let user = currentUser, let email = user.email else {
+            throw AuthError.notAuthenticated
+        }
+
+        logger.log("Re-authenticating user with email", category: .auth, level: .info, metadata: nil)
+
+        do {
+            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+            try await user.reauthenticate(with: credential)
+            logger.log("Re-authentication successful", category: .auth, level: .info, metadata: nil)
+        } catch {
+            logger.log("Re-authentication failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
+            throw error
+        }
+    }
+
     /// Sign out
     func signOut() throws {
         logger.log("Signing out user", category: .auth, level: .info, metadata: nil)
@@ -399,14 +434,44 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
         logger.log("🧹 Clearing all local user data", category: .auth, level: .info, metadata: nil)
 
-        // Clear UserDefaults
+        // Clear sync-related UserDefaults
         UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
         UserDefaults.standard.removeObject(forKey: "lastSyncTimestamp")
+
+        // Clear onboarding state — critical to prevent cross-user pollution
+        UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.removeObject(forKey: "has_completed_onboarding") // Legacy key
+
+        // Clear subscription/account state — critical for test accounts
+        // Each user should start fresh without sandbox subscription from previous user
+        UserDefaults.standard.removeObject(forKey: "subscription_status")
+        UserDefaults.standard.removeObject(forKey: "trial_expiry_date")
+        UserDefaults.standard.removeObject(forKey: "subscription_expiry_date")
+        UserDefaults.standard.removeObject(forKey: "last_status_refresh")
+        UserDefaults.standard.removeObject(forKey: "cached_product_id")
+        UserDefaults.standard.removeObject(forKey: "first_launch_date")
+        UserDefaults.standard.removeObject(forKey: "demo_account_configured_for_review")
+        UserDefaults.standard.removeObject(forKey: "tester_account_configured_for_review")
+        UserDefaults.standard.removeObject(forKey: "demo_account_purchased_this_session")
+        logger.log("✅ Cleared subscription and account state", category: .auth, level: .info, metadata: nil)
+
+        // NOTE: Theme unlock state is NOT cleared on sign-out
+        // Theme state (selected_theme_ids, trial dates) is managed per-user through:
+        // 1. Onboarding flow for new users
+        // 2. configureForDemoAccount() for demo@
+        // 3. configureForDeletionTest() for deletetest@
+        // Clearing theme state here would break multi-account usage on same device
 
         // Post notification for app to clear SwiftData
         // (We can't access ModelContext directly from this service)
         NotificationCenter.default.post(
             name: NSNotification.Name("ClearAllUserDataNotification"),
+            object: nil
+        )
+
+        // Post notification for SubscriptionManager to reset in-memory state
+        NotificationCenter.default.post(
+            name: NSNotification.Name("ResetSubscriptionStateNotification"),
             object: nil
         )
 
@@ -422,21 +487,33 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
         Task { @MainActor in
             guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
                 logger.log("Invalid credential type for Apple sign in", category: .auth, level: .error, metadata: nil)
+                let error = AuthError.invalidCredential
+                appleSignInContinuation?.resume(throwing: error)
+                appleSignInContinuation = nil
                 return
             }
 
             guard let nonce = currentNonce else {
                 logger.log("Invalid state: login callback received but no login request was sent", category: .auth, level: .error, metadata: nil)
+                let error = AuthError.invalidCredential
+                appleSignInContinuation?.resume(throwing: error)
+                appleSignInContinuation = nil
                 return
             }
 
             guard let appleIDToken = appleIDCredential.identityToken else {
                 logger.log("Unable to fetch Apple identity token", category: .auth, level: .error, metadata: nil)
+                let error = AuthError.invalidCredential
+                appleSignInContinuation?.resume(throwing: error)
+                appleSignInContinuation = nil
                 return
             }
 
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
                 logger.log("Unable to serialize Apple token string", category: .auth, level: .error, metadata: nil)
+                let error = AuthError.invalidCredential
+                appleSignInContinuation?.resume(throwing: error)
+                appleSignInContinuation = nil
                 return
             }
 
@@ -471,9 +548,15 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
 
                 authError = nil
 
+                // Resume continuation with success
+                appleSignInContinuation?.resume()
+                appleSignInContinuation = nil
+
             } catch {
                 logger.log("Apple authentication failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
                 authError = error
+                appleSignInContinuation?.resume(throwing: error)
+                appleSignInContinuation = nil
             }
         }
     }
@@ -482,15 +565,18 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
         Task { @MainActor in
             logger.log("Sign in with Apple failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
 
-            // Check if user cancelled
-            if let authError = error as? ASAuthorizationError {
-                if authError.code == .canceled {
-                    logger.log("User cancelled Sign in with Apple", category: .auth, level: .info, metadata: nil)
-                    return
-                }
+            // Check if user cancelled - still throw so caller knows not to proceed
+            if let asError = error as? ASAuthorizationError, asError.code == .canceled {
+                logger.log("User cancelled Sign in with Apple", category: .auth, level: .info, metadata: nil)
+                // Don't set authError for cancellation (not a real error to show)
+                appleSignInContinuation?.resume(throwing: error)
+                appleSignInContinuation = nil
+                return
             }
 
             authError = error
+            appleSignInContinuation?.resume(throwing: error)
+            appleSignInContinuation = nil
         }
     }
 }

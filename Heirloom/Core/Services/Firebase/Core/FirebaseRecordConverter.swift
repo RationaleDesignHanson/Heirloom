@@ -21,7 +21,7 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
         var data: [String: Any] = [:]
 
         // Identity
-        data["id"] = recipe.id.uuidString
+        data["id"] = recipe.id.firebaseString
         data["title"] = recipe.title
 
         // Source information
@@ -52,20 +52,24 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
 
         // Social/Sharing
         data["sharedBy"] = recipe.sharedBy as Any
+        data["sharedByUserId"] = recipe.sharedByUserId as Any
+        data["sharedFromRecipeId"] = recipe.sharedFromRecipeId as Any
         data["sharedDate"] = recipe.sharedDate.map { Timestamp(date: $0) } as Any
         data["passedDownMessage"] = recipe.passedDownMessage as Any
         data["generationCount"] = recipe.generationCount
+        data["heritageChain"] = recipe.heritageChain as Any
+        data["heritageChainNames"] = recipe.heritageChainNames as Any
+        data["isDemoRecipe"] = recipe.isDemoRecipe
 
         // Provenance (as JSON string)
-        if let provenance = recipe.provenance,
-           let provenanceData = try? JSONEncoder().encode(provenance),
+        if let provenanceData = try? JSONEncoder().encode(recipe.provenance),
            let provenanceString = String(data: provenanceData, encoding: .utf8) {
             data["provenanceJSON"] = provenanceString
         }
 
         // Tags and Collections
-        data["tagIds"] = recipe.tags?.map { $0.id.uuidString } ?? []
-        data["collectionIds"] = recipe.collections?.map { $0.id.uuidString } ?? []
+        data["tagIds"] = recipe.tags?.map { $0.id.firebaseString } ?? []
+        data["collectionIds"] = recipe.collections?.map { $0.id.firebaseString } ?? []
 
         // Sync metadata
         data["lastSyncedAt"] = Timestamp(date: Date())
@@ -131,11 +135,16 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
 
         // Social/Sharing
         recipe.sharedBy = data["sharedBy"] as? String
+        recipe.sharedByUserId = data["sharedByUserId"] as? String
+        recipe.sharedFromRecipeId = data["sharedFromRecipeId"] as? String
         if let sharedDate = (data["sharedDate"] as? Timestamp)?.dateValue() {
             recipe.sharedDate = sharedDate
         }
         recipe.passedDownMessage = data["passedDownMessage"] as? String
         recipe.generationCount = data["generationCount"] as? Int ?? 0
+        recipe.heritageChain = data["heritageChain"] as? [String]
+        recipe.heritageChainNames = data["heritageChainNames"] as? [String]
+        recipe.isDemoRecipe = data["isDemoRecipe"] as? Bool ?? false
 
         // Sync metadata
         recipe.lastSyncedAt = Date()
@@ -149,7 +158,7 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
     static func convertIngredientToFirestoreData(_ ingredient: Ingredient) -> [String: Any] {
         var data: [String: Any] = [:]
 
-        data["id"] = ingredient.id.uuidString
+        data["id"] = ingredient.id.firebaseString
         data["originalText"] = ingredient.originalText
         data["name"] = ingredient.name
         data["quantity"] = ingredient.quantity as Any
@@ -200,7 +209,7 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
     static func convertCommentToFirestoreData(_ comment: RecipeComment) -> [String: Any] {
         var data: [String: Any] = [:]
 
-        data["id"] = comment.id.uuidString
+        data["id"] = comment.id.firebaseString
         data["text"] = comment.text
         data["authorName"] = comment.authorName as Any
         data["createdAt"] = Timestamp(date: comment.createdAt)

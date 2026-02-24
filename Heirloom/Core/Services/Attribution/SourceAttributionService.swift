@@ -373,13 +373,13 @@ class SourceAttributionService {
     private func attributeRecipeFromFields(_ recipe: Recipe) -> Bool {
         // Video imports with social creator
         if recipe.sourceType == .video,
-           let attribution = recipe.provenance?.sourceAttribution,
+           let attribution = recipe.provenance.sourceAttribution,
            !attribution.isEmpty {
             let creatorName = attribution.components(separatedBy: " - ").first?
                 .trimmingCharacters(in: .whitespaces) ?? attribution
 
             var platform: SocialPlatform? = nil
-            if let url = recipe.provenance?.sourceURL {
+            if let url = recipe.provenance.sourceURL {
                 platform = detectPlatform(from: url)
             }
 

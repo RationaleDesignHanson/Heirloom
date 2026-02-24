@@ -77,7 +77,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         logger.log("Uploading recipe", category: .sync, level: .info, metadata: nil)
 
         do {
-            let recipeId = recipe.id.uuidString
+            let recipeId = recipe.id.firebaseString
             let recipeRef = try configuration.recipeDocument(id: recipeId)
 
             // Step 1: Upload recipe document
@@ -300,13 +300,51 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
                     continue
                 }
 
+                // CHECK: Is this a theme recipe? If so, skip it - Theme recipes are managed by ThemeRecipeService
+                // This prevents duplicates when legacy data exists in Firebase
+                if let isThemeRecipe = data["isThemeRecipe"] as? Bool, isThemeRecipe {
+                    Log.debug("Skipping theme recipe in sync (managed by ThemeRecipeService)", category: .sync, metadata: [
+                        "themeRecipeId": data["themeRecipeId"] as? String ?? "unknown",
+                        "sourceThemeId": data["sourceThemeId"] as? String ?? "unknown"
+                    ])
+                    continue
+                }
+
+                // CHECK: Does this recipe have a sourceThemeId? That also indicates it's a theme recipe
+                if let sourceThemeId = data["sourceThemeId"] as? String, !sourceThemeId.isEmpty {
+                    Log.debug("Skipping recipe with sourceThemeId (theme recipe)", category: .sync, metadata: [
+                        "sourceThemeId": sourceThemeId,
+                        "title": data["title"] as? String ?? "unknown"
+                    ])
+                    continue
+                }
+
                 // Check if recipe already exists locally by UUID
-                let recipeUUID = UUID(uuidString: firebaseId) ?? UUID()
+                // Normalize Firebase ID to lowercase for consistent matching
+                let normalizedFirebaseId = firebaseId.lowercased()
+                let recipeUUID = UUID(uuidString: normalizedFirebaseId) ?? UUID()
                 let descriptor = FetchDescriptor<Recipe>(
                     predicate: #Predicate<Recipe> { $0.id == recipeUUID }
                 )
 
-                let existingRecipes = try? context.fetch(descriptor)
+                var existingRecipes = try? context.fetch(descriptor)
+
+                // If no match by UUID, try case-insensitive UUID string match
+                // This handles the case where Firebase has uppercase UUID but local is lowercase
+                if existingRecipes?.isEmpty ?? true {
+                    let allRecipesDescriptor = FetchDescriptor<Recipe>()
+                    if let allRecipes = try? context.fetch(allRecipesDescriptor) {
+                        let match = allRecipes.first { $0.id.uuidString.lowercased() == normalizedFirebaseId }
+                        if let match = match {
+                            existingRecipes = [match]
+                            Log.debug("Found recipe by case-insensitive UUID match", category: .sync, metadata: [
+                                "firebaseId": firebaseId,
+                                "localId": match.id.uuidString
+                            ])
+                        }
+                    }
+                }
+
                 let recipe: Recipe
 
                 if let existingRecipe = existingRecipes?.first {
@@ -493,7 +531,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         // Check if recipe exists locally
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { recipe in
-                recipe.id.uuidString == documentId
+                recipe.id.firebaseString == documentId
             }
         )
 
@@ -654,7 +692,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let recipeIdString = recipeId.uuidString
+        let recipeIdString = recipeId.firebaseString
         let recipeRef = try configuration.recipeDocument(id: recipeIdString)
 
         logger.log("Deleting recipe from Firebase", category: .sync, level: .info, metadata: nil)

@@ -465,6 +465,14 @@ struct DataExportView: View {
     }
 
     private func loadImportPreview(from url: URL) async {
+        // Security-scoped access is required for files selected via fileImporter
+        let didStartAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccess {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
         do {
             // Read JSON file
             let jsonData = try Data(contentsOf: url)

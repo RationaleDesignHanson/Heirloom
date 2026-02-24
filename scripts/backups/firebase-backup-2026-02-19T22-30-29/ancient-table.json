@@ -1,0 +1,1987 @@
+{
+  "themeId": "ancient-table",
+  "themeName": "Ancient Table",
+  "themeData": {
+    "id": "ancient-table",
+    "name": "Ancient Table",
+    "tagline": "Culinary treasures from ancient civilizations",
+    "description": "Roman garum, Greek olive cakes, Egyptian flatbread - these recipes connect us to the dinner tables of Rome, Athens, and the ancient world.",
+    "iconName": "building.columns",
+    "category": "historical",
+    "source": "Apicius, Archaeological Sources, Historical Records",
+    "era": "3000 BCE - 500 CE",
+    "region": "Mediterranean / Ancient World",
+    "totalRecipes": 12,
+    "unlockSchedule": [
+      1,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 13,
+    "coverImagePrompt": "Ancient Roman or Greek dining room with amphoras and olive branches, classical architecture, archaeological illustration style",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/ancient-table.webp",
+    "updatedAt": "2026-01-27T01:51:36.727Z"
+  },
+  "recipes": [
+    {
+      "id": "ancient-table-001",
+      "title": "Apicius' Conditum Paradoxum",
+      "description": "Melt honey in wine with pepper, bay leaves, saffron and dates. When warmed, pour into vessels for aging. The older it gets, the better it becomes.",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes (plus aging)",
+      "servings": "Makes 1 amphora (about 6 bottles)",
+      "source": "Apicius, De Re Coquinaria",
+      "story": "This spiced wine from Apicius' 'De Re Coquinaria' (circa 4th century CE) was served at Roman banquets. The recipe showcases the Roman love of complex flavors and expensive spices. 'Paradoxum' means 'special' or 'paradoxical,' likely referring to its unique combination of sweet honey, aromatic spices, and pungent pepper. It was considered both a digestive aid and a symbol of wealth.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "spiced wine",
+        "Roman"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-001.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:28.220Z",
+      "updatedAt": "2026-02-05T23:31:28.220Z",
+      "ingredients": [
+        {
+          "name": "1 gallon honey wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 gallon honey wine",
+          "order": 0
+        },
+        {
+          "name": "15 g black pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "15 g black pepper",
+          "order": 1
+        },
+        {
+          "name": "4 bay leaves",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 bay leaves",
+          "order": 2
+        },
+        {
+          "name": "2 g saffron",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 g saffron",
+          "order": 3
+        },
+        {
+          "name": "5 dates, pitted",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "5 dates, pitted",
+          "order": 4
+        },
+        {
+          "name": "Additional honey to taste",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Additional honey to taste",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Combine honey wine with pepper, bay leaves, and saffron in a pot.",
+        "Heat gently, but do not boil.",
+        "Add pitted dates.",
+        "Strain through a cloth.",
+        "Store in sealed vessels.",
+        "Age for at least one month before serving."
+      ]
+    },
+    {
+      "id": "ancient-table-002",
+      "title": "Roman Patina de Piris",
+      "description": "Patina de piris: pira elixa et purgata e medio teres cum pipere, cumino, melle, passo, liquamine et oleo modico. Ovis missis, in cumana facies, piper supra aspargis et inferes.",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "source": "Apicius, De Re Coquinaria, Book IV",
+      "story": "Patina (the origin of our word 'pan') was a Roman custard-style dish, both savory and sweet. This pear patina from Apicius demonstrates Roman sophistication in combining fruits, spices, and dairy. The use of passum (raisin wine) and exotic spices like cumin shows the extensive trade networks of the Roman Empire. It was likely served as part of the secunda mensa (second course) at elaborate dinners.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "fruit",
+        "Roman",
+        "custard"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-002.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:28.441Z",
+      "updatedAt": "2026-02-05T23:31:28.441Z",
+      "ingredients": [
+        {
+          "name": "6 pears, peeled and cored",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 pears, peeled and cored",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup honey",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup passum (or sweet wine)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup passum (or sweet wine)",
+          "order": 2
+        },
+        {
+          "name": "1 tsp cumin",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 tsp cumin",
+          "order": 3
+        },
+        {
+          "name": "4 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 eggs",
+          "order": 4
+        },
+        {
+          "name": "2 cups milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups milk",
+          "order": 5
+        },
+        {
+          "name": "Pepper and lovage to taste",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pepper and lovage to taste",
+          "order": 6
+        },
+        {
+          "name": "Olive oil for greasing",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Olive oil for greasing",
+          "order": 7
+        }
+      ],
+      "instructions": [
+        "Poach the pears in honey and passum until tender.",
+        "Grind pepper, cumin, and lovage together.",
+        "Beat eggs with milk.",
+        "Add spices to egg mixture.",
+        "Arrange pears in an oiled dish.",
+        "Pour egg mixture over pears.",
+        "Bake in a moderate oven until set.",
+        "Serve warm with the poaching liquid drizzled over."
+      ]
+    },
+    {
+      "id": "ancient-table-003",
+      "title": "Greek Olive & Honey Cakes",
+      "description": "Mix flour, honey, oil, wine. Shape, bake. Ancient Greek dessert.",
+      "prepTime": "30 min",
+      "cookTime": "25 min",
+      "servings": "Makes 20",
+      "source": "Ancient Greek recipes, archaeological evidence",
+      "story": "Greek sacrificial cakes offered to gods, sweetened with honey—liquid gold of ancient world.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Greek",
+        "honey"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-003.webp",
+      "sortOrder": 3,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:28.669Z",
+      "updatedAt": "2026-02-05T23:31:28.669Z",
+      "ingredients": [
+        {
+          "name": "2 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups flour",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup honey",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup olive oil",
+          "order": 2
+        },
+        {
+          "name": "1/4 cup wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup wine",
+          "order": 3
+        },
+        {
+          "name": "Sesame seeds",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Sesame seeds",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Mix ingredients to form dough.",
+        "Shape into small cakes.",
+        "Top with sesame seeds.",
+        "Bake at 350°F for 25 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-004",
+      "title": "Roman Garum Sauce",
+      "description": "The Roman ketchup. Mix fermented fish sauce with wine and honey.",
+      "prepTime": "5 min",
+      "cookTime": "0 min",
+      "servings": "Makes 2 cups",
+      "source": "Apicius, Roman archaeological sites",
+      "story": "Garum was Rome's most important condiment, made from fermented fish. Every kitchen had it.",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "Roman",
+        "fermented"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-004.webp",
+      "sortOrder": 4,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:28.904Z",
+      "updatedAt": "2026-02-05T23:31:28.904Z",
+      "ingredients": [
+        {
+          "name": "1 cup fish sauce",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup fish sauce",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup white wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup white wine",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons honey",
+          "order": 2
+        },
+        {
+          "name": "Fresh herbs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Fresh herbs",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Mix all ingredients.",
+        "Let stand 1 hour before using.",
+        "Use as all-purpose seasoning."
+      ]
+    },
+    {
+      "id": "ancient-table-005",
+      "title": "Egyptian Flatbread",
+      "description": "The bread of pharaohs. Simple flatbread cooked on hot stones.",
+      "prepTime": "15 min",
+      "cookTime": "10 min",
+      "servings": "Makes 8",
+      "source": "Egyptian archaeology, hieroglyphic recipes",
+      "story": "Ancient Egypt's staple food, made from emmer wheat. Found in tombs as offerings.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "Egyptian",
+        "flatbread"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-005.webp",
+      "sortOrder": 5,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:29.104Z",
+      "updatedAt": "2026-02-05T23:31:29.104Z",
+      "ingredients": [
+        {
+          "name": "3 cups emmer flour (or whole wheat)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups emmer flour (or whole wheat)",
+          "order": 0
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 1
+        },
+        {
+          "name": "1 1/4 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 1/4 cups water",
+          "order": 2
+        }
+      ],
+      "instructions": [
+        "Mix flour, salt, water into dough.",
+        "Knead 5 minutes.",
+        "Divide into 8 balls.",
+        "Roll thin.",
+        "Cook on hot stone or griddle 2 minutes per side."
+      ]
+    },
+    {
+      "id": "ancient-table-006",
+      "title": "Mesopotamian Beer Bread",
+      "description": "Bread made with beer, the drink of gods. Sumerian staple.",
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "source": "Sumerian cuneiform tablets",
+      "story": "Mesopotamians invented beer and used it in baking. This bread sustained ancient civilizations.",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "Mesopotamian",
+        "beer"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-006.webp",
+      "sortOrder": 6,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:29.317Z",
+      "updatedAt": "2026-02-05T23:31:29.317Z",
+      "ingredients": [
+        {
+          "name": "4 cups barley flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups barley flour",
+          "order": 0
+        },
+        {
+          "name": "1 cup beer",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup beer",
+          "order": 1
+        },
+        {
+          "name": "1 cup water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup water",
+          "order": 2
+        },
+        {
+          "name": "2 tablespoons honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons honey",
+          "order": 3
+        },
+        {
+          "name": "1 teaspoon salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Mix flour with beer, water, honey, salt.",
+        "Let rise 1 hour.",
+        "Shape into rounds.",
+        "Bake at 350°F for 45 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-007",
+      "title": "Greek Lentil Soup",
+      "description": "Philosopher's soup. Lentils with vinegar, the food Herodotus praised.",
+      "prepTime": "15 min",
+      "cookTime": "40 min",
+      "servings": "Serves 6",
+      "source": "Herodotus' Histories, Greek dietary records",
+      "story": "Mentioned by Herodotus. Spartans and philosophers ate this simple, nourishing soup.",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "Greek",
+        "lentils"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-007.webp",
+      "sortOrder": 7,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:29.537Z",
+      "updatedAt": "2026-02-05T23:31:29.537Z",
+      "ingredients": [
+        {
+          "name": "2 cups lentils",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups lentils",
+          "order": 0
+        },
+        {
+          "name": "1 onion, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 onion, chopped",
+          "order": 1
+        },
+        {
+          "name": "3 cloves garlic",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cloves garlic",
+          "order": 2
+        },
+        {
+          "name": "1/4 cup olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup olive oil",
+          "order": 3
+        },
+        {
+          "name": "1/4 cup vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup vinegar",
+          "order": 4
+        },
+        {
+          "name": "Bay leaves",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Bay leaves",
+          "order": 5
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Sauté onion and garlic in oil.",
+        "Add lentils, water, bay leaves.",
+        "Simmer 40 minutes until soft.",
+        "Add vinegar, season with salt."
+      ]
+    },
+    {
+      "id": "ancient-table-008",
+      "title": "Roman Moretum",
+      "description": "Peasant cheese spread. Virgil wrote a poem about making this.",
+      "prepTime": "15 min",
+      "cookTime": "0 min",
+      "servings": "Serves 4",
+      "source": "Virgil's Moretum poem, Roman agriculture texts",
+      "story": "Roman farmers' breakfast, immortalized in Virgil's poem 'Moretum.' Garlic cheese spread.",
+      "difficulty": "medium",
+      "tags": [
+        "appetizer",
+        "Roman",
+        "cheese"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-008.webp",
+      "sortOrder": 8,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:29.746Z",
+      "updatedAt": "2026-02-05T23:31:29.746Z",
+      "ingredients": [
+        {
+          "name": "1 cup fresh cheese",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup fresh cheese",
+          "order": 0
+        },
+        {
+          "name": "4 cloves garlic",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cloves garlic",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup olive oil",
+          "order": 2
+        },
+        {
+          "name": "Fresh herbs (cilantro, celery leaf)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Fresh herbs (cilantro, celery leaf)",
+          "order": 3
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 4
+        },
+        {
+          "name": "Vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Vinegar",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Crush garlic with salt.",
+        "Mix in cheese and herbs.",
+        "Add oil gradually while mixing.",
+        "Add vinegar to taste.",
+        "Serve with bread."
+      ]
+    },
+    {
+      "id": "ancient-table-009",
+      "title": "Persian Rice Pilaf",
+      "description": "The royal rice. Saffron-scented pilaf with nuts and fruit.",
+      "prepTime": "10 min",
+      "cookTime": "35 min",
+      "servings": "Serves 6",
+      "source": "Persian culinary traditions, Silk Road records",
+      "story": "Ancient Persia perfected rice cooking. This pilaf graced royal tables of the Achaemenid Empire.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "Persian",
+        "rice"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-009.webp",
+      "sortOrder": 9,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:29.961Z",
+      "updatedAt": "2026-02-05T23:31:29.961Z",
+      "ingredients": [
+        {
+          "name": "2 cups basmati rice",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups basmati rice",
+          "order": 0
+        },
+        {
+          "name": "4 tablespoons butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "1 onion, sliced",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 onion, sliced",
+          "order": 2
+        },
+        {
+          "name": "1/4 cup almonds",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup almonds",
+          "order": 3
+        },
+        {
+          "name": "1/4 cup dried fruit",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup dried fruit",
+          "order": 4
+        },
+        {
+          "name": "Saffron",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Saffron",
+          "order": 5
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Sauté onion in butter until golden.",
+        "Add rice, toast 2 minutes.",
+        "Add water, saffron, salt.",
+        "Simmer covered 20 minutes.",
+        "Top with almonds and fruit."
+      ]
+    },
+    {
+      "id": "ancient-table-010",
+      "title": "Byzantine Honey Fritters",
+      "description": "Sweet fritters soaked in honey. Constantinople street food.",
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "servings": "Makes 20",
+      "source": "Byzantine culinary manuscripts",
+      "story": "Byzantine Empire's popular dessert, served at festivals and sold by street vendors.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Byzantine",
+        "fried"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-010.webp",
+      "sortOrder": 10,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:30.165Z",
+      "updatedAt": "2026-02-05T23:31:30.165Z",
+      "ingredients": [
+        {
+          "name": "2 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups flour",
+          "order": 0
+        },
+        {
+          "name": "2 eggs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 eggs",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup milk",
+          "order": 2
+        },
+        {
+          "name": "Oil for frying",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Oil for frying",
+          "order": 3
+        },
+        {
+          "name": "1 cup honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup honey",
+          "order": 4
+        },
+        {
+          "name": "Cinnamon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cinnamon",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Make batter with flour, eggs, milk.",
+        "Drop spoonfuls into hot oil.",
+        "Fry until golden.",
+        "Drain, soak in warm honey.",
+        "Sprinkle with cinnamon."
+      ]
+    },
+    {
+      "id": "ancient-table-011",
+      "title": "Greek Barley Cakes",
+      "description": "Barley cakes with cheese. Olympic athlete fuel.",
+      "prepTime": "20 min",
+      "cookTime": "30 min",
+      "servings": "Makes 12",
+      "source": "Ancient Greek athletics records",
+      "story": "Ancient Olympic athletes ate these for energy. Barley was Greece's primary grain.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Greek",
+        "barley"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-011.webp",
+      "sortOrder": 11,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:30.385Z",
+      "updatedAt": "2026-02-05T23:31:30.385Z",
+      "ingredients": [
+        {
+          "name": "2 cups barley flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups barley flour",
+          "order": 0
+        },
+        {
+          "name": "1/2 cup honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup honey",
+          "order": 1
+        },
+        {
+          "name": "1/4 cup olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/4 cup olive oil",
+          "order": 2
+        },
+        {
+          "name": "1/2 cup wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup wine",
+          "order": 3
+        },
+        {
+          "name": "Cheese crumbles",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cheese crumbles",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Mix ingredients.",
+        "Form small cakes.",
+        "Bake 30 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-012",
+      "title": "Roman Stuffed Dormice",
+      "description": "A delicacy for wealthy Romans. Dormice stuffed and roasted.",
+      "prepTime": "45 min",
+      "cookTime": "20 min",
+      "servings": "Serves 4",
+      "source": "Apicius, De Re Coquinaria",
+      "story": "Apicius' most exotic recipe. Dormice were fattened in clay jars and served at banquets.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Roman",
+        "exotic"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-ancient-012.webp",
+      "sortOrder": 12,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:30.593Z",
+      "updatedAt": "2026-02-05T23:31:30.593Z",
+      "ingredients": [
+        {
+          "name": "4 dormice (or substitute game birds)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 dormice (or substitute game birds)",
+          "order": 0
+        },
+        {
+          "name": "Minced pork",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Minced pork",
+          "order": 1
+        },
+        {
+          "name": "Pine nuts",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pine nuts",
+          "order": 2
+        },
+        {
+          "name": "Pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Pepper",
+          "order": 3
+        },
+        {
+          "name": "Garum",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Garum",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Stuff dormice with pork mixture.",
+        "Roast until golden.",
+        "Glaze with honey."
+      ]
+    },
+    {
+      "id": "ancient-table-013",
+      "title": "Phoenician Fish Stew",
+      "description": "Mediterranean fish stew. Phoenician sailors' food.",
+      "prepTime": "20 min",
+      "cookTime": "30 min",
+      "servings": "Serves 6",
+      "source": "Phoenician archaeological sites",
+      "story": "Phoenicia's maritime culture created this stew, spreading it across Mediterranean colonies.",
+      "difficulty": "medium",
+      "tags": [
+        "seafood",
+        "Phoenician",
+        "stew"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-013.webp",
+      "sortOrder": 13,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:30.789Z",
+      "updatedAt": "2026-02-05T23:31:30.789Z",
+      "ingredients": [
+        {
+          "name": "2 lbs white fish",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 lbs white fish",
+          "order": 0
+        },
+        {
+          "name": "Onions",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Onions",
+          "order": 1
+        },
+        {
+          "name": "Garlic",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Garlic",
+          "order": 2
+        },
+        {
+          "name": "Olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Olive oil",
+          "order": 3
+        },
+        {
+          "name": "Vinegar",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Vinegar",
+          "order": 4
+        },
+        {
+          "name": "Cumin",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cumin",
+          "order": 5
+        },
+        {
+          "name": "Coriander",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Coriander",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Sauté aromatics.",
+        "Add fish, spices.",
+        "Simmer with vinegar.",
+        "Serve with flatbread."
+      ]
+    },
+    {
+      "id": "ancient-table-014",
+      "title": "Carthaginian Couscous",
+      "description": "Ancient North African grain dish with meat and vegetables.",
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "servings": "Serves 6",
+      "source": "Carthaginian culinary history",
+      "story": "Carthage perfected couscous preparation. This dish predates Roman conquest of North Africa.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Carthaginian",
+        "couscous"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-014.webp",
+      "sortOrder": 14,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:31.002Z",
+      "updatedAt": "2026-02-05T23:31:31.002Z",
+      "ingredients": [
+        {
+          "name": "2 cups couscous",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups couscous",
+          "order": 0
+        },
+        {
+          "name": "Lamb or chicken",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Lamb or chicken",
+          "order": 1
+        },
+        {
+          "name": "Vegetables",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Vegetables",
+          "order": 2
+        },
+        {
+          "name": "Olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Olive oil",
+          "order": 3
+        },
+        {
+          "name": "Harissa spices",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Harissa spices",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Steam couscous.",
+        "Cook meat and vegetables separately.",
+        "Serve couscous topped with stew."
+      ]
+    },
+    {
+      "id": "ancient-table-015",
+      "title": "Etruscan Polenta",
+      "description": "Porridge of the Etruscans. Predecessor to modern polenta.",
+      "prepTime": "10 min",
+      "cookTime": "40 min",
+      "servings": "Serves 6",
+      "source": "Etruscan archaeological evidence",
+      "story": "Etruscans ate grain porridge (puls) before Rome adopted it. Foundation of Italian cuisine.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "Etruscan",
+        "grain"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-015.webp",
+      "sortOrder": 15,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:31.238Z",
+      "updatedAt": "2026-02-05T23:31:31.238Z",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal (or spelt meal)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups cornmeal (or spelt meal)",
+          "order": 0
+        },
+        {
+          "name": "6 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 cups water",
+          "order": 1
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 2
+        },
+        {
+          "name": "Olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Olive oil",
+          "order": 3
+        },
+        {
+          "name": "Cheese",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cheese",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Boil water with salt.",
+        "Whisk in meal slowly.",
+        "Stir constantly 40 minutes.",
+        "Top with oil and cheese."
+      ]
+    },
+    {
+      "id": "ancient-table-016",
+      "title": "Sumerian Date Cake",
+      "description": "Sweet cake studded with dates. Mesopotamian celebration food.",
+      "prepTime": "30 min",
+      "cookTime": "45 min",
+      "servings": "Makes 1 cake",
+      "source": "Sumerian cuneiform tablets",
+      "story": "Dates were Mesopotamia's primary sweetener. This cake appeared at religious festivals.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Sumerian",
+        "dates"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-016.webp",
+      "sortOrder": 16,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:31.455Z",
+      "updatedAt": "2026-02-05T23:31:31.455Z",
+      "ingredients": [
+        {
+          "name": "3 cups flour",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups flour",
+          "order": 0
+        },
+        {
+          "name": "1 cup dates, chopped",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup dates, chopped",
+          "order": 1
+        },
+        {
+          "name": "1/2 cup butter",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup butter",
+          "order": 2
+        },
+        {
+          "name": "1/2 cup honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1/2 cup honey",
+          "order": 3
+        },
+        {
+          "name": "1 cup milk",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup milk",
+          "order": 4
+        },
+        {
+          "name": "Spices",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Spices",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Cream butter and honey.",
+        "Mix in flour, milk.",
+        "Fold in dates.",
+        "Bake 45 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-017",
+      "title": "Chinese Jiaozi Dumplings",
+      "description": "Ancient Chinese dumplings. Medicinal food turned celebration dish.",
+      "prepTime": "1 hr",
+      "cookTime": "15 min",
+      "servings": "Makes 30",
+      "source": "Han Dynasty records",
+      "story": "Legend says they were invented by physician Zhang Zhongjing in Han Dynasty to prevent frostbite.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Chinese",
+        "dumplings"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-017.webp",
+      "sortOrder": 17,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:31.660Z",
+      "updatedAt": "2026-02-05T23:31:31.660Z",
+      "ingredients": [
+        {
+          "name": "Dumpling wrappers",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Dumpling wrappers",
+          "order": 0
+        },
+        {
+          "name": "1 lb ground pork",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 lb ground pork",
+          "order": 1
+        },
+        {
+          "name": "Cabbage",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cabbage",
+          "order": 2
+        },
+        {
+          "name": "Ginger",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Ginger",
+          "order": 3
+        },
+        {
+          "name": "Soy sauce",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Soy sauce",
+          "order": 4
+        },
+        {
+          "name": "Sesame oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Sesame oil",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Mix filling ingredients.",
+        "Fill wrappers, seal edges.",
+        "Boil or steam 8 minutes.",
+        "Serve with dipping sauce."
+      ]
+    },
+    {
+      "id": "ancient-table-018",
+      "title": "Viking Smoked Fish",
+      "description": "Preserved fish, Norse survival food.",
+      "prepTime": "5 min",
+      "cookTime": "2 hrs",
+      "servings": "Serves 4",
+      "source": "Viking Age archaeological sites",
+      "story": "Vikings smoked fish for long voyages. This preservation method sustained Norse expansion.",
+      "difficulty": "medium",
+      "tags": [
+        "seafood",
+        "Viking",
+        "smoked"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-018.webp",
+      "sortOrder": 18,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:31.901Z",
+      "updatedAt": "2026-02-05T23:31:31.901Z",
+      "ingredients": [
+        {
+          "name": "4 whole fish (herring or mackerel)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 whole fish (herring or mackerel)",
+          "order": 0
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 1
+        },
+        {
+          "name": "Juniper berries",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Juniper berries",
+          "order": 2
+        },
+        {
+          "name": "Wood for smoking",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Wood for smoking",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Gut and clean fish.",
+        "Salt generously.",
+        "Smoke over juniper wood 2 hours.",
+        "Serve with flatbread."
+      ]
+    },
+    {
+      "id": "ancient-table-019",
+      "title": "Celtic Oat Porridge",
+      "description": "Ancient Celtic breakfast. Oats cooked in water or milk.",
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "servings": "Serves 4",
+      "source": "Celtic archaeological evidence",
+      "story": "Celts cultivated oats in Iron Age Britain. This porridge sustained warriors and farmers.",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "Celtic",
+        "oats"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-019.webp",
+      "sortOrder": 19,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:32.108Z",
+      "updatedAt": "2026-02-05T23:31:32.108Z",
+      "ingredients": [
+        {
+          "name": "2 cups steel-cut oats",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups steel-cut oats",
+          "order": 0
+        },
+        {
+          "name": "6 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "6 cups water",
+          "order": 1
+        },
+        {
+          "name": "Honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Honey",
+          "order": 2
+        },
+        {
+          "name": "Berries",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Berries",
+          "order": 3
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Boil water, add oats and salt.",
+        "Simmer 20 minutes, stirring.",
+        "Serve with honey and berries."
+      ]
+    },
+    {
+      "id": "ancient-table-020",
+      "title": "Aztec Chocolate Drink",
+      "description": "Bitter chocolate drink of emperors. Xocolātl.",
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "servings": "Serves 4",
+      "source": "Aztec codices, Mesoamerican evidence",
+      "story": "Aztecs considered chocolate the food of gods. Drunk at ceremonies, served cold and bitter with chili.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "Aztec",
+        "chocolate"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-020.webp",
+      "sortOrder": 20,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:32.329Z",
+      "updatedAt": "2026-02-05T23:31:32.329Z",
+      "ingredients": [
+        {
+          "name": "4 tablespoons cacao powder",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons cacao powder",
+          "order": 0
+        },
+        {
+          "name": "3 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3 cups water",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons honey",
+          "order": 2
+        },
+        {
+          "name": "Chili powder",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Chili powder",
+          "order": 3
+        },
+        {
+          "name": "Vanilla",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Vanilla",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Heat water, whisk in cacao.",
+        "Add honey and spices.",
+        "Froth by pouring between containers.",
+        "Serve warm."
+      ]
+    },
+    {
+      "id": "ancient-table-021",
+      "title": "Inca Quinoa Soup",
+      "description": "Andean superfood soup. The mother grain.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 6",
+      "source": "Inca agricultural records",
+      "story": "Incas called quinoa 'the mother of all grains.' This soup sustained high-altitude civilizations.",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "Inca",
+        "quinoa"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-021.webp",
+      "sortOrder": 21,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:32.533Z",
+      "updatedAt": "2026-02-05T23:31:32.533Z",
+      "ingredients": [
+        {
+          "name": "1 cup quinoa",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 cup quinoa",
+          "order": 0
+        },
+        {
+          "name": "Potato",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Potato",
+          "order": 1
+        },
+        {
+          "name": "Corn",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Corn",
+          "order": 2
+        },
+        {
+          "name": "Beans",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Beans",
+          "order": 3
+        },
+        {
+          "name": "Peppers",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Peppers",
+          "order": 4
+        },
+        {
+          "name": "Herbs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Herbs",
+          "order": 5
+        }
+      ],
+      "instructions": [
+        "Rinse quinoa.",
+        "Combine all ingredients in pot.",
+        "Simmer 30 minutes.",
+        "Serve hot."
+      ]
+    },
+    {
+      "id": "ancient-table-022",
+      "title": "Medieval Pottage",
+      "description": "Peasant stew of grains and vegetables. Medieval Europe's daily food.",
+      "prepTime": "20 min",
+      "cookTime": "2 hrs",
+      "servings": "Serves 8",
+      "source": "Medieval household records",
+      "story": "Pottage fed medieval Europe. A one-pot meal simmered all day, eaten with bread.",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "Medieval",
+        "stew"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-022.webp",
+      "sortOrder": 22,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:32.752Z",
+      "updatedAt": "2026-02-05T23:31:32.752Z",
+      "ingredients": [
+        {
+          "name": "Dried peas or beans",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Dried peas or beans",
+          "order": 0
+        },
+        {
+          "name": "Barley",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Barley",
+          "order": 1
+        },
+        {
+          "name": "Onions",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Onions",
+          "order": 2
+        },
+        {
+          "name": "Leeks",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Leeks",
+          "order": 3
+        },
+        {
+          "name": "Herbs",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Herbs",
+          "order": 4
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 5
+        },
+        {
+          "name": "Optional: bacon",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Optional: bacon",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Soak beans overnight.",
+        "Simmer all ingredients 2 hours.",
+        "Add herbs last 15 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-023",
+      "title": "Roman Puls",
+      "description": "Rome's original daily bread. Porridge before bread dominated.",
+      "prepTime": "5 min",
+      "cookTime": "30 min",
+      "servings": "Serves 4",
+      "source": "Roman Republic records",
+      "story": "Before Romans perfected bread, they ate puls—a grain porridge. Foundation of Roman diet.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "Roman",
+        "porridge"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-023.webp",
+      "sortOrder": 23,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:32.979Z",
+      "updatedAt": "2026-02-05T23:31:32.979Z",
+      "ingredients": [
+        {
+          "name": "2 cups emmer wheat (or spelt)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 cups emmer wheat (or spelt)",
+          "order": 0
+        },
+        {
+          "name": "4 cups water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4 cups water",
+          "order": 1
+        },
+        {
+          "name": "2 tablespoons olive oil",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons olive oil",
+          "order": 2
+        },
+        {
+          "name": "Salt",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Salt",
+          "order": 3
+        },
+        {
+          "name": "Cheese",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Cheese",
+          "order": 4
+        }
+      ],
+      "instructions": [
+        "Boil wheat in salted water.",
+        "Cook until porridge consistency.",
+        "Stir in oil.",
+        "Top with cheese."
+      ]
+    },
+    {
+      "id": "ancient-table-024",
+      "title": "Greek Symposium Wine",
+      "description": "Diluted, sweetened wine for philosophical discussions.",
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "servings": "Serves 10",
+      "source": "Ancient Greek symposium practices",
+      "story": "Greeks never drank wine undiluted—considered barbaric. Symposiums featured this spiced, watered wine.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "Greek",
+        "wine"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-024.webp",
+      "sortOrder": 24,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:33.181Z",
+      "updatedAt": "2026-02-05T23:31:33.181Z",
+      "ingredients": [
+        {
+          "name": "1 gallon wine",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1 gallon wine",
+          "order": 0
+        },
+        {
+          "name": "Honey",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Honey",
+          "order": 1
+        },
+        {
+          "name": "Water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Water",
+          "order": 2
+        },
+        {
+          "name": "Spices (cinnamon, anise)",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Spices (cinnamon, anise)",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Mix wine with equal parts water.",
+        "Add honey to taste.",
+        "Infuse with spices.",
+        "Serve in kylix cups."
+      ]
+    },
+    {
+      "id": "ancient-table-025",
+      "title": "Babylonian Beer",
+      "description": "The world's oldest recorded recipe. Hymn to Ninkasi, beer goddess.",
+      "prepTime": "1 week",
+      "cookTime": "2 hrs",
+      "servings": "Serves 8",
+      "source": "Sumerian cuneiform, Ninkasi hymn",
+      "story": "Babylonians brewed beer 4000 years ago. The Hymn to Ninkasi is humanity's oldest recipe, a beer-making song.",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "Babylonian",
+        "beer"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/ancient-table/ancient-table-025.webp",
+      "sortOrder": 25,
+      "unlockDay": 1,
+      "createdAt": "2026-02-05T23:31:33.405Z",
+      "updatedAt": "2026-02-05T23:31:33.405Z",
+      "ingredients": [
+        {
+          "name": "Barley",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Barley",
+          "order": 0
+        },
+        {
+          "name": "Dates",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Dates",
+          "order": 1
+        },
+        {
+          "name": "Water",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Water",
+          "order": 2
+        },
+        {
+          "name": "Wild yeast",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "Wild yeast",
+          "order": 3
+        }
+      ],
+      "instructions": [
+        "Bake barley bread.",
+        "Crumble into water with dates.",
+        "Let ferment 1 week.",
+        "Strain and serve."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:31:08.640Z"
+}

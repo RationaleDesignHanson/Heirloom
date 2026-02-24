@@ -141,6 +141,10 @@ enum AnalyticsEvent: String {
     case themeTrialCompleted = "Theme Trial Completed"
     case unlockDayReached = "Unlock Day Reached"
     case unlockVerificationFailed = "Unlock Verification Failed"
+
+    // Credit System
+    case creditDeducted = "Credit Deducted"
+    case creditRefunded = "Credit Refunded"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

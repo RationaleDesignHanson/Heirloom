@@ -1,0 +1,2008 @@
+{
+  "themeId": "german-american",
+  "themeName": "German-American Kitchen",
+  "themeData": {
+    "id": "german-american",
+    "name": "German-American Kitchen",
+    "tagline": "Pennsylvania Dutch and German immigrant recipes",
+    "description": "German immigrants shaped American cuisine in profound ways. From pretzels to pot pie, these recipes celebrate that delicious heritage.",
+    "iconName": "house.fill",
+    "category": "cuisine",
+    "source": "Pennsylvania Dutch Archives, MSU Feeding America",
+    "era": "1850s-1920s",
+    "region": "Pennsylvania / Midwest",
+    "totalRecipes": 14,
+    "unlockSchedule": [
+      1,
+      2,
+      3,
+      5,
+      7,
+      9,
+      11,
+      14
+    ],
+    "sortOrder": 8,
+    "coverImagePrompt": "Pennsylvania Dutch farmhouse kitchen with traditional hearth and baked goods, warm rustic atmosphere, folk art style",
+    "createdAt": "2026-01-27T01:22:00.254Z",
+    "coverImageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/german-american.webp",
+    "updatedAt": "2026-01-27T01:51:35.602Z"
+  },
+  "recipes": [
+    {
+      "id": "german-american-001",
+      "title": "Sauerbraten (German Pot Roast)",
+      "description": "Beef marinated for days in spiced vinegar, then braised until tender with a sweet-sour gingersnap gravy.",
+      "prepTime": 30,
+      "cookTime": 180,
+      "servings": 8,
+      "source": "Pennsylvania Dutch tradition",
+      "story": "Sauerbraten ('sour roast') was born of necessity—vinegar preserved meat before refrigeration. German immigrants brought this technique to America, where it became a special-occasion dish in Pennsylvania Dutch country.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "German",
+        "special occasion"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-sauerbraten.webp",
+      "sortOrder": 1,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:39.484Z",
+      "updatedAt": "2026-02-06T03:53:39.484Z",
+      "ingredients": [
+        {
+          "name": "beef bottom round",
+          "amount": 4,
+          "unit": "pounds",
+          "preparation": null,
+          "group": null,
+          "text": "4 pounds beef bottom round",
+          "order": 0
+        },
+        {
+          "name": "red wine vinegar",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For marinade",
+          "text": "2 cups red wine vinegar",
+          "order": 1
+        },
+        {
+          "name": "water",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For marinade",
+          "text": "1 cup water",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "sliced",
+          "group": "For marinade",
+          "text": "1 large onion",
+          "order": 3
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": null,
+          "preparation": "sliced",
+          "group": "For marinade",
+          "text": "2  carrots",
+          "order": 4
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "sliced",
+          "group": "For marinade",
+          "text": "2 stalks celery",
+          "order": 5
+        },
+        {
+          "name": "bay leaves",
+          "amount": 3,
+          "unit": null,
+          "preparation": null,
+          "group": "For marinade",
+          "text": "3  bay leaves",
+          "order": 6
+        },
+        {
+          "name": "whole cloves",
+          "amount": 6,
+          "unit": null,
+          "preparation": null,
+          "group": "For marinade",
+          "text": "6  whole cloves",
+          "order": 7
+        },
+        {
+          "name": "juniper berries",
+          "amount": 8,
+          "unit": null,
+          "preparation": null,
+          "group": "For marinade",
+          "text": "8  juniper berries",
+          "order": 8
+        },
+        {
+          "name": "black peppercorns",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": "For marinade",
+          "text": "1 teaspoon black peppercorns",
+          "order": 9
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For marinade",
+          "text": "2 tablespoons sugar",
+          "order": 10
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": "For marinade",
+          "text": "1 tablespoon salt",
+          "order": 11
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons vegetable oil",
+          "order": 12
+        },
+        {
+          "name": "gingersnap cookies",
+          "amount": 8,
+          "unit": null,
+          "preparation": null,
+          "group": "For gravy",
+          "text": "8  gingersnap cookies",
+          "order": 13
+        },
+        {
+          "name": "raisins",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "0.33 cup raisins",
+          "order": 14
+        }
+      ],
+      "instructions": [
+        "Combine marinade ingredients in a large pot. Bring to a boil, then cool completely.",
+        "Place beef in a large container. Pour cooled marinade over. Cover and refrigerate 3-5 days, turning daily.",
+        "Remove beef and pat dry. Strain marinade and reserve liquid and vegetables separately.",
+        "Heat oil in a Dutch oven. Brown beef on all sides. Remove.",
+        "Add reserved vegetables and cook 5 minutes. Return beef to pot.",
+        "Add reserved marinade liquid. Bring to a boil, cover, and braise at 325°F (165°C) for 3 hours.",
+        "Remove beef. Strain cooking liquid into a saucepan.",
+        "Add crushed gingersnaps and raisins. Simmer until thickened.",
+        "Slice beef and serve with gravy."
+      ]
+    },
+    {
+      "id": "german-american-002",
+      "title": "Wiener Schnitzel",
+      "description": "Thin pork cutlets pounded tender, breaded, and fried golden—the quintessential German comfort food.",
+      "prepTime": 20,
+      "cookTime": 10,
+      "servings": 4,
+      "source": "German-American immigrant tradition",
+      "story": "While authentic Wiener Schnitzel uses veal, German-American cooks adapted the recipe using pork, which was more affordable and readily available. The crispy coating and tender meat remain irresistible.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "German",
+        "fried",
+        "quick"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-schnitzel.webp",
+      "sortOrder": 1,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:39.753Z",
+      "updatedAt": "2026-02-06T03:53:39.753Z",
+      "ingredients": [
+        {
+          "name": "boneless pork loin chops",
+          "amount": 4,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4  boneless pork loin chops",
+          "order": 0
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup all-purpose flour",
+          "order": 1
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "beaten",
+          "group": null,
+          "text": "2 large eggs",
+          "order": 2
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups breadcrumbs",
+          "order": 3
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 4
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon black pepper",
+          "order": 5
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup vegetable oil",
+          "order": 6
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 7
+        },
+        {
+          "name": "lemon wedges",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "lemon wedges",
+          "order": 8
+        },
+        {
+          "name": "fresh parsley",
+          "amount": null,
+          "unit": null,
+          "preparation": "chopped",
+          "group": "For serving",
+          "text": "fresh parsley",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Place pork chops between plastic wrap. Pound to 1/4-inch thickness.",
+        "Season both sides with salt and pepper.",
+        "Set up breading station: flour in one dish, beaten eggs in another, breadcrumbs in a third.",
+        "Dredge each cutlet in flour, shaking off excess.",
+        "Dip in egg, allowing excess to drip off.",
+        "Press into breadcrumbs, coating both sides evenly.",
+        "Heat oil and butter in a large skillet over medium-high heat.",
+        "Fry schnitzels 2-3 minutes per side until golden brown and cooked through.",
+        "Drain on paper towels. Serve immediately with lemon wedges and parsley."
+      ]
+    },
+    {
+      "id": "german-american-003",
+      "title": "Spätzle (German Egg Noodles)",
+      "description": "Tiny, tender egg dumplings that are the perfect bed for gravy or simply tossed with butter.",
+      "prepTime": 15,
+      "cookTime": 20,
+      "servings": 6,
+      "source": "German-American immigrant tradition",
+      "story": "Every German grandmother had her own spätzle technique. Some use a press, others scrape batter from a wet board. The result is the same—pillowy noodles perfect for soaking up gravy.",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "German",
+        "noodles",
+        "vegetarian"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-spaetzle.webp",
+      "sortOrder": 1,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:39.975Z",
+      "updatedAt": "2026-02-06T03:53:39.975Z",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups all-purpose flour",
+          "order": 0
+        },
+        {
+          "name": "eggs",
+          "amount": 4,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "4 large eggs",
+          "order": 1
+        },
+        {
+          "name": "milk",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup milk",
+          "order": 2
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 3
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon nutmeg",
+          "order": 4
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons butter",
+          "order": 5
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": null,
+          "text": "2 tablespoons fresh parsley",
+          "order": 6
+        }
+      ],
+      "instructions": [
+        "Whisk flour, eggs, milk, salt, and nutmeg until smooth. Batter should be thick but pourable.",
+        "Let rest 15 minutes.",
+        "Bring a large pot of salted water to a boil.",
+        "Working in batches, push batter through a spätzle maker, colander, or cut from a board into boiling water.",
+        "Cook until spätzle float and are cooked through, about 2-3 minutes.",
+        "Remove with a slotted spoon to a bowl.",
+        "Melt butter in a large skillet. Add cooked spätzle and toss until lightly golden.",
+        "Season with salt and pepper. Garnish with parsley."
+      ]
+    },
+    {
+      "id": "german-american-004",
+      "title": "German Apple Cake (Apfelkuchen)",
+      "description": "A tender butter cake topped with cinnamon apples—served for coffee or dessert.",
+      "prepTime": 25,
+      "cookTime": 60,
+      "servings": 10,
+      "source": "German-American immigrant tradition",
+      "story": "Apfelkuchen is the cake that appears at every German coffee hour (Kaffee und Kuchen). It showcases whatever apples are in season, with a simple batter that lets the fruit shine.",
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "cake",
+        "German",
+        "apple"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-german-apple-cake.webp",
+      "sortOrder": 1,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:40.177Z",
+      "updatedAt": "2026-02-06T03:53:40.177Z",
+      "ingredients": [
+        {
+          "name": "butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup butter",
+          "order": 0
+        },
+        {
+          "name": "sugar",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup sugar",
+          "order": 1
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 2
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon vanilla extract",
+          "order": 3
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups all-purpose flour",
+          "order": 4
+        },
+        {
+          "name": "baking powder",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 teaspoons baking powder",
+          "order": 5
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon salt",
+          "order": 6
+        },
+        {
+          "name": "milk",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup milk",
+          "order": 7
+        },
+        {
+          "name": "Granny Smith apples",
+          "amount": 3,
+          "unit": "medium",
+          "preparation": "peeled and sliced",
+          "group": null,
+          "text": "3 medium Granny Smith apples",
+          "order": 8
+        },
+        {
+          "name": "sugar",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For topping",
+          "text": "3 tablespoons sugar",
+          "order": 9
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": "For topping",
+          "text": "1 teaspoon cinnamon",
+          "order": 10
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For topping",
+          "text": "2 tablespoons butter",
+          "order": 11
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Butter a 9-inch springform pan.",
+        "Beat butter and 3/4 cup sugar until fluffy. Add eggs and vanilla.",
+        "Whisk flour, baking powder, and salt. Add to butter mixture alternately with milk.",
+        "Spread batter in prepared pan.",
+        "Arrange apple slices in overlapping circles on top.",
+        "Mix 3 tablespoons sugar and cinnamon. Sprinkle over apples. Drizzle with melted butter.",
+        "Bake 50-60 minutes until golden and a toothpick comes out clean.",
+        "Cool in pan 10 minutes before removing ring.",
+        "Serve warm or at room temperature, dusted with powdered sugar."
+      ]
+    },
+    {
+      "id": "german-american-005",
+      "title": "German Potato Salad (Warm)",
+      "description": "Warm potatoes dressed in a tangy bacon vinaigrette—nothing like the cold, creamy American version.",
+      "prepTime": 15,
+      "cookTime": 25,
+      "servings": 8,
+      "source": "German-American immigrant tradition",
+      "story": "Real German potato salad is served warm, dressed with bacon fat and vinegar. It's a revelation compared to the mayonnaise-laden American picnic version.",
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "German",
+        "bacon"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-german-potato-salad.webp",
+      "sortOrder": 1,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:40.377Z",
+      "updatedAt": "2026-02-06T03:53:40.377Z",
+      "ingredients": [
+        {
+          "name": "red potatoes",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "quartered",
+          "group": null,
+          "text": "2 pounds red potatoes",
+          "order": 0
+        },
+        {
+          "name": "bacon",
+          "amount": 6,
+          "unit": "slices",
+          "preparation": "diced",
+          "group": null,
+          "text": "6 slices bacon",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 2
+        },
+        {
+          "name": "cider vinegar",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup cider vinegar",
+          "order": 3
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons sugar",
+          "order": 4
+        },
+        {
+          "name": "German mustard",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon German mustard",
+          "order": 5
+        },
+        {
+          "name": "chicken broth",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup chicken broth",
+          "order": 6
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 teaspoon salt",
+          "order": 7
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 8
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": null,
+          "text": "3 tablespoons fresh parsley",
+          "order": 9
+        }
+      ],
+      "instructions": [
+        "Boil potatoes in salted water until tender, about 15 minutes. Drain and slice while warm.",
+        "Cook bacon until crispy. Remove and drain, leaving fat in pan.",
+        "Add onion to bacon fat and cook until softened.",
+        "Whisk in vinegar, sugar, mustard, broth, salt, and pepper. Bring to a simmer.",
+        "Pour warm dressing over sliced potatoes. Add bacon and parsley.",
+        "Toss gently to coat. Serve warm."
+      ]
+    },
+    {
+      "id": "german-american-006",
+      "title": "Lebkuchen (German Spice Cookies)",
+      "description": "Soft, chewy spice cookies topped with white glaze—traditional Christmas treats.",
+      "prepTime": 30,
+      "cookTime": 12,
+      "servings": 36,
+      "source": "German-American Christmas tradition",
+      "story": "Lebkuchen date to medieval times and are essential to German Christmas. The name means 'life cake'—originally made by monks, they improve over time and can be kept for months.",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cookies",
+        "German",
+        "Christmas"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-lebkuchen.webp",
+      "sortOrder": 1,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:40.589Z",
+      "updatedAt": "2026-02-06T03:53:40.589Z",
+      "ingredients": [
+        {
+          "name": "honey",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup honey",
+          "order": 0
+        },
+        {
+          "name": "brown sugar",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.75 cup brown sugar",
+          "order": 1
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "1 large egg",
+          "order": 2
+        },
+        {
+          "name": "lemon zest",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon lemon zest",
+          "order": 3
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "3 cups all-purpose flour",
+          "order": 4
+        },
+        {
+          "name": "baking soda",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon baking soda",
+          "order": 5
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon cinnamon",
+          "order": 6
+        },
+        {
+          "name": "ginger",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon ginger",
+          "order": 7
+        },
+        {
+          "name": "cloves",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon cloves",
+          "order": 8
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon nutmeg",
+          "order": 9
+        },
+        {
+          "name": "cardamom",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon cardamom",
+          "order": 10
+        },
+        {
+          "name": "almonds",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "finely chopped",
+          "group": null,
+          "text": "0.5 cup almonds",
+          "order": 11
+        },
+        {
+          "name": "candied citron",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "minced",
+          "group": null,
+          "text": "0.25 cup candied citron",
+          "order": 12
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For glaze",
+          "text": "1.5 cups powdered sugar",
+          "order": 13
+        },
+        {
+          "name": "lemon juice",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For glaze",
+          "text": "2 tablespoons lemon juice",
+          "order": 14
+        }
+      ],
+      "instructions": [
+        "Heat honey and brown sugar until sugar dissolves. Cool to lukewarm.",
+        "Beat in egg and lemon zest.",
+        "Whisk flour, baking soda, and spices. Stir into honey mixture.",
+        "Fold in almonds and citron. Dough will be sticky.",
+        "Refrigerate overnight.",
+        "Roll dough to 1/4-inch thickness. Cut into rectangles or rounds.",
+        "Bake at 350°F (175°C) for 10-12 minutes until set but still soft.",
+        "Mix powdered sugar and lemon juice for glaze. Brush over warm cookies.",
+        "Let set before serving. Store in airtight container—they improve with age."
+      ]
+    },
+    {
+      "id": "german-american-007",
+      "title": "Christmas Stollen",
+      "description": "A rich, fruit-studded bread shaped to resemble the swaddled Christ child—the taste of German Christmas.",
+      "prepTime": 45,
+      "cookTime": 50,
+      "servings": 16,
+      "source": "German-American Christmas tradition",
+      "story": "Stollen is a Christmas tradition dating to 15th-century Dresden. The folded shape represents the Christ child in swaddling clothes. It's best made weeks ahead—the flavors mature over time.",
+      "difficulty": "hard",
+      "tags": [
+        "bread",
+        "German",
+        "Christmas",
+        "holiday"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-stollen.webp",
+      "sortOrder": 1,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:40.790Z",
+      "updatedAt": "2026-02-06T03:53:40.790Z",
+      "ingredients": [
+        {
+          "name": "raisins",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup raisins",
+          "order": 0
+        },
+        {
+          "name": "candied citrus peel",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup candied citrus peel",
+          "order": 1
+        },
+        {
+          "name": "rum",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup rum",
+          "order": 2
+        },
+        {
+          "name": "warm milk",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup warm milk",
+          "order": 3
+        },
+        {
+          "name": "active dry yeast",
+          "amount": 2.25,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": null,
+          "text": "2.25 teaspoons active dry yeast",
+          "order": 4
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup sugar",
+          "order": 5
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup butter",
+          "order": 6
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 7
+        },
+        {
+          "name": "almond extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon almond extract",
+          "order": 8
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "4 cups all-purpose flour",
+          "order": 9
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon salt",
+          "order": 10
+        },
+        {
+          "name": "cardamom",
+          "amount": 0.5,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 teaspoon cardamom",
+          "order": 11
+        },
+        {
+          "name": "almonds",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "chopped",
+          "group": null,
+          "text": "0.5 cup almonds",
+          "order": 12
+        },
+        {
+          "name": "marzipan",
+          "amount": 7,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "7 ounces marzipan",
+          "order": 13
+        },
+        {
+          "name": "melted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For finishing",
+          "text": "0.5 cup melted butter",
+          "order": 14
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For finishing",
+          "text": "1 cup powdered sugar",
+          "order": 15
+        }
+      ],
+      "instructions": [
+        "Soak raisins and citrus peel in rum overnight.",
+        "Dissolve yeast in warm milk with a pinch of sugar. Let stand 5 minutes.",
+        "Beat butter and sugar until fluffy. Add eggs and almond extract.",
+        "Add yeast mixture, flour, salt, and cardamom. Knead until smooth.",
+        "Fold in soaked fruits and almonds. Let rise 2 hours.",
+        "Roll dough into an oval. Place marzipan log off-center.",
+        "Fold larger portion over marzipan, creating characteristic shape.",
+        "Let rise 1 hour. Bake at 350°F (175°C) for 45-50 minutes.",
+        "Brush hot stollen generously with melted butter. Dust heavily with powdered sugar."
+      ]
+    },
+    {
+      "id": "german-american-008",
+      "title": "Kartoffelpuffer (German Potato Pancakes)",
+      "description": "Crispy, golden potato pancakes served with applesauce and sour cream.",
+      "prepTime": 20,
+      "cookTime": 20,
+      "servings": 12,
+      "source": "German-American immigrant tradition",
+      "story": "Potato pancakes appear throughout German, Polish, and Jewish traditions. German-American versions are typically served with applesauce—the sweet-savory combination is irresistible.",
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "German",
+        "vegetarian",
+        "quick"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-kartoffelpuffer.webp",
+      "sortOrder": 2,
+      "unlockDay": 1,
+      "createdAt": "2026-02-06T03:53:41.014Z",
+      "updatedAt": "2026-02-06T03:53:41.014Z",
+      "ingredients": [
+        {
+          "name": "russet potatoes",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "peeled",
+          "group": null,
+          "text": "2 pounds russet potatoes",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": null,
+          "group": null,
+          "text": "1 medium onion",
+          "order": 1
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": null,
+          "text": "2 large eggs",
+          "order": 2
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons all-purpose flour",
+          "order": 3
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 4
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 5
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For frying",
+          "text": "0.5 cup vegetable oil",
+          "order": 6
+        },
+        {
+          "name": "applesauce",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "applesauce",
+          "order": 7
+        },
+        {
+          "name": "sour cream",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "sour cream",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Grate potatoes and onion using the fine side of a box grater or food processor.",
+        "Place grated vegetables in a clean kitchen towel and squeeze out as much liquid as possible.",
+        "Transfer to a bowl. Add eggs, flour, salt, and pepper. Mix well.",
+        "Heat 1/4 inch oil in a large skillet over medium-high heat.",
+        "Drop batter by 1/4-cup portions into hot oil. Flatten into 3-inch rounds.",
+        "Fry until golden brown and crispy, about 3-4 minutes per side.",
+        "Drain on paper towels. Serve immediately with applesauce and sour cream."
+      ]
+    },
+    {
+      "id": "german-american-009",
+      "title": "Rotkohl (German Red Cabbage)",
+      "description": "Sweet and sour braised red cabbage studded with apple—the classic accompaniment to roasted meats.",
+      "prepTime": 15,
+      "cookTime": 90,
+      "servings": 8,
+      "source": "Pennsylvania Dutch tradition",
+      "story": "Rotkohl improves with time—make it a day ahead and the flavors deepen. This sweet-sour cabbage is essential alongside sauerbraten, schnitzel, or roast pork.",
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "German",
+        "make-ahead"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-german-red-cabbage.webp",
+      "sortOrder": 2,
+      "unlockDay": 2,
+      "createdAt": "2026-02-06T03:53:41.225Z",
+      "updatedAt": "2026-02-06T03:53:41.225Z",
+      "ingredients": [
+        {
+          "name": "red cabbage",
+          "amount": 1,
+          "unit": "medium head",
+          "preparation": "shredded",
+          "group": null,
+          "text": "1 medium head red cabbage",
+          "order": 0
+        },
+        {
+          "name": "bacon",
+          "amount": 4,
+          "unit": "slices",
+          "preparation": "diced",
+          "group": null,
+          "text": "4 slices bacon",
+          "order": 1
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 medium onion",
+          "order": 2
+        },
+        {
+          "name": "apple",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "peeled and diced",
+          "group": null,
+          "text": "1 large apple",
+          "order": 3
+        },
+        {
+          "name": "red wine vinegar",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.33 cup red wine vinegar",
+          "order": 4
+        },
+        {
+          "name": "brown sugar",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "3 tablespoons brown sugar",
+          "order": 5
+        },
+        {
+          "name": "beef broth",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup beef broth",
+          "order": 6
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1  bay leaf",
+          "order": 7
+        },
+        {
+          "name": "whole cloves",
+          "amount": 3,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "3  whole cloves",
+          "order": 8
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon salt",
+          "order": 9
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 teaspoon black pepper",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Cook bacon in a large pot until crispy. Remove and set aside.",
+        "Add onion to bacon fat and cook until softened, about 5 minutes.",
+        "Add cabbage, apple, vinegar, brown sugar, broth, bay leaf, cloves, salt, and pepper.",
+        "Bring to a simmer. Cover and cook over low heat for 1-1.5 hours until very tender.",
+        "Remove bay leaf and cloves.",
+        "Stir in reserved bacon.",
+        "Adjust seasoning with more vinegar or sugar if needed."
+      ]
+    },
+    {
+      "id": "german-american-010",
+      "title": "Rouladen (Beef Rolls)",
+      "description": "Thin beef slices rolled around bacon, onion, and pickles, then braised in rich gravy.",
+      "prepTime": 30,
+      "cookTime": 120,
+      "servings": 4,
+      "source": "German-American immigrant tradition",
+      "story": "Rouladen is a Sunday dinner tradition in German families. The pickle inside provides a surprising burst of flavor, and the mustard and bacon create depth in the braising liquid.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "German",
+        "special occasion"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-rouladen.webp",
+      "sortOrder": 2,
+      "unlockDay": 3,
+      "createdAt": "2026-02-06T03:53:41.408Z",
+      "updatedAt": "2026-02-06T03:53:41.408Z",
+      "ingredients": [
+        {
+          "name": "beef top round",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "sliced 1/4-inch thick into 8 pieces",
+          "group": null,
+          "text": "2 pounds beef top round",
+          "order": 0
+        },
+        {
+          "name": "German mustard",
+          "amount": 4,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "4 tablespoons German mustard",
+          "order": 1
+        },
+        {
+          "name": "bacon",
+          "amount": 8,
+          "unit": "slices",
+          "preparation": null,
+          "group": null,
+          "text": "8 slices bacon",
+          "order": 2
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "thinly sliced",
+          "group": null,
+          "text": "1 large onion",
+          "order": 3
+        },
+        {
+          "name": "dill pickles",
+          "amount": 4,
+          "unit": null,
+          "preparation": "quartered lengthwise",
+          "group": null,
+          "text": "4  dill pickles",
+          "order": 4
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons vegetable oil",
+          "order": 5
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "2 cups beef broth",
+          "order": 6
+        },
+        {
+          "name": "red wine",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup red wine",
+          "order": 7
+        },
+        {
+          "name": "tomato paste",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon tomato paste",
+          "order": 8
+        },
+        {
+          "name": "flour",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "2 tablespoons flour",
+          "order": 9
+        },
+        {
+          "name": "salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "salt and pepper",
+          "order": 10
+        }
+      ],
+      "instructions": [
+        "Pound beef slices thin if needed. Season with salt and pepper.",
+        "Spread each slice with mustard. Top with bacon, onion slices, and pickle spear.",
+        "Roll up tightly and secure with toothpicks or kitchen twine.",
+        "Heat oil in a Dutch oven. Brown rouladen on all sides. Remove.",
+        "Add any remaining onion and cook until softened.",
+        "Stir in tomato paste, then add broth and wine.",
+        "Return rouladen to pot. Bring to a simmer.",
+        "Cover and braise at 325°F (165°C) for 1.5-2 hours until tender.",
+        "Remove rouladen. Whisk flour into cooking liquid and simmer until thickened.",
+        "Serve rouladen with gravy."
+      ]
+    },
+    {
+      "id": "german-american-011",
+      "title": "Beer-Braised Bratwurst",
+      "description": "Juicy bratwurst simmered in beer and onions, then grilled to perfection.",
+      "prepTime": 10,
+      "cookTime": 40,
+      "servings": 8,
+      "source": "Wisconsin German tradition",
+      "story": "Wisconsin's German immigrants perfected the beer brat. Simmering in beer keeps them juicy, while the final grilling adds char. The beer onions are as important as the sausage itself.",
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "German",
+        "grilling"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-bratwurst.webp",
+      "sortOrder": 2,
+      "unlockDay": 5,
+      "createdAt": "2026-02-06T03:53:41.617Z",
+      "updatedAt": "2026-02-06T03:53:41.617Z",
+      "ingredients": [
+        {
+          "name": "fresh bratwurst",
+          "amount": 8,
+          "unit": "links",
+          "preparation": null,
+          "group": null,
+          "text": "8 links fresh bratwurst",
+          "order": 0
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons butter",
+          "order": 1
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "sliced",
+          "group": null,
+          "text": "2 large onions",
+          "order": 2
+        },
+        {
+          "name": "German beer",
+          "amount": 12,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "12 ounces German beer",
+          "order": 3
+        },
+        {
+          "name": "beef broth",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "1 cup beef broth",
+          "order": 4
+        },
+        {
+          "name": "brown sugar",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 tablespoon brown sugar",
+          "order": 5
+        },
+        {
+          "name": "hoagie rolls",
+          "amount": 8,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "8  hoagie rolls",
+          "order": 6
+        },
+        {
+          "name": "German mustard",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "German mustard",
+          "order": 7
+        },
+        {
+          "name": "sauerkraut",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For serving",
+          "text": "sauerkraut",
+          "order": 8
+        }
+      ],
+      "instructions": [
+        "Melt butter in a large skillet or Dutch oven. Add onions and cook until golden, about 15 minutes.",
+        "Add beer, broth, and brown sugar. Bring to a simmer.",
+        "Add bratwurst. Simmer gently for 20 minutes (do not boil or skins will split).",
+        "Remove bratwurst from liquid. Grill over medium heat until browned, about 5 minutes per side.",
+        "Continue cooking onions in beer mixture until very soft and liquid is reduced.",
+        "Serve bratwurst in rolls topped with beer onions, mustard, and sauerkraut."
+      ]
+    },
+    {
+      "id": "german-american-012",
+      "title": "Black Forest Cake",
+      "description": "Layers of chocolate cake, cherries, and whipped cream—the legendary German torte.",
+      "prepTime": 45,
+      "cookTime": 35,
+      "servings": 12,
+      "source": "German-American tradition",
+      "story": "Schwarzwälder Kirschtorte originated in Germany's Black Forest region. The key is the kirsch—cherry brandy that soaks into the chocolate layers, creating a sophisticated, boozy flavor.",
+      "difficulty": "hard",
+      "tags": [
+        "dessert",
+        "cake",
+        "German",
+        "chocolate",
+        "celebration"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-black-forest-cake.webp",
+      "sortOrder": 2,
+      "unlockDay": 7,
+      "createdAt": "2026-02-06T03:53:41.807Z",
+      "updatedAt": "2026-02-06T03:53:41.807Z",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For cake",
+          "text": "2 cups all-purpose flour",
+          "order": 0
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For cake",
+          "text": "2 cups sugar",
+          "order": 1
+        },
+        {
+          "name": "cocoa powder",
+          "amount": 0.75,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For cake",
+          "text": "0.75 cup cocoa powder",
+          "order": 2
+        },
+        {
+          "name": "baking soda",
+          "amount": 2,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": "For cake",
+          "text": "2 teaspoons baking soda",
+          "order": 3
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": "For cake",
+          "text": "1 teaspoon baking powder",
+          "order": 4
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": "For cake",
+          "text": "1 teaspoon salt",
+          "order": 5
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "preparation": null,
+          "group": "For cake",
+          "text": "2 large eggs",
+          "order": 6
+        },
+        {
+          "name": "buttermilk",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For cake",
+          "text": "1 cup buttermilk",
+          "order": 7
+        },
+        {
+          "name": "hot coffee",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For cake",
+          "text": "1 cup hot coffee",
+          "order": 8
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For cake",
+          "text": "0.5 cup vegetable oil",
+          "order": 9
+        },
+        {
+          "name": "vanilla",
+          "amount": 2,
+          "unit": "teaspoons",
+          "preparation": null,
+          "group": "For cake",
+          "text": "2 teaspoons vanilla",
+          "order": 10
+        },
+        {
+          "name": "dark sweet cherries",
+          "amount": 24,
+          "unit": "ounces",
+          "preparation": null,
+          "group": null,
+          "text": "24 ounces dark sweet cherries",
+          "order": 11
+        },
+        {
+          "name": "kirsch",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.25 cup kirsch",
+          "order": 12
+        },
+        {
+          "name": "heavy cream",
+          "amount": 3,
+          "unit": "cups",
+          "preparation": null,
+          "group": "For frosting",
+          "text": "3 cups heavy cream",
+          "order": 13
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For frosting",
+          "text": "0.5 cup powdered sugar",
+          "order": 14
+        },
+        {
+          "name": "chocolate shavings",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": "For garnish",
+          "text": "chocolate shavings",
+          "order": 15
+        }
+      ],
+      "instructions": [
+        "Bake chocolate cake: Mix dry ingredients, add wet, pour into three 9-inch pans. Bake at 350°F for 30-35 minutes. Cool.",
+        "Mix 1/4 cup reserved cherry juice with kirsch. Brush over cake layers.",
+        "Whip cream with powdered sugar to stiff peaks.",
+        "Place one layer on plate. Spread with cream, top with cherries.",
+        "Repeat with second layer. Top with final layer.",
+        "Frost top and sides with remaining cream.",
+        "Decorate with chocolate shavings and remaining cherries."
+      ]
+    },
+    {
+      "id": "german-american-013",
+      "title": "Jägerschnitzel (Hunter's Schnitzel)",
+      "description": "Crispy breaded pork cutlets topped with a rich mushroom gravy.",
+      "prepTime": 25,
+      "cookTime": 25,
+      "servings": 4,
+      "source": "German-American immigrant tradition",
+      "story": "Jägerschnitzel means 'hunter's schnitzel'—the mushroom gravy represents foraged forest mushrooms. This heartier version of schnitzel became popular in German-American restaurants.",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "German",
+        "mushrooms"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-german-pork-schnitzel.webp",
+      "sortOrder": 2,
+      "unlockDay": 9,
+      "createdAt": "2026-02-06T03:53:42.024Z",
+      "updatedAt": "2026-02-06T03:53:42.024Z",
+      "ingredients": [
+        {
+          "name": "boneless pork loin chops",
+          "amount": 4,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "4  boneless pork loin chops",
+          "order": 0
+        },
+        {
+          "name": "flour",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup flour",
+          "order": 1
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": null,
+          "preparation": "beaten",
+          "group": null,
+          "text": "2  eggs",
+          "order": 2
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups breadcrumbs",
+          "order": 3
+        },
+        {
+          "name": "salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "salt and pepper",
+          "order": 4
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": null,
+          "text": "0.5 cup vegetable oil",
+          "order": 5
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "3 tablespoons butter",
+          "order": 6
+        },
+        {
+          "name": "mushrooms",
+          "amount": 12,
+          "unit": "ounces",
+          "preparation": "sliced",
+          "group": "For gravy",
+          "text": "12 ounces mushrooms",
+          "order": 7
+        },
+        {
+          "name": "shallots",
+          "amount": 2,
+          "unit": null,
+          "preparation": "minced",
+          "group": "For gravy",
+          "text": "2  shallots",
+          "order": 8
+        },
+        {
+          "name": "white wine",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "0.5 cup white wine",
+          "order": 9
+        },
+        {
+          "name": "beef broth",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "1 cup beef broth",
+          "order": 10
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "0.5 cup heavy cream",
+          "order": 11
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": "For gravy",
+          "text": "1 teaspoon fresh thyme",
+          "order": 12
+        }
+      ],
+      "instructions": [
+        "Bread and fry schnitzels as in Wiener Schnitzel recipe. Keep warm.",
+        "For gravy: Melt butter in skillet. Sauté mushrooms until golden, about 8 minutes.",
+        "Add shallots and cook 2 minutes.",
+        "Add wine and simmer until reduced by half.",
+        "Add broth and thyme. Simmer 5 minutes.",
+        "Stir in cream. Simmer until slightly thickened.",
+        "Season with salt and pepper.",
+        "Serve schnitzels topped with mushroom gravy."
+      ]
+    },
+    {
+      "id": "german-american-014",
+      "title": "German Lentil Soup (Linsensuppe)",
+      "description": "Hearty lentil soup with sausage and a splash of vinegar—a winter warming classic.",
+      "prepTime": 15,
+      "cookTime": 50,
+      "servings": 8,
+      "source": "German-American immigrant tradition",
+      "story": "Linsensuppe is German comfort food at its finest. The splash of vinegar at the end is traditional—it brightens the earthy lentils and cuts through the richness of the sausage.",
+      "difficulty": "easy",
+      "tags": [
+        "soup",
+        "German",
+        "hearty",
+        "winter"
+      ],
+      "imageURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/german-american/german-american-german-lentil-soup.webp",
+      "sortOrder": 2,
+      "unlockDay": 11,
+      "createdAt": "2026-02-06T03:53:42.217Z",
+      "updatedAt": "2026-02-06T03:53:42.217Z",
+      "ingredients": [
+        {
+          "name": "bacon",
+          "amount": 4,
+          "unit": "slices",
+          "preparation": "diced",
+          "group": null,
+          "text": "4 slices bacon",
+          "order": 0
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced",
+          "group": null,
+          "text": "1 large onion",
+          "order": 1
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": null,
+          "text": "2 medium carrots",
+          "order": 2
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced",
+          "group": null,
+          "text": "2 stalks celery",
+          "order": 3
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": null,
+          "text": "2 cloves garlic",
+          "order": 4
+        },
+        {
+          "name": "brown lentils",
+          "amount": 1.5,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "1.5 cups brown lentils",
+          "order": 5
+        },
+        {
+          "name": "beef broth",
+          "amount": 8,
+          "unit": "cups",
+          "preparation": null,
+          "group": null,
+          "text": "8 cups beef broth",
+          "order": 6
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "1  bay leaf",
+          "order": 7
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": null,
+          "group": null,
+          "text": "1 teaspoon fresh thyme",
+          "order": 8
+        },
+        {
+          "name": "German smoked sausage",
+          "amount": 12,
+          "unit": "ounces",
+          "preparation": "sliced",
+          "group": null,
+          "text": "12 ounces German smoked sausage",
+          "order": 9
+        },
+        {
+          "name": "cider vinegar",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": null,
+          "group": null,
+          "text": "2 tablespoons cider vinegar",
+          "order": 10
+        },
+        {
+          "name": "salt and pepper",
+          "amount": null,
+          "unit": null,
+          "preparation": null,
+          "group": null,
+          "text": "salt and pepper",
+          "order": 11
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": null,
+          "text": "2 tablespoons fresh parsley",
+          "order": 12
+        }
+      ],
+      "instructions": [
+        "Cook bacon in a large pot until crispy. Remove and set aside.",
+        "Add onion, carrots, and celery to bacon fat. Cook until softened, about 8 minutes.",
+        "Add garlic and cook 1 minute.",
+        "Add lentils, broth, bay leaf, and thyme. Bring to a boil.",
+        "Reduce heat and simmer until lentils are tender, about 30-40 minutes.",
+        "Add sausage and cook 10 minutes more.",
+        "Remove bay leaf. Stir in vinegar.",
+        "Season with salt and pepper. Serve topped with bacon and parsley."
+      ]
+    }
+  ],
+  "backupTimestamp": "2026-02-19T22:30:50.839Z"
+}

@@ -1,0 +1,887 @@
+{
+  "exportedAt": "2026-02-22T20:20:31.263Z",
+  "email": "hanson@rationale.work",
+  "userId": "vmgXvJgRLHOvKPNMwRgXyNnYSaO2",
+  "profile": null,
+  "recipes": [
+    {
+      "id": "05F358EE-AD61-58D4-A242-6C099A93775B",
+      "collectionIds": [
+        "F767BB99-8DF6-466C-B240-FDDB3BFF26E5"
+      ],
+      "cookTime": "0",
+      "crdtData": {
+        "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+        "lastModified": {
+          "_seconds": 1770684013,
+          "_nanoseconds": 903976000
+        },
+        "operationLog": {
+          "lastUpdated": {
+            "_seconds": 1770684013,
+            "_nanoseconds": 904270000
+          },
+          "operations": [
+            {
+              "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+              "fieldPath": "title",
+              "id": "FF3BB3AA-CD13-44D3-A41D-E0666D4C422F",
+              "metadata": {},
+              "newValue": {
+                "type": "string",
+                "value": "Egyptian Wrap"
+              },
+              "oldValue": {
+                "type": "string",
+                "value": "Mediterranean Wrap"
+              },
+              "operationType": "update",
+              "recipeId": "05F358EE-AD61-58D4-A242-6C099A93775B",
+              "timestamp": {
+                "_seconds": 1770684003,
+                "_nanoseconds": 446778000
+              },
+              "vectorClock": {
+                "clocks": {
+                  "36A58F8F-13A1-404C-957B-A44ED2F669E1": 1
+                },
+                "lastUpdated": {
+                  "_seconds": 1770684013,
+                  "_nanoseconds": 904103000
+                }
+              }
+            },
+            {
+              "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+              "fieldPath": "ingredients",
+              "id": "A55F5821-09F8-48E8-9397-04D74D9EB645",
+              "metadata": {},
+              "newValue": {
+                "type": "stringArray",
+                "value": [
+                  "0.25 cup kalamata olives",
+                  "Red onion slices",
+                  "0.25 cup feta cheese",
+                  "2 large flour tortillas",
+                  "1 cup mixed greens",
+                  "Cherry tomatoes",
+                  "0.5 cup hummus",
+                  "0.5 cucumber, sliced",
+                  "1 cup tahini"
+                ]
+              },
+              "oldValue": {
+                "type": "stringArray",
+                "value": [
+                  "1/4 cup kalamata olives",
+                  "Red onion slices",
+                  "1/4 cup feta cheese",
+                  "2 large flour tortillas",
+                  "1 cup mixed greens",
+                  "Cherry tomatoes",
+                  "1/2 cup hummus",
+                  "1/2 cucumber, sliced"
+                ]
+              },
+              "operationType": "update",
+              "recipeId": "05F358EE-AD61-58D4-A242-6C099A93775B",
+              "timestamp": {
+                "_seconds": 1770684003,
+                "_nanoseconds": 446825000
+              },
+              "vectorClock": {
+                "clocks": {
+                  "36A58F8F-13A1-404C-957B-A44ED2F669E1": 2
+                },
+                "lastUpdated": {
+                  "_seconds": 1770684013,
+                  "_nanoseconds": 904186000
+                }
+              }
+            },
+            {
+              "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+              "fieldPath": "ingredients",
+              "id": "89B96760-5DE4-4840-A000-340086E17EE6",
+              "metadata": {},
+              "newValue": {
+                "type": "stringArray",
+                "value": [
+                  "1 cup tahini",
+                  "½ cucumber (sliced)",
+                  "Red onion slices",
+                  "Cherry tomatoes",
+                  "2 large flour tortillas",
+                  "½ cup hummus",
+                  "¼ cup feta cheese",
+                  "¼ cup kalamata olives",
+                  "1 cup mixed greens"
+                ]
+              },
+              "oldValue": {
+                "type": "stringArray",
+                "value": [
+                  "1/4 cup kalamata olives",
+                  "Red onion slices",
+                  "1/4 cup feta cheese",
+                  "2 large flour tortillas",
+                  "1 cup mixed greens",
+                  "Cherry tomatoes",
+                  "1/2 cup hummus",
+                  "1/2 cucumber, sliced"
+                ]
+              },
+              "operationType": "update",
+              "recipeId": "05F358EE-AD61-58D4-A242-6C099A93775B",
+              "timestamp": {
+                "_seconds": 1770684013,
+                "_nanoseconds": 814311000
+              },
+              "vectorClock": {
+                "clocks": {
+                  "36A58F8F-13A1-404C-957B-A44ED2F669E1": 3
+                },
+                "lastUpdated": {
+                  "_seconds": 1770684013,
+                  "_nanoseconds": 904250000
+                }
+              }
+            }
+          ],
+          "recipeId": "05F358EE-AD61-58D4-A242-6C099A93775B",
+          "vectorClock": {
+            "clocks": {
+              "36A58F8F-13A1-404C-957B-A44ED2F669E1": 3
+            },
+            "lastUpdated": {
+              "_seconds": 1770684013,
+              "_nanoseconds": 904270000
+            }
+          }
+        }
+      },
+      "createdAt": {
+        "_seconds": 1769107752,
+        "_nanoseconds": 444000000
+      },
+      "dateAdded": {
+        "_seconds": 1770683963,
+        "_nanoseconds": 583867000
+      },
+      "generationCount": 2,
+      "imageFileName": "recipe-05F358EE-AD61-58D4-A242-6C099A93775B-1770684013.jpg",
+      "instructions": [],
+      "isFavorite": false,
+      "lastCooked": null,
+      "lastModifiedByDevice": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+      "lastSyncedAt": {
+        "_seconds": 1770684013,
+        "_nanoseconds": 904479000
+      },
+      "modifiedAt": {
+        "_seconds": 1770684013,
+        "_nanoseconds": 903964000
+      },
+      "notes": null,
+      "passedDownMessage": null,
+      "prepTime": "10",
+      "provenanceJSON": "{\"sourceType\":\"shared\",\"rootProvenanceHash\":\"2b3cf668161829f4683776a6f4ab8291162449d43be1100585213cb86229a652\",\"cachedMetrics\":{\"commentCount\":0,\"ratingCount\":0,\"trendingScore\":0,\"totalCooks\":0,\"totalShares\":0},\"createdAt\":792376763.582343,\"generation\":1,\"sourceAttribution\":\"ColettieSpaghetti\",\"sharedByName\":\"ColettieSpaghetti\"}",
+      "servings": "2 wraps",
+      "sharedBy": "ColettieSpaghetti",
+      "sharedDate": {
+        "_seconds": 1770683967,
+        "_nanoseconds": 712723000
+      },
+      "sourceImageURL": null,
+      "sourceType": "manual",
+      "sourceURL": null,
+      "tagIds": [],
+      "timesCooked": 0,
+      "title": "Egyptian Wrap",
+      "usesCRDT": true,
+      "firebaseImageURL": "https://firebasestorage.googleapis.com:443/v0/b/heirloom-ios-prod.firebasestorage.app/o/users%2FvmgXvJgRLHOvKPNMwRgXyNnYSaO2%2Frecipes%2F05F358EE-AD61-58D4-A242-6C099A93775B%2Fimage.jpg?alt=media&token=aebf95dd-95ec-4e71-bf1a-d4e8461c9da7"
+    },
+    {
+      "id": "935E5D67-024F-49EB-88CE-91DB779B34F4",
+      "collectionIds": [
+        "4A959EBD-3332-4AB3-9737-7EE557F7BC9D"
+      ],
+      "cookTime": "20m",
+      "createdAt": {
+        "_seconds": 1770684454,
+        "_nanoseconds": 608613000
+      },
+      "dateAdded": {
+        "_seconds": 1770684454,
+        "_nanoseconds": 608680000
+      },
+      "generationCount": 1,
+      "imageFileName": "recipe-935E5D67-024F-49EB-88CE-91DB779B34F4-1770684454.jpg",
+      "instructions": [
+        "Gather the ingredients. Preheat the oven to 425 degrees F (220 degrees C).",
+        "Toss potatoes, garlic, Parmesan cheese, lemon zest, salt, and black pepper together in a bowl. Drizzle with olive oil and toss again until evenly combined.",
+        "Heat a cast-iron skillet over medium-high heat. Add butter and heat until melted. Add potatoes; cook and toss until evenly coated with butter, about 2 minutes. Move the skillet to the preheated oven.",
+        "Roast in the preheated oven until soft, 15 to 20 minutes, tossing halfway through. Remove from oven and top with parsley."
+      ],
+      "isFavorite": false,
+      "lastCooked": null,
+      "lastSyncedAt": {
+        "_seconds": 1770684454,
+        "_nanoseconds": 929582000
+      },
+      "modifiedAt": {
+        "_seconds": 1770684454,
+        "_nanoseconds": 608613000
+      },
+      "notes": null,
+      "passedDownMessage": null,
+      "prepTime": "10m",
+      "provenanceJSON": "{\"generation\":0,\"createdAt\":792377254.609019,\"sourceType\":\"imported\",\"cachedMetrics\":{\"totalCooks\":0,\"trendingScore\":0,\"commentCount\":0,\"ratingCount\":0,\"totalShares\":0},\"rootProvenanceHash\":\"b7945cd1deb0bee9b1d8045b56a96dd6e96866dab99c82bf019813d1ee68b771\"}",
+      "servings": "4",
+      "sharedBy": null,
+      "sharedDate": null,
+      "sourceImageURL": null,
+      "sourceType": "url",
+      "sourceURL": "https://www.allrecipes.com/recipe/269519/roasted-garlic-parmesan-fingerling-potatoes/",
+      "tagIds": [],
+      "timesCooked": 0,
+      "title": "Roasted Garlic-Parmesan Fingerling Potatoes",
+      "firebaseImageURL": "https://firebasestorage.googleapis.com:443/v0/b/heirloom-ios-prod.firebasestorage.app/o/users%2FvmgXvJgRLHOvKPNMwRgXyNnYSaO2%2Frecipes%2F935E5D67-024F-49EB-88CE-91DB779B34F4%2Fimage.jpg?alt=media&token=a5462341-86e0-488a-9f64-841a99e7b295"
+    },
+    {
+      "id": "9A22D18E-7831-4E97-BE86-2FED57E43344",
+      "collectionIds": [
+        "4A959EBD-3332-4AB3-9737-7EE557F7BC9D"
+      ],
+      "cookTime": "30m",
+      "createdAt": {
+        "_seconds": 1770684488,
+        "_nanoseconds": 86485000
+      },
+      "dateAdded": {
+        "_seconds": 1770684488,
+        "_nanoseconds": 86503000
+      },
+      "generationCount": 1,
+      "imageFileName": "recipe-9A22D18E-7831-4E97-BE86-2FED57E43344-1770684488.jpg",
+      "instructions": [
+        "Preheat the oven to 400 degrees F (200 degrees C). Line a baking sheet with aluminum foil.",
+        "Place potatoes in a large bowl. Add olive oil, za&#39;atar, and salt; stir to coat. Spread potatoes in a single layer on the prepared baking sheet.",
+        "Roast in the preheated oven for 12 minutes. Stir potatoes and roast for an additional 12 minutes. Stir once more and cook until crispy, about 4 more minutes. Garnish with parsley."
+      ],
+      "isFavorite": false,
+      "lastCooked": null,
+      "lastSyncedAt": {
+        "_seconds": 1770684488,
+        "_nanoseconds": 307687000
+      },
+      "modifiedAt": {
+        "_seconds": 1770684488,
+        "_nanoseconds": 86484000
+      },
+      "notes": null,
+      "passedDownMessage": null,
+      "prepTime": "5m",
+      "provenanceJSON": "{\"rootProvenanceHash\":\"b5556a4bfb0006a4067424ef6354614517011e651de42f00fbf603d8a8c3058f\",\"cachedMetrics\":{\"ratingCount\":0,\"commentCount\":0,\"trendingScore\":0,\"totalShares\":0,\"totalCooks\":0},\"sourceType\":\"imported\",\"generation\":0,\"createdAt\":792377288.086551}",
+      "servings": "6",
+      "sharedBy": null,
+      "sharedDate": null,
+      "sourceImageURL": null,
+      "sourceType": "url",
+      "sourceURL": "https://www.allrecipes.com/recipe/274622/roasted-zaatar-potatoes/",
+      "tagIds": [],
+      "timesCooked": 0,
+      "title": "Roasted Za'atar Potatoes",
+      "firebaseImageURL": "https://firebasestorage.googleapis.com:443/v0/b/heirloom-ios-prod.firebasestorage.app/o/users%2FvmgXvJgRLHOvKPNMwRgXyNnYSaO2%2Frecipes%2F9A22D18E-7831-4E97-BE86-2FED57E43344%2Fimage.jpg?alt=media&token=06ea58ae-7167-4c03-9da2-c06314c1d22e"
+    },
+    {
+      "id": "DF928A49-A4A7-5F1A-AC19-C5B771531AD6",
+      "collectionIds": [
+        "F767BB99-8DF6-466C-B240-FDDB3BFF26E5"
+      ],
+      "cookTime": "180",
+      "crdtData": {
+        "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+        "lastModified": {
+          "_seconds": 1770683805,
+          "_nanoseconds": 590862000
+        },
+        "operationLog": {
+          "lastUpdated": {
+            "_seconds": 1770683805,
+            "_nanoseconds": 591895000
+          },
+          "operations": [
+            {
+              "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+              "fieldPath": "title",
+              "id": "CED497D4-D680-4782-BD46-817B486CF853",
+              "metadata": {},
+              "newValue": {
+                "type": "string",
+                "value": "Mamas Pot Roast"
+              },
+              "oldValue": {
+                "type": "string",
+                "value": "Nana's Pot Roast"
+              },
+              "operationType": "update",
+              "recipeId": "DF928A49-A4A7-5F1A-AC19-C5B771531AD6",
+              "timestamp": {
+                "_seconds": 1770683796,
+                "_nanoseconds": 768790000
+              },
+              "vectorClock": {
+                "clocks": {
+                  "36A58F8F-13A1-404C-957B-A44ED2F669E1": 1
+                },
+                "lastUpdated": {
+                  "_seconds": 1770683805,
+                  "_nanoseconds": 591011000
+                }
+              }
+            },
+            {
+              "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+              "fieldPath": "ingredients",
+              "id": "750E1F22-B743-49D3-9F24-158564ACDF99",
+              "metadata": {},
+              "newValue": {
+                "type": "stringArray",
+                "value": [
+                  "Salt and pepper",
+                  "Fresh thyme",
+                  "3 lb chuck roast",
+                  "2 cup beef broth",
+                  "4 clove garlic",
+                  "1 lb baby potatoes",
+                  "4 carrots, chunked",
+                  "1 onion, quartered",
+                  "10 banana peppers"
+                ]
+              },
+              "oldValue": {
+                "type": "stringArray",
+                "value": [
+                  "Salt and pepper",
+                  "Fresh thyme",
+                  "3 lb chuck roast",
+                  "2 cups beef broth",
+                  "4 cloves garlic",
+                  "1 lb baby potatoes",
+                  "4 carrots, chunked",
+                  "1 onion, quartered"
+                ]
+              },
+              "operationType": "update",
+              "recipeId": "DF928A49-A4A7-5F1A-AC19-C5B771531AD6",
+              "timestamp": {
+                "_seconds": 1770683796,
+                "_nanoseconds": 769101000
+              },
+              "vectorClock": {
+                "clocks": {
+                  "36A58F8F-13A1-404C-957B-A44ED2F669E1": 2
+                },
+                "lastUpdated": {
+                  "_seconds": 1770683805,
+                  "_nanoseconds": 591809000
+                }
+              }
+            },
+            {
+              "deviceId": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+              "fieldPath": "ingredients",
+              "id": "B4372C79-4942-4B5C-842C-21A24DBED471",
+              "metadata": {},
+              "newValue": {
+                "type": "stringArray",
+                "value": [
+                  "4 carrots (chunked)",
+                  "3 pound chuck roast",
+                  "4 clove garlic",
+                  "Salt and pepper",
+                  "2 cup beef broth",
+                  "Fresh thyme",
+                  "1 pound baby potatoes",
+                  "10 banana peppers",
+                  "1 onion (quartered)"
+                ]
+              },
+              "oldValue": {
+                "type": "stringArray",
+                "value": [
+                  "Salt and pepper",
+                  "Fresh thyme",
+                  "3 lb chuck roast",
+                  "2 cups beef broth",
+                  "4 cloves garlic",
+                  "1 lb baby potatoes",
+                  "4 carrots, chunked",
+                  "1 onion, quartered"
+                ]
+              },
+              "operationType": "update",
+              "recipeId": "DF928A49-A4A7-5F1A-AC19-C5B771531AD6",
+              "timestamp": {
+                "_seconds": 1770683805,
+                "_nanoseconds": 495141000
+              },
+              "vectorClock": {
+                "clocks": {
+                  "36A58F8F-13A1-404C-957B-A44ED2F669E1": 3
+                },
+                "lastUpdated": {
+                  "_seconds": 1770683805,
+                  "_nanoseconds": 591876000
+                }
+              }
+            }
+          ],
+          "recipeId": "DF928A49-A4A7-5F1A-AC19-C5B771531AD6",
+          "vectorClock": {
+            "clocks": {
+              "36A58F8F-13A1-404C-957B-A44ED2F669E1": 3
+            },
+            "lastUpdated": {
+              "_seconds": 1770683805,
+              "_nanoseconds": 591895000
+            }
+          }
+        }
+      },
+      "createdAt": {
+        "_seconds": 1769971755,
+        "_nanoseconds": 329998000
+      },
+      "dateAdded": {
+        "_seconds": 1770683726,
+        "_nanoseconds": 14209000
+      },
+      "generationCount": 2,
+      "imageFileName": "recipe-DF928A49-A4A7-5F1A-AC19-C5B771531AD6-1770683805.jpg",
+      "instructions": [],
+      "isFavorite": false,
+      "lastCooked": null,
+      "lastModifiedByDevice": "36A58F8F-13A1-404C-957B-A44ED2F669E1",
+      "lastSyncedAt": {
+        "_seconds": 1770683805,
+        "_nanoseconds": 592104000
+      },
+      "modifiedAt": {
+        "_seconds": 1770683805,
+        "_nanoseconds": 590681000
+      },
+      "notes": null,
+      "passedDownMessage": null,
+      "prepTime": "20",
+      "provenanceJSON": "{\"sharedByName\":\"ColettieSpaghetti\",\"sourceAttribution\":\"ColettieSpaghetti\",\"rootProvenanceHash\":\"4689a8ae460d8b5feee1356c30a647845743c24f1459e1a96cf702752c9b0b6e\",\"cachedMetrics\":{\"totalCooks\":0,\"commentCount\":0,\"trendingScore\":0,\"totalShares\":0,\"ratingCount\":0},\"sourceType\":\"shared\",\"createdAt\":792376526.012933,\"generation\":1}",
+      "servings": "6 servings",
+      "sharedBy": "ColettieSpaghetti",
+      "sharedDate": {
+        "_seconds": 1770683750,
+        "_nanoseconds": 25262000
+      },
+      "sourceImageURL": null,
+      "sourceType": "manual",
+      "sourceURL": null,
+      "tagIds": [],
+      "timesCooked": 0,
+      "title": "Mamas Pot Roast",
+      "usesCRDT": true,
+      "firebaseImageURL": "https://firebasestorage.googleapis.com:443/v0/b/heirloom-ios-prod.firebasestorage.app/o/users%2FvmgXvJgRLHOvKPNMwRgXyNnYSaO2%2Frecipes%2FDF928A49-A4A7-5F1A-AC19-C5B771531AD6%2Fimage.jpg?alt=media&token=7604d6ba-a917-4b63-aa47-93b6ac45d30c"
+    }
+  ],
+  "collections": [
+    {
+      "id": "04953B47-2600-46E4-9CD7-E4ACBB163131",
+      "collectionType": "communityRecipes",
+      "color": "#2D5A27",
+      "desc": "Recipes saved from the community",
+      "iconName": "globe",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "Community Recipes",
+      "recipeIds": [],
+      "createdDate": {
+        "_seconds": 1770053311,
+        "_nanoseconds": 980669000
+      },
+      "isDemoSeed": false
+    },
+    {
+      "id": "04DC9CEE-5725-41C6-811A-A8B48161105A",
+      "collectionType": "theme",
+      "color": "#FF6B6B",
+      "createdDate": {
+        "_seconds": 1769827618,
+        "_nanoseconds": 883712000
+      },
+      "desc": null,
+      "iconName": "book.closed.fill",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "Boston Cooking School",
+      "recipeIds": [],
+      "isDemoSeed": false
+    },
+    {
+      "id": "0F566E8B-23B4-4C3C-AFF8-9F57ACACC998",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1771527337,
+        "_nanoseconds": 968299000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "house.fill",
+      "isAllRecipes": false,
+      "name": "German-American Kitchen",
+      "desc": null,
+      "isDemoSeed": false
+    },
+    {
+      "id": "115444B4-2F47-4946-B64E-FD1288671A7D",
+      "collectionType": "theme",
+      "color": "#FF6B6B",
+      "createdDate": {
+        "_seconds": 1769971346,
+        "_nanoseconds": 737349000
+      },
+      "desc": null,
+      "iconName": "building.columns",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "Automat Classics",
+      "recipeIds": [],
+      "isDemoSeed": false
+    },
+    {
+      "id": "15017E6C-8585-4082-8D64-65135C304CF0",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1771527019,
+        "_nanoseconds": 765407000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "leaf.fill",
+      "isAllRecipes": false,
+      "name": "Victory Kitchen",
+      "desc": null,
+      "isDemoSeed": true
+    },
+    {
+      "id": "2041D18A-607F-46EA-8D76-4416D8E6D88F",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1769827618,
+        "_nanoseconds": 883028000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "leaf.fill",
+      "isAllRecipes": false,
+      "isDemoSeed": false,
+      "name": "Victory Kitchen",
+      "desc": null
+    },
+    {
+      "id": "261D21A3-BAAC-494E-84A4-E13C4E00B27E",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1771526576,
+        "_nanoseconds": 874676000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "anchor",
+      "isAllRecipes": false,
+      "name": "Navy Mess Hall",
+      "desc": null,
+      "isDemoSeed": false
+    },
+    {
+      "id": "4597A9B2-3068-4E1E-9F10-7AD28CB4E0AA",
+      "collectionType": "cookbook",
+      "color": "#FF6B6B",
+      "desc": "Imported from Cookbook Pages",
+      "iconName": "book.fill",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "Cookbook Pages",
+      "recipeIds": [],
+      "createdDate": {
+        "_seconds": 1770044359,
+        "_nanoseconds": 836652000
+      },
+      "isDemoSeed": false
+    },
+    {
+      "id": "4707EBEB-409A-4E36-8632-920D2CE9FDDF",
+      "collectionType": "theme",
+      "color": "#FF6B6B",
+      "createdDate": {
+        "_seconds": 1769971346,
+        "_nanoseconds": 736443000
+      },
+      "desc": null,
+      "iconName": "tram.fill",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "Golden Age of Rail",
+      "recipeIds": [],
+      "isDemoSeed": false
+    },
+    {
+      "id": "4A959EBD-3332-4AB3-9737-7EE557F7BC9D",
+      "collectionType": "webImports",
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "link",
+      "isAllRecipes": false,
+      "name": "From Web",
+      "desc": null,
+      "recipeIds": [
+        "935E5D67-024F-49EB-88CE-91DB779B34F4",
+        "9A22D18E-7831-4E97-BE86-2FED57E43344"
+      ],
+      "isDemoSeed": false,
+      "createdDate": {
+        "_seconds": 1770684454,
+        "_nanoseconds": 689457000
+      }
+    },
+    {
+      "id": "4FC05AAE-F675-417C-9E61-75BFFC130B45",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1770036650,
+        "_nanoseconds": 703169000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "book.closed.fill",
+      "isAllRecipes": false,
+      "isDemoSeed": false,
+      "name": "Boston Cooking School",
+      "desc": null
+    },
+    {
+      "id": "557F90C5-A121-4D23-B887-3DE37614911A",
+      "collectionType": "videoImports",
+      "color": "#FF6B6B",
+      "desc": null,
+      "iconName": "video.fill",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "From Videos",
+      "recipeIds": [],
+      "isDemoSeed": false,
+      "createdDate": {
+        "_seconds": 1770097612,
+        "_nanoseconds": 281178000
+      }
+    },
+    {
+      "id": "664ADC50-2D95-424A-B4CD-8177DD3980D9",
+      "collectionType": "cookbook",
+      "color": "#FF6B6B",
+      "desc": "Imported from Wishbone Kitchen Cookbook",
+      "iconName": "book.fill",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "Wishbone Kitchen Cookbook",
+      "recipeIds": [],
+      "createdDate": {
+        "_seconds": 1770084770,
+        "_nanoseconds": 97522000
+      },
+      "isDemoSeed": false
+    },
+    {
+      "id": "70DCCB44-6FC5-4AFD-BA1D-C16DCBB53A75",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1771526462,
+        "_nanoseconds": 512593000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "snowflake",
+      "isAllRecipes": false,
+      "name": "Scandinavian Heritage",
+      "desc": null,
+      "isDemoSeed": false
+    },
+    {
+      "id": "85003D11-913E-4074-9AD1-F5717F75256D",
+      "collectionType": "theme",
+      "createdDate": {
+        "_seconds": 1770036650,
+        "_nanoseconds": 700078000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "building.columns",
+      "isAllRecipes": false,
+      "isDemoSeed": false,
+      "name": "Automat Classics",
+      "desc": null
+    },
+    {
+      "id": "B02A3F0E-4E9F-4DD2-AFA7-E72AE10F325B",
+      "collectionType": "userCreated",
+      "color": "#9B59B6",
+      "isSystemCollection": false,
+      "iconName": "wand.and.stars",
+      "isAllRecipes": false,
+      "name": "Generated Recipes",
+      "desc": "AI-created recipes",
+      "isDemoSeed": true,
+      "createdDate": {
+        "_seconds": 1771527293,
+        "_nanoseconds": 335839000
+      }
+    },
+    {
+      "id": "B2BA6D65-FE6E-45B1-A62D-11875F235D2C",
+      "collectionType": "userCreated",
+      "createdDate": {
+        "_seconds": 1770085979,
+        "_nanoseconds": 679404000
+      },
+      "color": "#FF6B6B",
+      "isSystemCollection": false,
+      "iconName": "wand.and.stars",
+      "isAllRecipes": false,
+      "isDemoSeed": false,
+      "name": "Generated Recipes",
+      "desc": null
+    },
+    {
+      "id": "F767BB99-8DF6-466C-B240-FDDB3BFF26E5",
+      "collectionType": "fromFriends",
+      "color": "#FF6B6B",
+      "desc": null,
+      "iconName": "person.2.fill",
+      "isAllRecipes": false,
+      "isSystemCollection": false,
+      "name": "From Friends",
+      "recipeIds": [
+        "DF928A49-A4A7-5F1A-AC19-C5B771531AD6",
+        "05F358EE-AD61-58D4-A242-6C099A93775B"
+      ],
+      "isDemoSeed": false,
+      "createdDate": {
+        "_seconds": 1770049609,
+        "_nanoseconds": 634990000
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "D98DA64D-49A9-4D3D-87AA-FAE6B32970F4",
+      "connectedUserDisplayName": "ColettieSpaghetti",
+      "connectedUserId": "TuQgh4k7HSY8p5eDk90ja53u9ki2",
+      "connectedUserPhotoURL": "https://firebasestorage.googleapis.com:443/v0/b/heirloom-ios-prod.firebasestorage.app/o/users%2FTuQgh4k7HSY8p5eDk90ja53u9ki2%2Fprofile%2Favatar.jpg?alt=media&token=b25429b3-1384-48f5-b6b9-ded8765800d8",
+      "createdAt": {
+        "_seconds": 1770683920,
+        "_nanoseconds": 789798000
+      },
+      "initiatedBy": "TuQgh4k7HSY8p5eDk90ja53u9ki2",
+      "isFavorite": false,
+      "isKitchenTableConnection": false,
+      "recipesSharedCount": 0,
+      "requestedAt": {
+        "_seconds": 1770683920,
+        "_nanoseconds": 789798000
+      },
+      "userId": "vmgXvJgRLHOvKPNMwRgXyNnYSaO2",
+      "acceptedAt": {
+        "_seconds": 1770683928,
+        "_nanoseconds": 762691000
+      },
+      "status": "connected",
+      "recipesReceivedCount": 1,
+      "updatedAt": {
+        "_seconds": 1770683967,
+        "_nanoseconds": 788017000
+      }
+    },
+    {
+      "id": "E24C86CC-BF67-4449-B00C-1C3C4BB36751",
+      "connectedUserDisplayName": "Alex Chen",
+      "connectedUserId": "demo_fitfoodie",
+      "connectedUserPhotoURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_fitfoodie-avatar.webp",
+      "createdAt": {
+        "_seconds": 1770683585,
+        "_nanoseconds": 826796000
+      },
+      "initiatedBy": "demo_fitfoodie",
+      "isDemoConnection": true,
+      "isFavorite": false,
+      "isKitchenTableConnection": false,
+      "recipesReceivedCount": 0,
+      "recipesSharedCount": 0,
+      "requestedAt": {
+        "_seconds": 1770683585,
+        "_nanoseconds": 826796000
+      },
+      "status": "pending",
+      "updatedAt": {
+        "_seconds": 1770683585,
+        "_nanoseconds": 826796000
+      },
+      "userId": "vmgXvJgRLHOvKPNMwRgXyNnYSaO2"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "4SfiLaJVT5Kb4dJ0tc8W",
+      "actorDisplayName": "ColettieSpaghetti",
+      "actorUserId": "TuQgh4k7HSY8p5eDk90ja53u9ki2",
+      "connectionId": "D98DA64D-49A9-4D3D-87AA-FAE6B32970F4",
+      "createdAt": {
+        "_seconds": 1770683921,
+        "_nanoseconds": 73803000
+      },
+      "deepLinkURL": "heirloom://connections/requests",
+      "isRead": false,
+      "type": "connectionRequestReceived"
+    },
+    {
+      "id": "9CBAC5D1-FC15-42E9-B2D9-52FE4C0C8E0E",
+      "actorDisplayName": "ColettieSpaghetti",
+      "actorPhotoURL": null,
+      "actorUserId": "TuQgh4k7HSY8p5eDk90ja53u9ki2",
+      "deepLinkURL": "heirloom://share/A236113C-97B1-4D15-A6E1-8374326E12C4",
+      "read": false,
+      "recipeId": "05F358EE-AD61-58D4-A242-6C099A93775B",
+      "recipeImageURL": "https://firebasestorage.googleapis.com:443/v0/b/heirloom-ios-prod.firebasestorage.app/o/users%2FTuQgh4k7HSY8p5eDk90ja53u9ki2%2Frecipes%2F05F358EE-AD61-58D4-A242-6C099A93775B%2Fimage.jpg?alt=media&token=b8146313-52c3-4225-a7f0-4290c74326ed",
+      "recipeTitle": "Mediterranean Wrap",
+      "shareId": "A236113C-97B1-4D15-A6E1-8374326E12C4",
+      "timestamp": {
+        "_seconds": 1770683952,
+        "_nanoseconds": 414945000
+      },
+      "type": "connectionSharedRecipe"
+    },
+    {
+      "id": "C77BDCC8-9ADF-4041-93A3-DD5469E8E8BA",
+      "actorDisplayName": "Alex Chen",
+      "actorPhotoURL": "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_fitfoodie-avatar.webp",
+      "actorUserId": "demo_fitfoodie",
+      "connectionId": "E24C86CC-BF67-4449-B00C-1C3C4BB36751",
+      "isDemoNotification": true,
+      "read": false,
+      "timestamp": {
+        "_seconds": 1770683586,
+        "_nanoseconds": 862118000
+      },
+      "type": "connectionRequestReceived"
+    }
+  ],
+  "shares": [],
+  "pendingShares": []
+}

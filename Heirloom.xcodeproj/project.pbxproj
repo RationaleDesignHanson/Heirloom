@@ -27,6 +27,7 @@
 		227DA999DB569E3826BDF9B1 /* StickerPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D1B5E18F7CAEF14B282A32 /* StickerPickerView.swift */; };
 		28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AEEEF32CCB325C980D13A0C /* RecipeListView.swift */; };
 		2AEBD4D58113BEF2D5E15F64 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A331FB1CB826B99CAE24F0A3 /* AnalyticsService.swift */; };
+		CREDITANALYTICS00000002 /* CreditAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CREDITANALYTICS00000001 /* CreditAnalytics.swift */; };
 		2BCC018C22A220A0A84E85A5 /* RecipeCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD3F97C739E686346152AEDB /* RecipeCollection.swift */; };
 		2F46430BA53D29AE89C05522 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7E3BFCEA3027313D91FCAF /* EmptyStateView.swift */; };
 		31A0E785FAC399245DB9A76A /* AnnotationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 938A8DA20269641912845E1A /* AnnotationEditorView.swift */; };
@@ -76,6 +77,7 @@
 		8382C45014984CD39A6F2149 /* ImportReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FD41A40CAC0291CE388238 /* ImportReviewView.swift */; };
 		83FCC330472FB4732B7A7021 /* ScaledRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B7935EFA2271F1A5930EF9 /* ScaledRecipe.swift */; };
 		847E92ACA7EC56EF0494A58F /* AudioReactiveMicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E03DEDE10FF021D1D18055 /* AudioReactiveMicButton.swift */; };
+		85444CC6BE129695EA81F8F8 /* OfflineDownloadEducationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D3B46E8A9801BEF0F11DDEF /* OfflineDownloadEducationView.swift */; };
 		85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */; };
 		8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50360B5F681D1995C9C96C34 /* EnhancedOCRService.swift */; };
 		95FF0ACF26B64113BF9B71BC /* PublicProfileSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982C37E77EA24B61837CC171 /* PublicProfileSheet.swift */; };
@@ -209,7 +211,6 @@
 		C58316552F11B0CE0096478E /* WatermarkDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58316542F11B0CE0096478E /* WatermarkDetectionService.swift */; };
 		C58319702F123CFF0096478E /* ASMRProcessingProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319692F123CFF0096478E /* ASMRProcessingProtocols.swift */; };
 		C58319712F123CFF0096478E /* ASMRVideoProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319672F123CFF0096478E /* ASMRVideoProcessor.swift */; };
-		C58319722F123CFF0096478E /* ASMRUsageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583196D2F123CFF0096478E /* ASMRUsageManager.swift */; };
 		C58319732F123CFF0096478E /* ASMRFrameExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319642F123CFF0096478E /* ASMRFrameExtractionService.swift */; };
 		C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319652F123CFF0096478E /* ASMRSoundAnalysisService.swift */; };
 		C58319752F123CFF0096478E /* ASMRRecipeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */; };
@@ -377,7 +378,7 @@
 		C5CE3F502F2D77A200A2E62F /* (null) in Sources */ = {isa = PBXBuildFile; };
 		C5CE3F512F2D77A200A2E62F /* ImportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F4C2F2D77A200A2E62F /* ImportPreviewSheet.swift */; };
 		C5CE3F522F2D77A200A2E62F /* DataExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F4B2F2D77A200A2E62F /* DataExportView.swift */; };
-		C5COMM1012F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */; };
+		'C5COMM1012F5432100C1B6BA' = {isa = PBXBuildFile; fileRef = C5COMM1002F5432100C1B6BA; };
 		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
@@ -472,7 +473,7 @@
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
-		CLAUDE20260203A /* VideoCostAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLAUDE20260203B /* VideoCostAnalyzer.swift */; };
+		'CLAUDE20260203A' = {isa = PBXBuildFile; fileRef = CLAUDE20260203B; };
 		D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8372FA8022D3000704B35085 /* URLNormalizer.swift */; };
 		D1BF6FB6D8D2AA4FB31478AB /* ScalingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD49D01F1A8B7AC03122C471 /* ScalingEngine.swift */; };
 		D2540615909602F5D11BE209 /* ScalingTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32C3088D1605B9E79CC42D6 /* ScalingTypes.swift */; };
@@ -576,6 +577,7 @@
 		7A15EB4A485B6BD96CE060AE /* SharePreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharePreviewCard.swift; sourceTree = "<group>"; };
 		7A98236C78D294E1B425001F /* Annotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotation.swift; sourceTree = "<group>"; };
 		7C66294E21AF06144A65292A /* TagCollectionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagCollectionPickerView.swift; sourceTree = "<group>"; };
+		7D3B46E8A9801BEF0F11DDEF /* OfflineDownloadEducationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineDownloadEducationView.swift; path = Heirloom/Features/Shared/OfflineDownloadEducationView.swift; sourceTree = SOURCE_ROOT; };
 		7DD7D5F51CAEFECC2F23A250 /* ShoppingCartRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingCartRecipe.swift; sourceTree = "<group>"; };
 		812E7304D38245EB8876CA4D /* PDFApprovalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFApprovalSheet.swift; sourceTree = "<group>"; };
 		81471CD837FF6ADBE65F4CB9 /* SourceAttributionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceAttributionService.swift; sourceTree = "<group>"; };
@@ -602,6 +604,7 @@
 		9C7E3BFCEA3027313D91FCAF /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		9EB1DF238DC769D3352A447A /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		A331FB1CB826B99CAE24F0A3 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		CREDITANALYTICS00000001 /* CreditAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditAnalytics.swift; sourceTree = "<group>"; };
 		A95905629C09BDBA60E1936A /* CookbookScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookbookScannerView.swift; sourceTree = "<group>"; };
 		AA5F8A9639984D54A46B8FD6 /* ScalingDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingDiagnostics.swift; sourceTree = "<group>"; };
 		AD3F97C739E686346152AEDB /* RecipeCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCollection.swift; sourceTree = "<group>"; };
@@ -720,7 +723,6 @@
 		C58319672F123CFF0096478E /* ASMRVideoProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRVideoProcessor.swift; sourceTree = "<group>"; };
 		C58319692F123CFF0096478E /* ASMRProcessingProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRProcessingProtocols.swift; sourceTree = "<group>"; };
 		C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRRecipeStructurer.swift; sourceTree = "<group>"; };
-		C583196D2F123CFF0096478E /* ASMRUsageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRUsageManager.swift; sourceTree = "<group>"; };
 		C58319762F123D140096478E /* ASMRRecipeExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRRecipeExtraction.swift; sourceTree = "<group>"; };
 		C58319782F123D280096478E /* ASMRPassProgressCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRPassProgressCard.swift; sourceTree = "<group>"; };
 		C58319792F123D280096478E /* ASMRUsageBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRUsageBadge.swift; sourceTree = "<group>"; };
@@ -883,7 +885,7 @@
 		C5CE3F4A2F2D77A200A2E62F /* ConsentDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsentDialogView.swift; sourceTree = "<group>"; };
 		C5CE3F4B2F2D77A200A2E62F /* DataExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportView.swift; sourceTree = "<group>"; };
 		C5CE3F4C2F2D77A200A2E62F /* ImportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportPreviewSheet.swift; sourceTree = "<group>"; };
-		C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityRecipeIngredientMigration.swift; sourceTree = "<group>"; };
+		'C5COMM1002F5432100C1B6BA' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityRecipeIngredientMigration.swift; sourceTree = "<group>"; };
 		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
@@ -975,7 +977,7 @@
 		CD892928C21467099E4A3651 /* BulkImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulkImportView.swift; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CEF1EACA4C4A419AA4737A1B /* UIKitAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitAppearance.swift; sourceTree = "<group>"; };
-		CLAUDE20260203B /* VideoCostAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCostAnalyzer.swift; sourceTree = "<group>"; };
+		'CLAUDE20260203B' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCostAnalyzer.swift; sourceTree = "<group>"; };
 		D0D8A34356274E14A362177A /* LanguageDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageDetectionService.swift; sourceTree = "<group>"; };
 		D39FD9E00AF45AC306A810EB /* RecipeComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeComment.swift; sourceTree = "<group>"; };
 		DE33AE2124D9A957530668C2 /* Sticker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sticker.swift; sourceTree = "<group>"; };
@@ -996,7 +998,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C568873D2F057B02006EA0B1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		C568873D2F057B02006EA0B1 = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -1006,7 +1008,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C56887332F057B02006EA0B1 /* HeirloomShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C568873D2F057B02006EA0B1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HeirloomShareExtension; sourceTree = "<group>"; };
+		C56887332F057B02006EA0B1 /* HeirloomShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C568873D2F057B02006EA0B1, ); explicitFileTypes = {}; explicitFolders = (); path = HeirloomShareExtension; sourceTree = "<group>"; };
 		C58305202F0E06D30096478E /* HeirloomTestsV2 */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HeirloomTestsV2; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -1134,6 +1136,7 @@
 				C5CE3F432F2D6DC000A2E62F /* ShareAnalyticsService.swift */,
 				A331FB1CB826B99CAE24F0A3 /* AnalyticsService.swift */,
 				990B16DFB844E7175CB85CF3 /* MixpanelService.swift */,
+				CREDITANALYTICS00000001 /* CreditAnalytics.swift */,
 			);
 			path = Analytics;
 			sourceTree = "<group>";
@@ -1816,7 +1819,7 @@
 				C5DBEEAB2F202D1E00C1B6BA /* SocialMetadataService.swift */,
 				C5DBEC7E2F20102E00C1B6BA /* AttributionResolver.swift */,
 				C5DBEC7F2F20102E00C1B6BA /* AudioAnalyzer.swift */,
-				CLAUDE20260203B /* VideoCostAnalyzer.swift */,
+				CLAUDE20260203B,
 				C5DBEC802F20102E00C1B6BA /* OnScreenTextDetector.swift */,
 				C5DBEC812F20102E00C1B6BA /* PendingImportManager.swift */,
 				C5DBEC822F20102E00C1B6BA /* PendingImportProcessor.swift */,
@@ -1870,14 +1873,6 @@
 			path = Structuring;
 			sourceTree = "<group>";
 		};
-		C583196E2F123CFF0096478E /* Usage */ = {
-			isa = PBXGroup;
-			children = (
-				C583196D2F123CFF0096478E /* ASMRUsageManager.swift */,
-			);
-			path = Usage;
-			sourceTree = "<group>";
-		};
 		C583196F2F123CFF0096478E /* ASMR */ = {
 			isa = PBXGroup;
 			children = (
@@ -1885,7 +1880,6 @@
 				C58319682F123CFF0096478E /* Coordination */,
 				C583196A2F123CFF0096478E /* Protocols */,
 				C583196C2F123CFF0096478E /* Structuring */,
-				C583196E2F123CFF0096478E /* Usage */,
 			);
 			path = ASMR;
 			sourceTree = "<group>";
@@ -2342,7 +2336,7 @@
 			isa = PBXGroup;
 			children = (
 				C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */,
-				C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */,
+				C5COMM1002F5432100C1B6BA,
 				4E19AE75D166B73C7ABF073F /* SourceAttributionMigration.swift */,
 			);
 			path = Migration;
@@ -2583,6 +2577,7 @@
 				C56F3E692F04A9E000D19743 /* Frameworks */,
 				C5E9553A2F056341006CD3C2 /* Config.xcconfig */,
 				C5EF777F2F30F10E0097779E /* PrivacyInfo.xcprivacy */,
+				7D3B46E8A9801BEF0F11DDEF /* OfflineDownloadEducationView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2763,7 +2758,7 @@
 					};
 					C583051E2F0E06D30096478E = {
 						CreatedOnToolsVersion = 26.2;
-						TestTargetID = 8C89A26D541EF27F051E6DC1;
+						TestTargetID = 8C89A26D541EF27F051E6DC1 /* Heirloom */;
 					};
 				};
 			};
@@ -2876,6 +2871,7 @@
 				C5A250372F3240700091E198 /* PDFCostCalculator.swift in Sources */,
 				9D119E45E5ACF7422DDF9294 /* AISettingsView.swift in Sources */,
 				2AEBD4D58113BEF2D5E15F64 /* AnalyticsService.swift in Sources */,
+				CREDITANALYTICS00000002 /* CreditAnalytics.swift in Sources */,
 				DBEAA5BD5109F183D58A0BDE /* Annotation.swift in Sources */,
 				C583FFE72F0CC1740096478E /* BatchTagCollectionPickerView.swift in Sources */,
 				31A0E785FAC399245DB9A76A /* AnnotationEditorView.swift in Sources */,
@@ -2949,7 +2945,6 @@
 				C5EF77712F3057060097779E /* RecipeImageGenerator.swift in Sources */,
 				C5EF77722F3057060097779E /* GeneratedRecipeResponse.swift in Sources */,
 				C5EF77732F3057060097779E /* RecipeGenerationRequest.swift in Sources */,
-				C58319722F123CFF0096478E /* ASMRUsageManager.swift in Sources */,
 				C58319732F123CFF0096478E /* ASMRFrameExtractionService.swift in Sources */,
 				C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */,
 				C58319752F123CFF0096478E /* ASMRRecipeStructurer.swift in Sources */,
@@ -3023,7 +3018,7 @@
 				C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */,
 				C5DBEC842F20102E00C1B6BA /* PendingImportManager.swift in Sources */,
 				C5DBEC852F20102E00C1B6BA /* AudioAnalyzer.swift in Sources */,
-				CLAUDE20260203A /* VideoCostAnalyzer.swift in Sources */,
+				CLAUDE20260203A,
 				C5DBEC862F20102E00C1B6BA /* OnScreenTextDetector.swift in Sources */,
 				C5DBEC872F20102E00C1B6BA /* WatermarkDetector.swift in Sources */,
 				C5DBEC882F20102E00C1B6BA /* AttributionResolver.swift in Sources */,
@@ -3307,9 +3302,10 @@
 				C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */,
 				D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */,
 				C5DBE8842F1EE59C00C1B6BA /* CollectionsFirstMigration.swift in Sources */,
-				C5COMM1012F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift in Sources */,
+				C5COMM1012F5432100C1B6BA,
 				C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */,
 				A892587ADBCD4FCA80189C9E /* UIKitAppearance.swift in Sources */,
+				85444CC6BE129695EA81F8F8 /* OfflineDownloadEducationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3358,6 +3354,7 @@
 			baseConfigurationReference = C5E9553A2F056341006CD3C2 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_INTENTS_METADATA_EXTRACTION_ENABLED = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3427,6 +3424,7 @@
 			baseConfigurationReference = C5E9553A2F056341006CD3C2 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_INTENTS_METADATA_EXTRACTION_ENABLED = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3487,11 +3485,12 @@
 		7E6452342C6E03833DAE135E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_INTENTS_METADATA_EXTRACTION_ENABLED = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Heirloom/Heirloom.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEAD_CODE_STRIPPING = YES;
 				DEFAULT_OPENAI_KEY = "$(DEFAULT_OPENAI_KEY)";
 				DEVELOPMENT_TEAM = SF39D6367Y;
@@ -3503,7 +3502,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -3515,12 +3514,13 @@
 		C568873F2F057B02006EA0B1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_INTENTS_METADATA_EXTRACTION_ENABLED = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -3538,7 +3538,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3557,12 +3557,13 @@
 		C56887402F057B02006EA0B1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_INTENTS_METADATA_EXTRACTION_ENABLED = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -3576,7 +3577,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3599,7 +3600,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -3609,7 +3610,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -3630,13 +3631,13 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -3653,11 +3654,12 @@
 		CE60778859EB18EE75B2D060 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_INTENTS_METADATA_EXTRACTION_ENABLED = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Heirloom/Heirloom.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 34;
 				DEAD_CODE_STRIPPING = YES;
 				DEFAULT_OPENAI_KEY = "$(DEFAULT_OPENAI_KEY)";
 				DEVELOPMENT_TEAM = SF39D6367Y;
@@ -3669,7 +3671,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;

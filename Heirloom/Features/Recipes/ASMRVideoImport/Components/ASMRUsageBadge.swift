@@ -6,52 +6,58 @@
 //
 
 import SwiftUI
+import SwiftData
 
-/// Shows current ASMR usage and credits remaining
+/// Shows current credit balance for ASMR operations
+/// Uses unified UserCredits system (no more ASMRUsageManager)
 struct ASMRUsageBadge: View {
-    @StateObject private var usageManager = ASMRUsageManager.shared
+    @Query private var allUserCredits: [UserCredits]
     @State private var showPaywall = false
 
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
-    var body: some View {
-        let summary = usageManager.getUsageSummary()
+    private var userCredits: UserCredits? {
+        allUserCredits.first
+    }
 
+    private var availableCredits: Int {
+        userCredits?.availableCredits ?? 0
+    }
+
+    private var canAffordASMR: Bool {
+        availableCredits >= 5
+    }
+
+    var body: some View {
         HStack(spacing: 12) {
             // Waveform icon for ASMR
             Image(systemName: "waveform.circle.fill")
                 .font(.title2)
                 .foregroundStyle(
-                    summary.extractionsRemaining > 0
+                    canAffordASMR
                         ? Color.orange.gradient
                         : Color.gray.gradient
                 )
 
-            // Usage info
+            // Usage info - unified display for all tiers
             VStack(alignment: .leading, spacing: 2) {
-                if subscriptionManager.isPremium {
-                    Text("Unlimited")
+                HStack(spacing: HeirloomSpacing.xs) {
+                    Text("\(availableCredits)")
                         .font(.title3.bold())
-                        .foregroundStyle(.orange)
-                } else {
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        Text("\(summary.extractionsRemaining)")
-                            .font(.title3.bold())
-                            .foregroundStyle(summary.extractionsRemaining > 0 ? .primary : .secondary)
-                        Text("/ \(summary.extractionsTotal) left this month")
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(.secondary)
-                    }
+                        .foregroundStyle(canAffordASMR ? .primary : .secondary)
+                    Text("credits available")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(.secondary)
                 }
 
-                Text(subscriptionManager.isPremium ? "Premium ASMR access" : "Resets \(summary.resetDate, format: .dateTime.month().day())")
+                Text("ASMR extraction costs 5 credits")
                     .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            // Upgrade button / Info button
+            // Upgrade/status button
             Button {
                 showPaywall = true
             } label: {
@@ -64,7 +70,7 @@ struct ASMRUsageBadge: View {
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("ASMR extractions: \(summary.extractionsRemaining) of \(summary.extractionsTotal) remaining")
+        .accessibilityLabel("ASMR: \(availableCredits) credits available, costs 5 per extraction")
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }

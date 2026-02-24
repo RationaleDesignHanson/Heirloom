@@ -310,36 +310,45 @@ struct RecipeCommentListView: View {
         NavigationStack {
             Form {
                 Section("Comment Type") {
-                    Picker("Type", selection: $filterType) {
-                        Text("All Types").tag(nil as CommentType?)
-                        ForEach(CommentType.allCases, id: \.self) { type in
-                            Label(type.displayName, systemImage: commentTypeIcon(type))
-                                .tag(type as CommentType?)
+                    LabeledContent("Type") {
+                        Picker("", selection: $filterType) {
+                            Text("All Types").tag(nil as CommentType?)
+                            ForEach(CommentType.allCases, id: \.self) { type in
+                                Label(type.displayName, systemImage: commentTypeIcon(type))
+                                    .tag(type as CommentType?)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.menu)
                 }
 
                 Section("Source") {
-                    Picker("Source", selection: $filterSource) {
-                        Text("All Sources").tag(nil as CommentSource?)
-                        ForEach(CommentSource.allCases, id: \.self) { source in
-                            Label(source.displayName, systemImage: source.iconName)
-                                .tag(source as CommentSource?)
+                    LabeledContent("Source") {
+                        Picker("", selection: $filterSource) {
+                            Text("All Sources").tag(nil as CommentSource?)
+                            ForEach(CommentSource.allCases, id: \.self) { source in
+                                Label(source.displayName, systemImage: source.iconName)
+                                    .tag(source as CommentSource?)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.menu)
                 }
 
                 Section("Sentiment") {
-                    Picker("Sentiment", selection: $filterSentiment) {
-                        Text("All Sentiments").tag(nil as SentimentFilter?)
-                        ForEach(SentimentFilter.allCases, id: \.self) { sentiment in
-                            Label(sentiment.displayName, systemImage: sentiment.iconName)
-                                .tag(sentiment as SentimentFilter?)
+                    LabeledContent("Sentiment") {
+                        Picker("", selection: $filterSentiment) {
+                            Text("All Sentiments").tag(nil as SentimentFilter?)
+                            ForEach(SentimentFilter.allCases, id: \.self) { sentiment in
+                                Label(sentiment.displayName, systemImage: sentiment.iconName)
+                                    .tag(sentiment as SentimentFilter?)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.menu)
                 }
 
                 if hasActiveFilters {
@@ -535,12 +544,15 @@ struct AddCommentSheet: View {
                 }
 
                 Section("Comment Type") {
-                    Picker("Type", selection: $commentType) {
-                        ForEach(CommentType.allCases, id: \.self) { type in
-                            Text(type.displayName).tag(type)
+                    LabeledContent("Type") {
+                        Picker("", selection: $commentType) {
+                            ForEach(CommentType.allCases, id: \.self) { type in
+                                Text(type.displayName).tag(type)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.menu)
                 }
 
                 Section("Your Name (Optional)") {

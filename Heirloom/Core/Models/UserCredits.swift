@@ -120,9 +120,20 @@ final class UserCredits {
     /// - Deducts from tier credits first, then from purchased credits
     /// - Throws error if insufficient credits
     func deductCredits(_ amount: Int) throws {
+        // Snapshot state BEFORE any changes for debugging
+        let snapshotBefore = CreditSnapshot(
+            tierType: tierType,
+            tierAllocation: currentTierType.creditAllocation,
+            tierCreditsUsed: tierCreditsUsed,
+            purchasedCredits: creditsBalance,
+            totalAvailable: availableCredits
+        )
+
         resetTierCreditsIfNeeded()
 
         guard canAfford(credits: amount) else {
+            // Log detailed state when deduction fails
+            DeviceLogger.shared.log("💳 [Credits] INSUFFICIENT - needed: \(amount), available: \(availableCredits), tier: \(tierType), tierUsed: \(tierCreditsUsed)/\(currentTierType.creditAllocation), purchased: \(creditsBalance)", level: .error)
             throw CreditError.insufficientCredits(
                 needed: amount,
                 available: availableCredits
@@ -131,35 +142,105 @@ final class UserCredits {
 
         // Deduct from tier credits first
         let tierAllocation = currentTierType.creditAllocation
-        let fromTier = min(amount, tierAllocation - tierCreditsUsed)
+        let tierRemaining = tierAllocation - tierCreditsUsed
+        let fromTier = min(amount, tierRemaining)
         tierCreditsUsed += fromTier
 
         // Deduct remainder from purchased credits
-        let remaining = amount - fromTier
-        if remaining > 0 {
-            creditsBalance -= remaining
+        let fromPurchased = amount - fromTier
+        if fromPurchased > 0 {
+            creditsBalance -= fromPurchased
         }
+
+        // Snapshot state AFTER changes
+        let snapshotAfter = CreditSnapshot(
+            tierType: tierType,
+            tierAllocation: currentTierType.creditAllocation,
+            tierCreditsUsed: tierCreditsUsed,
+            purchasedCredits: creditsBalance,
+            totalAvailable: availableCredits
+        )
+
+        // SAFEGUARD: Verify deduction math is correct
+        let expectedTotalAfter = snapshotBefore.totalAvailable - amount
+        if snapshotAfter.totalAvailable != expectedTotalAfter {
+            DeviceLogger.shared.log("💳 [Credits] ⚠️ MATH ERROR - expected \(expectedTotalAfter) after deducting \(amount) from \(snapshotBefore.totalAvailable), but got \(snapshotAfter.totalAvailable)", level: .error)
+            DeviceLogger.shared.log("💳 [Credits] BEFORE: \(snapshotBefore)", level: .error)
+            DeviceLogger.shared.log("💳 [Credits] AFTER: \(snapshotAfter)", level: .error)
+        }
+
+        // SAFEGUARD: Verify credits never go negative
+        if creditsBalance < 0 {
+            DeviceLogger.shared.log("💳 [Credits] ⚠️ NEGATIVE BALANCE - purchased credits went negative: \(creditsBalance)", level: .error)
+            creditsBalance = 0 // Auto-correct to prevent further issues
+        }
+
+        if tierCreditsUsed > tierAllocation {
+            DeviceLogger.shared.log("💳 [Credits] ⚠️ TIER OVERUSE - tierCreditsUsed (\(tierCreditsUsed)) > allocation (\(tierAllocation))", level: .error)
+            tierCreditsUsed = tierAllocation // Auto-correct
+        }
+
+        // Log successful deduction with full details
+        DeviceLogger.shared.log("💳 [Credits] DEDUCTED \(amount) = \(fromTier) tier + \(fromPurchased) purchased | Remaining: \(availableCredits) total (\(tierCreditsRemaining) tier + \(creditsBalance) purchased)", level: .info)
 
         Log.info("Credits deducted", category: .general, metadata: [
             "amount": amount,
             "fromTier": fromTier,
-            "fromPurchased": remaining,
+            "fromPurchased": fromPurchased,
             "remainingBalance": creditsBalance,
             "remainingTierCredits": tierCreditsRemaining,
             "tierType": tierType
         ])
+
+        // Warn when credits are getting low
+        if availableCredits <= 5 && availableCredits > 0 {
+            DeviceLogger.shared.log("💳 [Credits] ⚠️ LOW CREDITS WARNING - only \(availableCredits) credits remaining", level: .warning)
+        } else if availableCredits == 0 {
+            DeviceLogger.shared.log("💳 [Credits] 🚨 OUT OF CREDITS - user has 0 credits remaining", level: .warning)
+        }
     }
 
     /// Add purchased credits to user's balance
     func addPurchasedCredits(_ amount: Int) {
+        let previousBalance = creditsBalance
         creditsBalance += amount
         lifetimePurchasedCredits += amount
         lastPurchaseDate = Date()
+
+        DeviceLogger.shared.log("💳 [Credits] PURCHASED +\(amount) | Balance: \(previousBalance) → \(creditsBalance) | Total available: \(availableCredits)", level: .info)
 
         Log.info("Credits purchased", category: .general, metadata: [
             "amount": amount,
             "newBalance": creditsBalance,
             "lifetimeTotal": lifetimePurchasedCredits
+        ])
+    }
+
+    /// Refund credits to user's balance (e.g., when a processing job fails)
+    /// - Reduces tierCreditsUsed first, then adds to purchased balance
+    func refundCredits(_ amount: Int) {
+        guard amount > 0 else { return }
+
+        let previousState = debugDescription
+
+        // First, reduce tierCreditsUsed (reverse of deduction order)
+        let tierRefund = min(amount, tierCreditsUsed)
+        tierCreditsUsed -= tierRefund
+
+        // Any remainder goes to purchased credits as a bonus
+        let remainderToBalance = amount - tierRefund
+        if remainderToBalance > 0 {
+            creditsBalance += remainderToBalance
+        }
+
+        DeviceLogger.shared.log("💳 [Credits] REFUNDED +\(amount) = \(tierRefund) to tier + \(remainderToBalance) to balance | Before: \(previousState) | After: \(debugDescription)", level: .info)
+
+        Log.info("Credits refunded", category: .general, metadata: [
+            "amount": amount,
+            "toTier": tierRefund,
+            "toBalance": remainderToBalance,
+            "newTierUsed": tierCreditsUsed,
+            "newBalance": creditsBalance
         ])
     }
 
@@ -172,6 +253,9 @@ final class UserCredits {
     ///   - carryOverCredits: Credits to carry over from previous tier (e.g., trial → premium)
     func updateTier(_ newTier: TierType, resetCredits: Bool = true, carryOverCredits: Int = 0) {
         let oldTier = tierType
+        let oldAllocation = currentTierType.creditAllocation
+        let oldUsed = tierCreditsUsed
+
         tierType = newTier.rawValue
 
         if resetCredits {
@@ -188,6 +272,8 @@ final class UserCredits {
             ])
         }
 
+        DeviceLogger.shared.log("💳 [Credits] TIER CHANGE: \(oldTier) → \(newTier.rawValue) | Old allocation: \(oldAllocation) (used \(oldUsed)) | New allocation: \(newTier.creditAllocation) | Purchased: \(creditsBalance) | Total available: \(availableCredits)", level: .info)
+
         Log.info("Tier updated", category: .general, metadata: [
             "oldTier": oldTier,
             "newTier": newTier.rawValue,
@@ -198,14 +284,30 @@ final class UserCredits {
 
     /// Reset to trial state (for first-time user reset)
     func resetToTrial() {
+        let previousState = debugDescription
+
         tierCreditsUsed = 0
         tierCreditResetDate = Date()
         tierType = TierType.trial.rawValue
         creditsBalance = 0  // Wipe purchased credits on full reset
 
+        DeviceLogger.shared.log("💳 [Credits] RESET TO TRIAL | Before: \(previousState) | After: \(debugDescription)", level: .warning)
+
         Log.info("Credits reset to trial state", category: .general, metadata: [
             "tierCredits": Self.trialCredits
         ])
+    }
+
+    // MARK: - Debug Helpers
+
+    /// Debug description of current credit state
+    var debugDescription: String {
+        "tier=\(tierType) alloc=\(currentTierType.creditAllocation) used=\(tierCreditsUsed) remaining=\(tierCreditsRemaining) purchased=\(creditsBalance) total=\(availableCredits)"
+    }
+
+    /// Log current credit state (call this to diagnose issues)
+    func logCurrentState(context: String = "STATE CHECK") {
+        DeviceLogger.shared.log("💳 [Credits] \(context) | \(debugDescription)", level: .info)
     }
 
     /// Reset tier credits if a new period has started (premium only - monthly reset)
@@ -218,6 +320,10 @@ final class UserCredits {
         let monthsSinceReset = calendar.dateComponents([.month], from: tierCreditResetDate, to: Date()).month ?? 0
 
         if monthsSinceReset >= 1 {
+            let previousUsed = tierCreditsUsed
+
+            DeviceLogger.shared.log("💳 [Credits] MONTHLY RESET - tier credits restored | Previously used: \(previousUsed)/\(Self.premiumMonthlyCredits) → Now: 0/\(Self.premiumMonthlyCredits)", level: .info)
+
             Log.info("Monthly tier credits reset", category: .general, metadata: [
                 "previousUsed": tierCreditsUsed,
                 "newAllocation": Self.premiumMonthlyCredits
@@ -236,6 +342,25 @@ final class UserCredits {
     @discardableResult
     func resetDailyQuotaIfNeeded() -> Bool {
         return resetTierCreditsIfNeeded()
+    }
+}
+
+// MARK: - CreditSnapshot (for debugging)
+
+/// Snapshot of credit state for debugging deduction issues
+struct CreditSnapshot: CustomStringConvertible {
+    let tierType: String
+    let tierAllocation: Int
+    let tierCreditsUsed: Int
+    let purchasedCredits: Int
+    let totalAvailable: Int
+
+    var tierRemaining: Int {
+        max(0, tierAllocation - tierCreditsUsed)
+    }
+
+    var description: String {
+        "tier=\(tierType) alloc=\(tierAllocation) used=\(tierCreditsUsed) remaining=\(tierRemaining) purchased=\(purchasedCredits) total=\(totalAvailable)"
     }
 }
 

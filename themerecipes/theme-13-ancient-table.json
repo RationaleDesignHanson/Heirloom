@@ -111,7 +111,7 @@
       "cookTime": "25 min",
       "servings": "Makes 20",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 2,
       "sortOrder": 3,
       "tags": [
         "dessert",
@@ -152,7 +152,7 @@
       "cookTime": "0 min",
       "servings": "Makes 2 cups",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 2,
       "sortOrder": 4,
       "tags": [
         "condiment",
@@ -189,7 +189,7 @@
       "cookTime": "10 min",
       "servings": "Makes 8",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 3,
       "sortOrder": 5,
       "tags": [
         "bread",
@@ -225,7 +225,7 @@
       "cookTime": "45 min",
       "servings": "Makes 2 loaves",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 3,
       "sortOrder": 6,
       "tags": [
         "bread",
@@ -266,7 +266,7 @@
       "cookTime": "40 min",
       "servings": "Serves 6",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 4,
       "sortOrder": 7,
       "tags": [
         "soup",
@@ -313,7 +313,7 @@
       "cookTime": "0 min",
       "servings": "Serves 4",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 4,
       "sortOrder": 8,
       "tags": [
         "appetizer",
@@ -358,7 +358,7 @@
       "cookTime": "35 min",
       "servings": "Serves 6",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 5,
       "sortOrder": 9,
       "tags": [
         "side dish",
@@ -406,7 +406,7 @@
       "cookTime": "15 min",
       "servings": "Makes 20",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 5,
       "sortOrder": 10,
       "tags": [
         "dessert",
@@ -451,7 +451,7 @@
       "cookTime": "30 min",
       "servings": "Makes 12",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 6,
       "sortOrder": 11,
       "tags": [
         "dessert",
@@ -491,7 +491,7 @@
       "cookTime": "20 min",
       "servings": "Serves 4",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 6,
       "sortOrder": 12,
       "tags": [
         "main dish",
@@ -531,7 +531,7 @@
       "cookTime": "30 min",
       "servings": "Serves 6",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 7,
       "sortOrder": 13,
       "tags": [
         "seafood",
@@ -578,7 +578,7 @@
       "cookTime": "25 min",
       "servings": "Serves 6",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 7,
       "sortOrder": 14,
       "tags": [
         "main dish",
@@ -618,7 +618,7 @@
       "cookTime": "40 min",
       "servings": "Serves 6",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 8,
       "sortOrder": 15,
       "tags": [
         "side dish",
@@ -659,7 +659,7 @@
       "cookTime": "45 min",
       "servings": "Makes 1 cake",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 8,
       "sortOrder": 16,
       "tags": [
         "dessert",
@@ -703,7 +703,7 @@
       "cookTime": "15 min",
       "servings": "Makes 30",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 9,
       "sortOrder": 17,
       "tags": [
         "main dish",
@@ -747,7 +747,7 @@
       "cookTime": "2 hrs",
       "servings": "Serves 4",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 9,
       "sortOrder": 18,
       "tags": [
         "seafood",
@@ -785,7 +785,7 @@
       "cookTime": "20 min",
       "servings": "Serves 4",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 10,
       "sortOrder": 19,
       "tags": [
         "breakfast",
@@ -825,7 +825,7 @@
       "cookTime": "15 min",
       "servings": "Serves 4",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 10,
       "sortOrder": 20,
       "tags": [
         "beverage",
@@ -866,7 +866,7 @@
       "cookTime": "30 min",
       "servings": "Serves 6",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 11,
       "sortOrder": 21,
       "tags": [
         "soup",
@@ -910,7 +910,7 @@
       "cookTime": "2 hrs",
       "servings": "Serves 8",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 11,
       "sortOrder": 22,
       "tags": [
         "soup",
@@ -956,7 +956,7 @@
       "cookTime": "30 min",
       "servings": "Serves 4",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 12,
       "sortOrder": 23,
       "tags": [
         "side dish",
@@ -997,7 +997,7 @@
       "cookTime": "0 min",
       "servings": "Serves 10",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 13,
       "sortOrder": 24,
       "tags": [
         "beverage",
@@ -1035,7 +1035,7 @@
       "cookTime": "2 hrs",
       "servings": "Serves 8",
       "difficulty": "medium",
-      "unlockDay": 1,
+      "unlockDay": 14,
       "sortOrder": 25,
       "tags": [
         "beverage",

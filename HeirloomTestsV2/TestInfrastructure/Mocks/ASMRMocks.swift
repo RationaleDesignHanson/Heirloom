@@ -225,39 +225,6 @@ class MockASMRRecipeStructurer: ASMRRecipeStructurer {
     }
 }
 
-// MARK: - Mock ASMR Usage Manager
-
-@MainActor
-class MockASMRUsageManager: ASMRUsageManager {
-    var shouldAllowExtraction = true
-    var startExtractionCallCount = 0
-    var refundCallCount = 0
-    var canStartExtractionCallCount = 0
-
-    override func canStartExtraction() -> Bool {
-        canStartExtractionCallCount += 1
-        return shouldAllowExtraction
-    }
-
-    override func startExtraction() throws {
-        startExtractionCallCount += 1
-        if !shouldAllowExtraction {
-            throw ASMRUsageError.insufficientCredits(needed: 5, available: 0)
-        }
-    }
-
-    override func refundExtraction() {
-        refundCallCount += 1
-    }
-
-    func reset() {
-        shouldAllowExtraction = true
-        startExtractionCallCount = 0
-        refundCallCount = 0
-        canStartExtractionCallCount = 0
-    }
-}
-
 // MARK: - Mock ASMR Cache Service
 
 @MainActor

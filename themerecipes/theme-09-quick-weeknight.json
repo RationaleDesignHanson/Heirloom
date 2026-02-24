@@ -5,7 +5,7 @@
     {
       "id": "quick-weeknight-001",
       "title": "Classic Tuna Noodle Casserole",
-      "description": "The ultimate pantry-staple dinner\u2014creamy, comforting, and ready in under an hour.",
+      "description": "The ultimate pantry-staple dinner—creamy, comforting, and ready in under an hour.",
       "ingredients": [
         {
           "name": "egg noodles",
@@ -68,7 +68,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 375\u00b0F (190\u00b0C). Cook noodles according to package directions; drain.",
+        "Preheat oven to 375°F (190°C). Cook noodles according to package directions; drain.",
         "Melt butter in a large saucepan. Add onion and celery; cook 5 minutes.",
         "Whisk in flour; cook 1 minute.",
         "Gradually whisk in milk. Cook until thickened, about 5 minutes.",
@@ -95,7 +95,7 @@
     {
       "id": "quick-weeknight-002",
       "title": "Shake-and-Bake Style Pork Chops",
-      "description": "Crispy-coated pork chops without the frying\u2014a 1960s shortcut that still works.",
+      "description": "Crispy-coated pork chops without the frying—a 1960s shortcut that still works.",
       "ingredients": [
         {
           "name": "bone-in pork chops",
@@ -150,12 +150,12 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 400\u00b0F (200\u00b0C). Line a baking sheet with foil; place a wire rack on top.",
+        "Preheat oven to 400°F (200°C). Line a baking sheet with foil; place a wire rack on top.",
         "Mix breadcrumbs, Parmesan, paprika, garlic powder, onion powder, thyme, salt, and pepper in a shallow dish.",
         "Brush pork chops with melted butter on both sides.",
         "Press each chop into breadcrumb mixture, coating well.",
         "Place on prepared rack.",
-        "Bake 25-30 minutes until coating is golden and pork reaches 145\u00b0F (63\u00b0C) internal temperature.",
+        "Bake 25-30 minutes until coating is golden and pork reaches 145°F (63°C) internal temperature.",
         "Let rest 5 minutes before serving."
       ],
       "prepTime": 10,
@@ -176,7 +176,7 @@
     {
       "id": "quick-weeknight-003",
       "title": "Classic Sloppy Joes",
-      "description": "Sweet, tangy, saucy ground beef on soft buns\u201420 minutes to family favorite status.",
+      "description": "Sweet, tangy, saucy ground beef on soft buns—20 minutes to family favorite status.",
       "ingredients": [
         {
           "name": "ground beef",
@@ -247,7 +247,7 @@
       "cookTime": 20,
       "servings": 8,
       "source": "American home cooking classic",
-      "story": "The Sloppy Joe's origin is disputed\u2014possibly a caf\u00e9 in Iowa, maybe New Jersey\u2014but its place at American tables is undeniable. The messier, the better.",
+      "story": "The Sloppy Joe's origin is disputed—possibly a café in Iowa, maybe New Jersey—but its place at American tables is undeniable. The messier, the better.",
       "unlockDay": 3,
       "sortOrder": 1,
       "difficulty": "easy",
@@ -261,7 +261,7 @@
     {
       "id": "quick-weeknight-004",
       "title": "Sheet Pan Chicken and Vegetables",
-      "description": "Chicken thighs and vegetables roasted together\u2014minimal prep, maximum flavor.",
+      "description": "Chicken thighs and vegetables roasted together—minimal prep, maximum flavor.",
       "ingredients": [
         {
           "name": "bone-in chicken thighs",
@@ -316,20 +316,20 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 425\u00b0F (220\u00b0C).",
+        "Preheat oven to 425°F (220°C).",
         "Toss potatoes with 1 tablespoon oil, salt, and pepper. Spread on a sheet pan.",
         "Mix Italian seasoning, garlic powder, paprika, remaining salt, and pepper.",
         "Rub chicken with remaining oil and seasoning mix. Nestle among potatoes.",
         "Roast 25 minutes.",
         "Add broccoli and bell pepper to pan. Toss with pan juices.",
-        "Roast 15-20 more minutes until chicken reaches 165\u00b0F (74\u00b0C) and vegetables are tender."
+        "Roast 15-20 more minutes until chicken reaches 165°F (74°C) and vegetables are tender."
       ],
       "prepTime": 15,
       "cookTime": 45,
       "servings": 4,
       "source": "Modern American cooking",
-      "story": "Sheet pan dinners are the modern answer to the casserole\u2014everything on one pan, minimal dishes. The key is adding vegetables at the right time so everything finishes together.",
-      "unlockDay": 5,
+      "story": "Sheet pan dinners are the modern answer to the casserole—everything on one pan, minimal dishes. The key is adding vegetables at the right time so everything finishes together.",
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -341,7 +341,7 @@
     {
       "id": "quick-weeknight-005",
       "title": "Classic Ground Beef Tacos",
-      "description": "Seasoned taco meat with all the fixings\u2014Tuesday's answer to 'what's for dinner?'",
+      "description": "Seasoned taco meat with all the fixings—Tuesday's answer to 'what's for dinner?'",
       "ingredients": [
         {
           "name": "ground beef",
@@ -424,8 +424,8 @@
       "cookTime": 20,
       "servings": 6,
       "source": "Tex-Mex home cooking",
-      "story": "The hard-shell taco is a Tex-Mex invention, not traditional Mexican. This homemade seasoning beats any packet\u2014and once you taste it, you'll never go back to store-bought.",
-      "unlockDay": 7,
+      "story": "The hard-shell taco is a Tex-Mex invention, not traditional Mexican. This homemade seasoning beats any packet—and once you taste it, you'll never go back to store-bought.",
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -438,7 +438,7 @@
     {
       "id": "quick-weeknight-006",
       "title": "Easy Fried Rice",
-      "description": "Restaurant-style fried rice at home\u2014the secret is day-old rice and high heat.",
+      "description": "Restaurant-style fried rice at home—the secret is day-old rice and high heat.",
       "ingredients": [
         {
           "name": "cooked rice",
@@ -509,8 +509,8 @@
       "cookTime": 10,
       "servings": 4,
       "source": "Chinese-American cooking",
-      "story": "Leftover rice is the key\u2014fresh rice is too moist and will turn mushy. Plan ahead and cook extra rice the day before, or use rice from takeout containers.",
-      "unlockDay": 9,
+      "story": "Leftover rice is the key—fresh rice is too moist and will turn mushy. Plan ahead and cook extra rice the day before, or use rice from takeout containers.",
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -606,8 +606,8 @@
       "cookTime": 12,
       "servings": 4,
       "source": "Chinese-American home cooking",
-      "story": "The key to great stir-fry is having everything prepped before you start\u2014once cooking begins, there's no time to chop. High heat and quick cooking keep vegetables crisp.",
-      "unlockDay": 11,
+      "story": "The key to great stir-fry is having everything prepped before you start—once cooking begins, there's no time to chop. High heat and quick cooking keep vegetables crisp.",
+      "unlockDay": 7,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -619,7 +619,7 @@
     {
       "id": "quick-weeknight-008",
       "title": "Homemade Beef Stroganoff Skillet",
-      "description": "Better than the box\u2014creamy beef and noodles ready in 30 minutes.",
+      "description": "Better than the box—creamy beef and noodles ready in 30 minutes.",
       "ingredients": [
         {
           "name": "ground beef",
@@ -694,7 +694,7 @@
       "servings": 4,
       "source": "American home cooking",
       "story": "This homemade version of the boxed classic is just as fast but infinitely more flavorful. Everything cooks in one skillet, and the sour cream stirred in at the end creates that nostalgic creaminess.",
-      "unlockDay": 1,
+      "unlockDay": 8,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -707,7 +707,7 @@
     {
       "id": "quick-weeknight-009",
       "title": "Chicken and Rice Casserole",
-      "description": "Tender chicken baked right on top of creamy rice\u2014one dish, complete dinner.",
+      "description": "Tender chicken baked right on top of creamy rice—one dish, complete dinner.",
       "ingredients": [
         {
           "name": "long-grain white rice",
@@ -754,7 +754,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C).",
+        "Preheat oven to 350°F (175°C).",
         "Spread uncooked rice in a 9x13 baking dish.",
         "Mix soups and water; pour over rice.",
         "Arrange chicken pieces on top. Sprinkle with onion soup mix and paprika.",
@@ -768,7 +768,7 @@
       "servings": 6,
       "source": "1950s American convenience cooking",
       "story": "This hands-off casserole was a revelation for busy homemakers. The chicken juices flavor the rice as everything bakes together under foil. Simple, satisfying, and foolproof.",
-      "unlockDay": 2,
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -842,8 +842,8 @@
       "cookTime": 20,
       "servings": 6,
       "source": "American home cooking",
-      "story": "The American cheese is the secret\u2014it melts smoothly and prevents the sauce from breaking. Combined with sharp cheddar for flavor, it creates the creamiest stovetop mac.",
-      "unlockDay": 3,
+      "story": "The American cheese is the secret—it melts smoothly and prevents the sauce from breaking. Combined with sharp cheddar for flavor, it creates the creamiest stovetop mac.",
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -856,7 +856,7 @@
     {
       "id": "quick-weeknight-011",
       "title": "Quick Salisbury Steak",
-      "description": "Seasoned beef patties in mushroom gravy\u2014TV dinner nostalgia made fresh.",
+      "description": "Seasoned beef patties in mushroom gravy—TV dinner nostalgia made fresh.",
       "ingredients": [
         {
           "name": "ground beef",
@@ -934,7 +934,7 @@
       "servings": 6,
       "source": "American home cooking, mid-century",
       "story": "Salisbury steak was invented by a 19th-century doctor who believed in the health benefits of beef. It became a TV dinner icon, but this fresh version reminds you why it became a classic.",
-      "unlockDay": 5,
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -946,7 +946,7 @@
     {
       "id": "quick-weeknight-012",
       "title": "Baked Spaghetti",
-      "description": "Spaghetti and meat sauce baked with cheese until bubbly\u2014casserole meets pasta night.",
+      "description": "Spaghetti and meat sauce baked with cheese until bubbly—casserole meets pasta night.",
       "ingredients": [
         {
           "name": "spaghetti",
@@ -1004,7 +1004,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 375\u00b0F (190\u00b0C). Cook spaghetti; drain.",
+        "Preheat oven to 375°F (190°C). Cook spaghetti; drain.",
         "Brown beef with onion. Add garlic, marinara, Italian seasoning, and salt. Simmer 10 minutes.",
         "Spread half the spaghetti in a 9x13 dish.",
         "Top with half the meat sauce, dollops of ricotta, and half the mozzarella.",
@@ -1018,7 +1018,7 @@
       "servings": 8,
       "source": "American-Italian home cooking",
       "story": "Baked spaghetti bridges Italian tradition and American casserole culture. The layers of ricotta create pockets of creaminess that make it special.",
-      "unlockDay": 7,
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1087,7 +1087,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 375\u00b0F (190\u00b0C).",
+        "Preheat oven to 375°F (190°C).",
         "Cut tops off peppers; remove seeds and membranes.",
         "Brown beef with onion. Add garlic, diced tomatoes, Italian seasoning, and salt. Simmer 5 minutes.",
         "Stir in rice and half the cheese.",
@@ -1101,7 +1101,7 @@
       "servings": 6,
       "source": "American home cooking",
       "story": "Stuffed peppers traveled from Eastern Europe to American kitchens, where they became a budget-friendly way to stretch ground beef into a complete meal.",
-      "unlockDay": 9,
+      "unlockDay": 13,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1176,8 +1176,8 @@
       "cookTime": 15,
       "servings": 8,
       "source": "Tex-Mex home cooking",
-      "story": "The burrito is a 20th-century Tex-Mex invention\u2014the perfect vehicle for combining proteins, grains, and vegetables into one handheld meal.",
-      "unlockDay": 11,
+      "story": "The burrito is a 20th-century Tex-Mex invention—the perfect vehicle for combining proteins, grains, and vegetables into one handheld meal.",
+      "unlockDay": 14,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [

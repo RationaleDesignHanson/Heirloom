@@ -9,6 +9,7 @@
 import Foundation
 import SwiftData
 import FirebaseFirestore
+import UIKit
 
 // MARK: - Export Options
 
@@ -40,6 +41,7 @@ struct HeirloomImportOptions {
     var restoreConnections: Bool = true
     var restoreKitchenTables: Bool = true
     var restorePrivacySettings: Bool = true
+    var generateMissingImages: Bool = false // Generate AI images for recipes without photos
 
     static var mergeAll: HeirloomImportOptions {
         return HeirloomImportOptions()
@@ -138,6 +140,9 @@ final class HeirloomDataExporter {
             )
         }
 
+        // Theme progress (always include if user has selected themes)
+        let themeProgressData = exportThemeProgress()
+
         // Get current user ID
         let userId = try? await profileService.fetchCurrentUserProfile().userId
 
@@ -151,7 +156,8 @@ final class HeirloomDataExporter {
             userProfile: userProfileData,
             connections: connectionsData,
             kitchenTables: kitchenTablesData,
-            privacySettings: privacySettingsData
+            privacySettings: privacySettingsData,
+            themeProgress: themeProgressData
         )
 
         // Encode to JSON
@@ -221,11 +227,20 @@ final class HeirloomDataExporter {
         var connectionsImported = 0
         let kitchenTablesImported = 0 // TODO: Implement Kitchen Table import in Phase 4
 
+        // Track imported recipes with image URLs for restoration
+        var recipesNeedingImageRestore: [(recipe: Recipe, firebaseURL: String)] = []
+
         // Import recipes
         for recipeData in exportWrapper.recipes {
             do {
-                try importRecipe(recipeData, context: context, mergeMode: options.mergeRecipes)
-                recipesImported += 1
+                if let recipe = try importRecipe(recipeData, context: context, mergeMode: options.mergeRecipes) {
+                    recipesImported += 1
+
+                    // Track recipes with image URLs for restoration
+                    if let firebaseURL = recipeData.firebaseImageURL {
+                        recipesNeedingImageRestore.append((recipe: recipe, firebaseURL: firebaseURL))
+                    }
+                }
             } catch {
                 errors.append(HeirloomImportError(
                     type: .parseError,
@@ -248,6 +263,15 @@ final class HeirloomDataExporter {
                     message: "Failed to import privacy settings: \(error.localizedDescription)"
                 ))
             }
+        }
+
+        // Import theme progress (if present)
+        if let themeProgressData = exportWrapper.themeProgress {
+            importThemeProgress(themeProgressData)
+            Log.info("Imported theme progress", category: .storage, metadata: [
+                "selectedThemes": themeProgressData.selectedThemeIds.count,
+                "originalDay": themeProgressData.currentTrialDay
+            ])
         }
 
         // Import connections (if present and enabled)
@@ -283,6 +307,23 @@ final class HeirloomDataExporter {
             ))
         }
 
+        // Restore images from preserved Firebase URLs (runs asynchronously)
+        if !recipesNeedingImageRestore.isEmpty {
+            Log.info("Starting image restoration for imported recipes", category: .storage, metadata: [
+                "count": recipesNeedingImageRestore.count
+            ])
+            Task {
+                await restoreImages(for: recipesNeedingImageRestore, context: context)
+            }
+        }
+
+        // Queue missing images for AI generation if opted in
+        if options.generateMissingImages {
+            Task {
+                await queueMissingImagesForGeneration(context: context)
+            }
+        }
+
         let result = HeirloomImportResult(
             version: exportWrapper.version,
             recipesImported: recipesImported,
@@ -303,18 +344,21 @@ final class HeirloomDataExporter {
 
     // MARK: - Private Import Helpers
 
+    /// Import a single recipe from export data
+    /// - Returns: The imported Recipe, or nil if skipped (duplicate in merge mode)
+    @discardableResult
     private func importRecipe(
         _ data: RecipeExportDataV2,
         context: ModelContext,
         mergeMode: Bool
-    ) throws {
+    ) throws -> Recipe? {
         // Check if recipe already exists
         if mergeMode {
             // Convert string ID to UUID for comparison
             // NOTE: Cannot use computed properties (like uuidString) in SwiftData predicates
             guard let recipeUUID = UUID(uuidString: data.id) else {
                 Log.warning("Invalid recipe ID in import data", category: .storage, metadata: ["id": data.id])
-                return
+                return nil
             }
             let descriptor = FetchDescriptor<Recipe>(
                 predicate: #Predicate { $0.id == recipeUUID }
@@ -322,7 +366,7 @@ final class HeirloomDataExporter {
             let existing = try context.fetch(descriptor)
             if !existing.isEmpty {
                 Log.debug("Skipping duplicate recipe", category: .storage, metadata: ["id": data.id])
-                return
+                return nil
             }
         }
 
@@ -355,6 +399,17 @@ final class HeirloomDataExporter {
 
         // V2 social fields
         recipe.sharedBy = data.sharedBy
+        recipe.sharedByUserId = data.sharedByUserId
+        recipe.sharedFromRecipeId = data.sharedFromRecipeId
+        recipe.heritageChain = data.heritageChain
+        recipe.heritageChainNames = data.heritageChainNames
+        recipe.isDemoRecipe = data.isDemoRecipe ?? false
+        if let generation = data.generation {
+            recipe.generationCount = generation
+        }
+        if let sharedDateString = data.sharedDate, let sharedDate = ISO8601DateFormatter().date(from: sharedDateString) {
+            recipe.sharedDate = sharedDate
+        }
 
         // Parse ingredients from joined string
         if !data.ingredients.isEmpty {
@@ -389,6 +444,8 @@ final class HeirloomDataExporter {
                 }
             }
         }
+
+        return recipe
     }
 
     private func importPrivacySettings(_ data: PrivacySettingsExportData) async throws {
@@ -424,6 +481,107 @@ final class HeirloomDataExporter {
             itemId: data.connectedUserId,
             message: "Connection restoration requires manual review"
         )
+    }
+
+    // MARK: - Image Restoration
+
+    /// Restore images from preserved Firebase URLs
+    /// Downloads from old URL, saves locally, then re-uploads to current user's Storage
+    private func restoreImages(
+        for recipes: [(recipe: Recipe, firebaseURL: String)],
+        context: ModelContext
+    ) async {
+        var restored = 0
+        var failed = 0
+
+        for (recipe, firebaseURL) in recipes {
+            do {
+                try await restoreImage(firebaseURL: firebaseURL, for: recipe)
+                restored += 1
+            } catch {
+                failed += 1
+                Log.warning("Image restore failed", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+
+        // Save after all restorations
+        try? context.save()
+
+        Log.info("Image restoration complete", category: .storage, metadata: [
+            "restored": restored,
+            "failed": failed
+        ])
+    }
+
+    /// Restore a single image from preserved Firebase URL
+    private func restoreImage(firebaseURL: String, for recipe: Recipe) async throws {
+        guard let url = URL(string: firebaseURL) else {
+            throw HeirloomImportError(type: .imageMissing, itemId: recipe.id.uuidString, message: "Invalid image URL")
+        }
+
+        // Download from preserved URL (may fail if original account deleted)
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        // Verify we got a valid response
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            throw HeirloomImportError(
+                type: .imageMissing,
+                itemId: recipe.id.uuidString,
+                message: "Image URL returned status \(httpResponse.statusCode)"
+            )
+        }
+
+        guard let image = UIImage(data: data) else {
+            throw HeirloomImportError(type: .imageMissing, itemId: recipe.id.uuidString, message: "Invalid image data")
+        }
+
+        // Save to local storage
+        try await recipe.saveImage(image)
+
+        // Re-upload to current user's Firebase Storage path
+        let imageService = ServiceContainer.shared.resolve((any FirebaseImageServiceProtocol).self)
+        if let newURL = try await imageService.uploadImage(for: recipe) {
+            recipe.firebaseImageURL = newURL
+        }
+
+        Log.info("Image restored successfully", category: .storage, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "title": recipe.title
+        ])
+    }
+
+    /// Queue recipes without images for AI generation
+    private func queueMissingImagesForGeneration(context: ModelContext) async {
+        // Fetch all recipes without images that aren't already queued
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> {
+                $0.imageFileName == nil && $0.needsAIImage == false
+            }
+        )
+
+        guard let recipesNeedingImages = try? context.fetch(descriptor) else {
+            Log.warning("Failed to fetch recipes needing images", category: .storage)
+            return
+        }
+
+        guard !recipesNeedingImages.isEmpty else {
+            Log.info("No recipes need AI image generation", category: .storage)
+            return
+        }
+
+        let imageQueue: ImageGenerationQueue = ServiceContainer.shared.resolve(ImageGenerationQueue.self)
+        imageQueue.context = context
+
+        for recipe in recipesNeedingImages {
+            imageQueue.enqueue(recipe) // Sets needsAIImage = true
+        }
+
+        Log.info("Queued recipes for AI image generation", category: .storage, metadata: [
+            "count": recipesNeedingImages.count
+        ])
     }
 
     // MARK: - V1 Import Fallback
@@ -470,15 +628,21 @@ final class HeirloomDataExporter {
                     historicalContext: recipeData.historicalContext,
                     // V2 fields (not present in v1)
                     sharedBy: nil,
+                    sharedByUserId: nil,
+                    sharedFromRecipeId: nil,
                     sharedDate: nil,
                     generation: nil,
                     rootRecipeId: nil,
+                    rootProvenanceHash: nil,
                     heritageChain: nil,
+                    heritageChainNames: nil,
+                    isDemoRecipe: nil,
                     tags: nil,
                     collections: nil,
                     cardBackText: nil,
                     comments: nil,
-                    annotations: nil
+                    annotations: nil,
+                    firebaseImageURL: nil
                 )
 
                 try importRecipe(v2Data, context: context, mergeMode: true)
@@ -554,15 +718,21 @@ final class HeirloomDataExporter {
             historicalContext: recipe.historicalContext,
             // V2 social/sharing fields
             sharedBy: recipe.sharedBy,
+            sharedByUserId: recipe.sharedByUserId,
+            sharedFromRecipeId: recipe.sharedFromRecipeId,
             sharedDate: recipe.sharedDate?.iso8601,
             generation: recipe.generationCount > 0 ? recipe.generationCount : nil,
-            rootRecipeId: nil, // Would need lineage lookup
-            heritageChain: nil, // Would need lineage lookup
+            rootRecipeId: recipe.sharedFromRecipeId, // Immediate parent recipe ID (full lineage requires Firebase lookup)
+            rootProvenanceHash: recipe.provenance.rootProvenanceHash, // Cryptographic lineage identifier
+            heritageChain: recipe.heritageChain, // Cached heritage chain IDs for offline display
+            heritageChainNames: recipe.heritageChainNames, // Display names for offline heritage view
+            isDemoRecipe: recipe.isDemoRecipe ? true : nil, // Only export if true (demo recipes cannot be shared)
             tags: recipe.tags?.map { $0.name },
             collections: recipe.collections?.map { $0.name },
             cardBackText: cardBackText,
             comments: commentsData,
-            annotations: nil // Annotations not yet tracked on Recipe model
+            annotations: nil, // Annotations not yet tracked on Recipe model
+            firebaseImageURL: recipe.firebaseImageURL
         )
     }
 
@@ -606,6 +776,75 @@ final class HeirloomDataExporter {
             allowRecipeResharing: settings.allowRecipeResharing,
             allowMentions: settings.allowMentions,
             hasPublicProfile: profile.hasPublicProfile
+        )
+    }
+
+    // MARK: - Theme Progress Export/Import
+
+    /// Export theme unlock progress from UserDefaults
+    private func exportThemeProgress() -> ThemeProgressExportData? {
+        let userDefaults = UserDefaults.standard
+
+        // Check if user has selected themes
+        guard let selectedThemeIds = userDefaults.stringArray(forKey: "selected_theme_ids"),
+              !selectedThemeIds.isEmpty else {
+            return nil
+        }
+
+        // Get trial start date
+        guard let trialStartDate = userDefaults.object(forKey: "theme_trial_start_date") as? Date else {
+            return nil
+        }
+
+        let lastUnlockDay = userDefaults.integer(forKey: "last_unlock_day")
+
+        // Calculate current trial day
+        let calendar = Calendar.current
+        let days = calendar.dateComponents([.day], from: trialStartDate, to: Date()).day ?? 0
+        let currentTrialDay = min(max(days + 1, 1), 15)
+
+        Log.info("Exporting theme progress", category: .storage, metadata: [
+            "selectedThemes": selectedThemeIds.count,
+            "currentDay": currentTrialDay,
+            "lastUnlockDay": lastUnlockDay
+        ])
+
+        return ThemeProgressExportData(
+            selectedThemeIds: selectedThemeIds,
+            trialStartDate: trialStartDate.iso8601,
+            lastUnlockDay: lastUnlockDay,
+            currentTrialDay: currentTrialDay
+        )
+    }
+
+    /// Import theme unlock progress to UserDefaults
+    private func importThemeProgress(_ data: ThemeProgressExportData) {
+        let userDefaults = UserDefaults.standard
+
+        // Parse trial start date
+        let formatter = ISO8601DateFormatter()
+        guard let trialStartDate = formatter.date(from: data.trialStartDate) else {
+            Log.warning("Failed to parse trial start date from import", category: .storage)
+            return
+        }
+
+        // Restore theme progress
+        userDefaults.set(data.selectedThemeIds, forKey: "selected_theme_ids")
+        userDefaults.set(trialStartDate, forKey: "theme_trial_start_date")
+        userDefaults.set(data.lastUnlockDay, forKey: "last_unlock_day")
+
+        Log.info("Restored theme progress", category: .storage, metadata: [
+            "selectedThemes": data.selectedThemeIds.count,
+            "trialStartDate": data.trialStartDate,
+            "lastUnlockDay": data.lastUnlockDay,
+            "originalDay": data.currentTrialDay
+        ])
+
+        // Notify ThemeUnlockTracker to reload state
+        NotificationCenter.default.post(
+            name: NSNotification.Name("ThemeProgressRestored"),
+            object: nil,
+            userInfo: ["selectedThemeIds": data.selectedThemeIds]
         )
     }
 }

@@ -22,40 +22,41 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Demo user welcome recipes that need lineage records
+// NOTE: Use lowercase UUIDs to match Swift's UUID.firebaseString convention
 const DEMO_RECIPES = [
   {
     userId: 'demo_grandmazing',
-    recipeId: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35',
+    recipeId: '5e13b837-1a80-4d22-af8a-c474a6ea5c35',
     title: 'Brown Butter Chocolate Chip Cookies',
     displayName: 'Grandmazing',
   },
   {
     userId: 'demo_phillipfry',
-    recipeId: '7EE0A981-0DD2-4105-AA26-AB941C23D688',
+    recipeId: '7ee0a981-0dd2-4105-aa26-ab941c23d688',
     title: 'Creamy One-Pot Pasta',
     displayName: 'Phillip Fry',
   },
   {
     userId: 'demo_chef_maria',
-    recipeId: '5D5A16D4-4FC2-483B-9737-7D0451F3C236',
+    recipeId: '5d5a16d4-4fc2-483b-9737-7d0451f3c236',
     title: 'Camarones al Ajillo (Garlic Shrimp)',
     displayName: 'Maria Santos',
   },
   {
     userId: 'demo_fitfoodie',
-    recipeId: 'F3890DC5-F51A-455A-8BF2-EB4BB089C5A9',
+    recipeId: 'f3890dc5-f51a-455a-8bf2-eb4bb089c5a9',
     title: 'Ultimate Protein Power Bowl',
     displayName: 'Alex Chen',
   },
   {
     userId: 'demo_bakingbelle',
-    recipeId: 'FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF',
+    recipeId: 'fceb840f-6acb-49f3-a7f0-e1da3de286ff',
     title: 'Molten Chocolate Lava Cakes',
     displayName: 'Belle Thompson',
   },
   {
     userId: 'demo_grillmaster',
-    recipeId: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F',
+    recipeId: '1de8ec4c-7629-466d-b39b-87d97b48ec9f',
     title: 'Ultimate Smash Burgers',
     displayName: 'Marcus Johnson',
   },
@@ -90,7 +91,8 @@ async function seedDemoLineages(): Promise<void> {
     };
 
     // Write to global lineages collection (used for cross-user queries)
-    const globalLineageRef = db.collection('lineages').doc();
+    // Use deterministic ID to prevent duplicates on re-runs
+    const globalLineageRef = db.collection('lineages').doc(`demo-lineage-${recipe.recipeId}`);
     await globalLineageRef.set(lineageData);
 
     // Also write to user's lineages subcollection (used for their own recipes)

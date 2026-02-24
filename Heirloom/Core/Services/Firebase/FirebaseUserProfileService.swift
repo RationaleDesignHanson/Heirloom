@@ -88,8 +88,21 @@ class FirebaseUserProfileService {
             return
         }
 
+        // Get theme selections from UserDefaults
+        let selectedThemeIds = UserDefaults.standard.stringArray(forKey: "selected_theme_ids") ?? []
+        let trialStartDate = UserDefaults.standard.object(forKey: "theme_trial_start_date") as? Date
+
+        // Check if user has completed onboarding (from local UserDefaults)
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+
+        Log.info("Profile sync - checking local state", category: .auth, metadata: [
+            "hasCompletedOnboarding": hasCompletedOnboarding,
+            "selectedThemeCount": selectedThemeIds.count,
+            "hasTrialStartDate": trialStartDate != nil
+        ])
+
         // Profile data for the main profile document (triggers Algolia sync)
-        let profileData: [String: Any] = [
+        var profileData: [String: Any] = [
             "userId": user.uid,
             "displayName": displayName,
             "email": user.email as Any,
@@ -106,6 +119,19 @@ class FirebaseUserProfileService {
             "followerCount": 0,
             "isVerified": false
         ]
+
+        // Only set hasCompletedOnboarding if actually completed (don't overwrite with false)
+        if hasCompletedOnboarding {
+            profileData["hasCompletedOnboarding"] = true
+        }
+
+        // Include theme selections if present (only sync if user has selected themes)
+        if !selectedThemeIds.isEmpty {
+            profileData["selectedThemeIds"] = selectedThemeIds
+        }
+        if let trialStart = trialStartDate {
+            profileData["themeTrialStartDate"] = Timestamp(date: trialStart)
+        }
 
         // Write to the correct path that Algolia trigger watches
         // Path: users/{userId}/profile/data
@@ -128,7 +154,9 @@ class FirebaseUserProfileService {
         Log.info("Synced user profile to Firestore", category: .auth, metadata: [
             "userId": user.uid,
             "displayName": displayName,
-            "email": user.email ?? "none"
+            "email": user.email ?? "none",
+            "hasCompletedOnboarding": hasCompletedOnboarding,
+            "selectedThemeCount": selectedThemeIds.count
         ])
     }
 
@@ -143,6 +171,54 @@ class FirebaseUserProfileService {
         profileCache.removeAll()
         lastCacheClear = Date()
         Log.info("Cleared user profile cache", category: .auth)
+    }
+
+    /// Restore theme selections from Firebase profile (for returning users)
+    /// Returns true if theme data was restored
+    @discardableResult
+    func restoreThemeSelectionsFromFirebase() async -> Bool {
+        guard let userId = auth.currentUser?.uid else {
+            return false
+        }
+
+        do {
+            let profileDoc = try await db.collection("users").document(userId)
+                .collection("profile").document("data").getDocument()
+
+            guard let data = profileDoc.data() else {
+                Log.info("No profile data to restore themes from", category: .auth)
+                return false
+            }
+
+            var restored = false
+
+            // Restore theme selections
+            if let themeIds = data["selectedThemeIds"] as? [String], !themeIds.isEmpty {
+                let currentThemes = UserDefaults.standard.stringArray(forKey: "selected_theme_ids") ?? []
+                if currentThemes.isEmpty {
+                    UserDefaults.standard.set(themeIds, forKey: "selected_theme_ids")
+                    Log.info("Restored theme selections from Firebase", category: .auth, metadata: [
+                        "themeCount": themeIds.count
+                    ])
+                    restored = true
+                }
+            }
+
+            // Restore trial start date
+            if let trialTimestamp = data["themeTrialStartDate"] as? Timestamp {
+                let currentStart = UserDefaults.standard.object(forKey: "theme_trial_start_date") as? Date
+                if currentStart == nil {
+                    UserDefaults.standard.set(trialTimestamp.dateValue(), forKey: "theme_trial_start_date")
+                    Log.info("Restored trial start date from Firebase", category: .auth)
+                    restored = true
+                }
+            }
+
+            return restored
+        } catch {
+            Log.error("Failed to restore theme selections from Firebase", category: .auth, error: error)
+            return false
+        }
     }
 
     // MARK: - Private Methods

@@ -176,7 +176,7 @@
       "servings": 6,
       "source": "Harvey House Cookbook",
       "story": "Fred Harvey insisted on the freshest ingredients, remarkable for restaurants in remote desert towns. This simple salad was a revelation to travelers who expected only dried goods on the frontier.",
-      "unlockDay": 3,
+      "unlockDay": 2,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -274,7 +274,7 @@
       "servings": 8,
       "source": "Harvey House Cookbook",
       "story": "For Easterners riding the Santa Fe into New Mexico, Harvey House chili was often their first encounter with Southwestern cuisine. Many requested the recipe, only to find it impossible to replicate without the proper dried chiles.",
-      "unlockDay": 5,
+      "unlockDay": 3,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -363,7 +363,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 325\u00b0F (165\u00b0C).",
+        "Preheat oven to 325°F (165°C).",
         "Season roast generously with salt and pepper.",
         "Heat oil in a large Dutch oven over high heat. Sear roast on all sides until deeply browned, about 10 minutes total. Remove and set aside.",
         "Add onions, carrots, and celery to pot. Cook until beginning to brown, about 5 minutes.",
@@ -378,7 +378,7 @@
       "servings": 8,
       "source": "Great Northern Railway",
       "story": "Crossing the northern plains, the Great Northern Railway offered pot roast as Sunday dinner. The beef braised slowly as the train climbed through the Rockies, filling the dining car with an irresistible aroma.",
-      "unlockDay": 7,
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -482,7 +482,7 @@
       "servings": 4,
       "source": "Pennsylvania Railroad Dining Service",
       "story": "The Pennsylvania Railroad's Broadway Limited was famous for its cuisine. These salmon croquettes were a Friday special, crispy on the outside with a savory, herb-flecked center.",
-      "unlockDay": 9,
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -494,7 +494,7 @@
     {
       "id": "railroad-dining-006",
       "title": "Harvey House Lemon Meringue Pie",
-      "description": "Tart lemon filling topped with billowing meringue\u2014the pie that made Harvey House famous.",
+      "description": "Tart lemon filling topped with billowing meringue—the pie that made Harvey House famous.",
       "ingredients": [
         {
           "name": "baked 9-inch pie crust",
@@ -574,7 +574,7 @@
         "Return to saucepan. Cook, whisking, 2 minutes more.",
         "Remove from heat. Stir in butter, lemon zest, and lemon juice.",
         "Pour into pie crust.",
-        "Preheat oven to 350\u00b0F (175\u00b0C).",
+        "Preheat oven to 350°F (175°C).",
         "Beat egg whites and cream of tartar until soft peaks form. Gradually add sugar, beating to stiff peaks.",
         "Spread meringue over hot filling, sealing to edges.",
         "Bake until meringue is golden, about 15 minutes.",
@@ -585,7 +585,7 @@
       "servings": 8,
       "source": "Harvey House Cookbook",
       "story": "The gleaming pie cases at Harvey House displayed these lemon meringue beauties like precious gems. The contrast of tangy lemon against sweet, fluffy meringue was perfection on a plate.",
-      "unlockDay": 11,
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -596,7 +596,7 @@
     },
     {
       "id": "railroad-dining-007",
-      "title": "Pullman Car Chicken \u00e0 la King",
+      "title": "Pullman Car Chicken à la King",
       "description": "Creamy chicken in a rich sherry sauce, served in the elegant dining cars of the Pullman Company.",
       "ingredients": [
         {
@@ -681,8 +681,8 @@
       "cookTime": 20,
       "servings": 6,
       "source": "Pullman Company Dining Service",
-      "story": "In the golden age of rail travel, Pullman dining cars were rolling restaurants of extraordinary elegance. Chicken \u00e0 la King, with its creamy sauce and touch of sherry, epitomized the refined service travelers expected.",
-      "unlockDay": 1,
+      "story": "In the golden age of rail travel, Pullman dining cars were rolling restaurants of extraordinary elegance. Chicken à la King, with its creamy sauce and touch of sherry, epitomized the refined service travelers expected.",
+      "unlockDay": 7,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -778,14 +778,14 @@
         }
       ],
       "instructions": [
-        "Dissolve yeast in warm milk (110\u00b0F). Let stand 5 minutes until foamy.",
+        "Dissolve yeast in warm milk (110°F). Let stand 5 minutes until foamy.",
         "Add sugar, melted butter, egg, and salt to yeast mixture. Gradually add flour to form a soft dough.",
         "Knead until smooth and elastic, about 5 minutes. Place in a greased bowl, cover, and let rise 1 hour.",
         "Punch down dough. Roll into a 16x12-inch rectangle.",
         "Spread softened butter over dough. Sprinkle with brown sugar and cinnamon.",
         "Roll up tightly from the long side. Cut into 12 rolls.",
         "Place in a greased 9x13 pan. Cover and let rise 30 minutes.",
-        "Bake at 350\u00b0F (175\u00b0C) for 25-30 minutes until golden.",
+        "Bake at 350°F (175°C) for 25-30 minutes until golden.",
         "Beat cream cheese, powdered sugar, and vanilla until smooth. Spread over warm rolls."
       ],
       "prepTime": 30,
@@ -793,7 +793,7 @@
       "servings": 12,
       "source": "Santa Fe Railway Cookbook",
       "story": "The aroma of fresh cinnamon rolls announced breakfast service in dining cars across America. Bakers worked through the night in swaying kitchens to ensure these were ready by sunrise.",
-      "unlockDay": 3,
+      "unlockDay": 8,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -881,7 +881,7 @@
       "servings": 6,
       "source": "Pullman Dining Car Service",
       "story": "The Waldorf Salad, created at New York's Waldorf-Astoria Hotel, became a symbol of refined dining aboard Pullman cars. It traveled well and offered a refreshing counterpoint to heavier main courses.",
-      "unlockDay": 5,
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -893,7 +893,7 @@
     {
       "id": "railroad-dining-010",
       "title": "Harvey House Coconut Layer Cake",
-      "description": "A towering white cake covered in clouds of coconut frosting\u2014the celebrated dessert of Harvey House.",
+      "description": "A towering white cake covered in clouds of coconut frosting—the celebrated dessert of Harvey House.",
       "ingredients": [
         {
           "name": "butter",
@@ -977,7 +977,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C). Grease and flour three 9-inch round pans.",
+        "Preheat oven to 350°F (175°C). Grease and flour three 9-inch round pans.",
         "Beat butter and sugar until light and fluffy. Add eggs one at a time, then vanilla.",
         "Whisk flour, baking powder, and salt. Add to butter mixture alternately with buttermilk.",
         "Divide batter among pans. Bake 25-30 minutes until a toothpick comes out clean.",
@@ -990,7 +990,7 @@
       "servings": 12,
       "source": "Harvey House Cookbook",
       "story": "This magnificent cake was displayed under glass domes at Harvey House restaurants. Travelers often ordered a slice to go, wrapped in wax paper for the journey ahead.",
-      "unlockDay": 7,
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -1002,7 +1002,7 @@
     {
       "id": "railroad-dining-011",
       "title": "Southern Pacific Bread Pudding",
-      "description": "Rich, custardy bread pudding with whiskey sauce\u2014a railcar dessert legend.",
+      "description": "Rich, custardy bread pudding with whiskey sauce—a railcar dessert legend.",
       "ingredients": [
         {
           "name": "French bread",
@@ -1071,7 +1071,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C). Butter a 9x13 inch baking dish.",
+        "Preheat oven to 350°F (175°C). Butter a 9x13 inch baking dish.",
         "Place bread cubes in the dish. Scatter raisins over top.",
         "Whisk together milk, cream, eggs, sugar, vanilla, and cinnamon.",
         "Pour custard over bread. Let soak 30 minutes, pressing bread down occasionally.",
@@ -1084,8 +1084,8 @@
       "cookTime": 60,
       "servings": 10,
       "source": "Southern Pacific Railway",
-      "story": "The Sunset Limited's bread pudding was legendary. Baked fresh each evening, it arrived at tables drizzled with warm bourbon sauce\u2014the perfect finale to a transcontinental journey.",
-      "unlockDay": 9,
+      "story": "The Sunset Limited's bread pudding was legendary. Baked fresh each evening, it arrived at tables drizzled with warm bourbon sauce—the perfect finale to a transcontinental journey.",
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1160,13 +1160,195 @@
       "servings": 3,
       "source": "Railroad Dining Car Service",
       "story": "The club sandwich was designed for one-handed eating aboard rocking trains. Its triple-decker construction became an American icon, though few remember its railcar origins.",
-      "unlockDay": 11,
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
         "lunch",
         "sandwich",
         "classic"
+      ]
+    },
+    {
+      "id": "railroad-dining-013",
+      "title": "Empire Builder Wild Rice Soup",
+      "description": "Creamy wild rice soup with chicken and mushrooms—a warming specialty from the Great Northern Railway.",
+      "ingredients": [
+        {
+          "name": "wild rice",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "chicken broth",
+          "amount": 6,
+          "unit": "cups"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "mushrooms",
+          "amount": 8,
+          "unit": "ounces",
+          "preparation": "sliced"
+        },
+        {
+          "name": "flour",
+          "amount": 0.33,
+          "unit": "cup"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "cooked chicken",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "diced"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dry sherry",
+          "amount": 2,
+          "unit": "tablespoons",
+          "isOptional": true
+        }
+      ],
+      "instructions": [
+        "Rinse wild rice thoroughly. Cook in 3 cups broth until tender, about 45 minutes. Set aside.",
+        "Melt butter in a large pot over medium heat. Add onion, celery, and carrots. Cook 8 minutes.",
+        "Add mushrooms and cook until softened, about 5 minutes.",
+        "Sprinkle flour over vegetables and stir to coat. Cook 2 minutes.",
+        "Gradually whisk in remaining 3 cups broth. Bring to a simmer.",
+        "Add cooked wild rice with its liquid, cream, chicken, and thyme.",
+        "Simmer 15 minutes until slightly thickened. Season with salt, pepper, and sherry if using.",
+        "Serve hot in warm bowls."
+      ],
+      "prepTime": 20,
+      "cookTime": 70,
+      "servings": 8,
+      "source": "Great Northern Railway, Empire Builder Route",
+      "story": "The Empire Builder crossed the northern plains where wild rice grew in Minnesota lakes. This soup celebrated the regional ingredient, warming travelers as they watched snow-covered Rockies pass by the dining car windows.",
+      "unlockDay": 13,
+      "sortOrder": 13,
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "comfort food",
+        "regional"
+      ]
+    },
+    {
+      "id": "railroad-dining-014",
+      "title": "California Zephyr Baked Alaska",
+      "description": "Ice cream encased in toasted meringue—the spectacular dessert that amazed dining car passengers.",
+      "ingredients": [
+        {
+          "name": "pound cake or sponge cake",
+          "amount": 1,
+          "unit": "loaf",
+          "notes": "sliced 1-inch thick"
+        },
+        {
+          "name": "vanilla ice cream",
+          "amount": 1,
+          "unit": "quart",
+          "notes": "slightly softened"
+        },
+        {
+          "name": "chocolate ice cream",
+          "amount": 1,
+          "unit": "pint",
+          "notes": "slightly softened"
+        },
+        {
+          "name": "egg whites",
+          "amount": 6,
+          "unit": "large"
+        },
+        {
+          "name": "cream of tartar",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "brandy",
+          "amount": 2,
+          "unit": "tablespoons",
+          "isOptional": true,
+          "group": "For flambé"
+        }
+      ],
+      "instructions": [
+        "Line a loaf pan with plastic wrap. Layer cake slices on bottom.",
+        "Spread vanilla ice cream in an even layer. Top with chocolate ice cream.",
+        "Cover with remaining cake. Press gently. Freeze until solid, at least 4 hours or overnight.",
+        "Beat egg whites and cream of tartar until soft peaks form.",
+        "Gradually add sugar, beating until stiff and glossy. Beat in vanilla.",
+        "Unmold frozen cake onto an oven-safe platter. Working quickly, cover completely with meringue, creating peaks.",
+        "Freeze until ready to serve (can freeze up to 2 hours).",
+        "Preheat oven to 500°F (260°C). Bake 3-4 minutes until meringue is golden.",
+        "For flambé: Warm brandy, pour over top, and ignite. Serve immediately."
+      ],
+      "prepTime": 45,
+      "cookTime": 5,
+      "servings": 8,
+      "source": "Western Pacific Railroad, California Zephyr",
+      "story": "The California Zephyr's Vista Dome cars offered stunning views, and the dining service matched the scenery. Baked Alaska was prepared tableside with great theater—ice cream that didn't melt in a hot oven seemed like magic.",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "difficulty": "hard",
+      "tags": [
+        "dessert",
+        "spectacular",
+        "special occasion"
       ]
     }
   ]

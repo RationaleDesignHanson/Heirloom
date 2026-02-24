@@ -49,6 +49,12 @@ struct ShareOptions {
     /// Whether to notify when share is accepted
     var notifyOnAccept: Bool = true
 
+    // MARK: - Demo User Sanitization
+
+    /// Whether to remove demo users from heritage chain before sharing
+    /// Used when user's recipe was edited by demo users during onboarding
+    var sanitizeDemoUsers: Bool = false
+
     // MARK: - Initialization
 
     init(
@@ -64,7 +70,8 @@ struct ShareOptions {
         shareType: ShareType = .heirloom,
         allowReSharing: Bool = true,
         expirationDuration: ExpirationDuration? = .sevenDays,
-        notifyOnAccept: Bool = true
+        notifyOnAccept: Bool = true,
+        sanitizeDemoUsers: Bool = false
     ) {
         self.includeCardBack = includeCardBack
         self.includeRating = includeRating
@@ -79,6 +86,7 @@ struct ShareOptions {
         self.allowReSharing = allowReSharing
         self.expirationDuration = expirationDuration
         self.notifyOnAccept = notifyOnAccept
+        self.sanitizeDemoUsers = sanitizeDemoUsers
     }
 }
 

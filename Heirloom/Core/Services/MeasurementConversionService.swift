@@ -95,7 +95,8 @@ final class MeasurementConversionService {
         "piece", "pieces", "slice", "slices", "can", "cans",
         "jar", "jars", "package", "packages", "pkg", "bunch",
         "head", "heads", "stalk", "stalks", "sprig", "sprigs",
-        "leaf", "leaves", "strip", "strips", "sheet", "sheets"
+        "leaf", "leaves", "strip", "strips", "sheet", "sheets",
+        "box", "boxes", "bottle", "bottles"
     ]
 
     /// Unknown/descriptive units that should not be converted

@@ -75,7 +75,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         "demo_fitfoodie",
         "demo_bakingbelle",
         "demo_grillmaster",
-        "demo_bigshare"
+        "demo_bigshare"  // Users manually friend him to get the Traveling Bolognese
     ]
 
     /// Demo user display info for creating connections/shares
@@ -146,9 +146,10 @@ final class DemoSocialBehaviorService: ObservableObject {
     }
 
     /// Recommended recipes to share per demo user (UUIDs from seed data)
+    /// IMPORTANT: Use lowercase UUIDs to match Firebase document IDs (app uses firebaseString which lowercases)
     static let demoUserWelcomeRecipes: [String: DemoRecipeDetails] = [
         "demo_grandmazing": DemoRecipeDetails(
-            recipeId: "5E13B837-1A80-4D22-AF8A-C474A6EA5C35",
+            recipeId: "5e13b837-1a80-4d22-af8a-c474a6ea5c35",
             title: "Brown Butter Chocolate Chip Cookies",
             message: "Welcome to Heirloom! Here's my most popular recipe to get you started. These cookies are a family favorite!",
             servings: "24 cookies",
@@ -159,7 +160,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grandmazing_chocolate_chip_cookies-image.webp"
         ),
         "demo_phillipfry": DemoRecipeDetails(
-            recipeId: "7EE0A981-0DD2-4105-AA26-AB941C23D688",
+            recipeId: "7ee0a981-0dd2-4105-aa26-ab941c23d688",
             title: "Creamy One-Pot Pasta",
             message: "Hey! Thought you might like this one - it's my go-to weeknight dinner. Super easy and delicious!",
             servings: "4 servings",
@@ -170,7 +171,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_phillipfry_one_pot_pasta-image.webp"
         ),
         "demo_chef_maria": DemoRecipeDetails(
-            recipeId: "5D5A16D4-4FC2-483B-9737-7D0451F3C236",
+            recipeId: "5d5a16d4-4fc2-483b-9737-7d0451f3c236",
             title: "Camarones al Ajillo (Garlic Shrimp)",
             message: "Bienvenido! I'd love to share this classic Latin dish with you. It's always a crowd-pleaser!",
             servings: "4 servings",
@@ -181,7 +182,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_chef_maria_garlic_shrimp-image.webp"
         ),
         "demo_fitfoodie": DemoRecipeDetails(
-            recipeId: "F3890DC5-F51A-455A-8BF2-EB4BB089C5A9",
+            recipeId: "f3890dc5-f51a-455a-8bf2-eb4bb089c5a9",
             title: "Ultimate Protein Power Bowl",
             message: "Welcome! This is my favorite post-workout meal. 45g of protein and it actually tastes amazing!",
             servings: "2 servings",
@@ -192,7 +193,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_fitfoodie_protein_bowl-image.webp"
         ),
         "demo_bakingbelle": DemoRecipeDetails(
-            recipeId: "FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF",
+            recipeId: "fceb840f-6acb-49f3-a7f0-e1da3de286ff",
             title: "Molten Chocolate Lava Cakes",
             message: "Hi there! I wanted to share my favorite quick dessert. It looks fancy but it's actually super easy!",
             servings: "4 cakes",
@@ -203,7 +204,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bakingbelle_chocolate_lava_cakes-image.webp"
         ),
         "demo_grillmaster": DemoRecipeDetails(
-            recipeId: "1DE8EC4C-7629-466D-B39B-87D97B48EC9F",
+            recipeId: "1de8ec4c-7629-466d-b39b-87d97b48ec9f",
             title: "Ultimate Smash Burgers",
             message: "Welcome! These burgers are life-changing. Those crispy edges are what it's all about!",
             servings: "4 burgers",
@@ -214,7 +215,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grillmaster_smash_burgers-image.webp"
         ),
         "demo_bigshare": DemoRecipeDetails(
-            recipeId: "E5F6A7B8-C9D0-1234-EFAB-345678901234",
+            recipeId: "e5f6a7b8-c9d0-1234-efab-345678901234",
             title: "The Traveling Bolognese",
             message: "This recipe started with Grandmazing in Vermont and has traveled through 5 kitchens — each person added their own twist. Accept it and check the Family Tree to see how it evolved!",
             servings: "6 servings",
@@ -223,7 +224,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             ingredientCount: 14,
             instructionCount: 8,
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bigshare_bolognese-image.webp",
-            rootRecipeId: "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+            rootRecipeId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             rootOwnerId: "demo_grandmazing",
             shareGeneration: 2
         ),
@@ -473,7 +474,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         let demoUserId = Self.demoUserIds.randomElement() ?? "demo_grandmazing"
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        let connectionId = UUID().uuidString
+        let connectionId = UUID().uuidString.lowercased()
         let now = Date()
 
         // Only create connection document in real user's collection
@@ -630,7 +631,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             Log.warning("Failed to check existing welcome shares, proceeding anyway", category: .social)
         }
 
-        let shareId = UUID().uuidString
+        let shareId = UUID().uuidString.lowercased()
         let now = Date()
         let expiresAt = Calendar.current.date(byAdding: .day, value: 7, to: now)!
 
@@ -665,6 +666,9 @@ final class DemoSocialBehaviorService: ObservableObject {
             "viewCount": 0,
             "isDemoShare": true,
             "isWelcomeShare": true,  // Mark as welcome share for deduplication
+            // Heritage chain for offline lineage display
+            "heritageChain": buildHeritageChain(for: welcomeRecipe, sharerId: demoUserId),
+            "heritageChainNames": buildHeritageChainNames(for: welcomeRecipe, sharerName: demoInfo.displayName),
             // Recipe preview fields for share sheet display
             "servings": welcomeRecipe.servings,
             "prepTime": welcomeRecipe.prepTime,
@@ -708,7 +712,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        let notificationId = UUID().uuidString
+        let notificationId = UUID().uuidString.lowercased()
         let now = Date()
 
         let notificationData: [String: Any] = [
@@ -755,25 +759,43 @@ final class DemoSocialBehaviorService: ObservableObject {
         let taskKey = "recipeShare_\(connectionId)"
         scheduledTasks[taskKey]?.cancel()
 
-        scheduledTasks[taskKey] = Task {
+        // Use detached task to survive view lifecycle changes
+        // Store task reference for potential cancellation
+        let task = Task { [weak self] in
             do {
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
 
                 guard !Task.isCancelled else { return }
-                guard gate.isEnabled else { return }
+                guard let self = self else { return }
+                guard self.gate.isEnabled else { return }
 
-                await performRecipeShare(demoUserId: demoUserId, connectionId: connectionId)
+                await self.performRecipeShare(demoUserId: demoUserId, connectionId: connectionId)
             } catch {
                 // Task was cancelled
             }
         }
+        scheduledTasks[taskKey] = task
     }
 
     /// Perform the recipe share from demo user
     private func performRecipeShare(demoUserId: String, connectionId: String) async {
-        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
-        guard let welcomeRecipe = Self.demoUserWelcomeRecipes[demoUserId] else { return }
-        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+        Log.info("Executing demo recipe share", category: .social, metadata: [
+            "demoUserId": demoUserId,
+            "connectionId": connectionId
+        ])
+
+        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else {
+            Log.warning("Demo share failed: missing db/auth/userId", category: .social)
+            return
+        }
+        guard let welcomeRecipe = Self.demoUserWelcomeRecipes[demoUserId] else {
+            Log.warning("Demo share failed: no welcome recipe for user", category: .social, metadata: ["demoUserId": demoUserId])
+            return
+        }
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else {
+            Log.warning("Demo share failed: no demo info for user", category: .social, metadata: ["demoUserId": demoUserId])
+            return
+        }
 
         // Check if we already shared this recipe to this user
         do {
@@ -811,7 +833,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             return
         }
 
-        let shareId = UUID().uuidString
+        let shareId = UUID().uuidString.lowercased()
         let now = Date()
         let expiresAt = Calendar.current.date(byAdding: .day, value: 7, to: now)!
 
@@ -845,6 +867,9 @@ final class DemoSocialBehaviorService: ObservableObject {
             "acceptCount": 0,
             "viewCount": 0,
             "isDemoShare": true,
+            // Heritage chain for offline lineage display
+            "heritageChain": buildHeritageChain(for: welcomeRecipe, sharerId: demoUserId),
+            "heritageChainNames": buildHeritageChainNames(for: welcomeRecipe, sharerName: demoInfo.displayName),
             // Recipe preview fields for share sheet display
             "servings": welcomeRecipe.servings,
             "prepTime": welcomeRecipe.prepTime,
@@ -882,21 +907,46 @@ final class DemoSocialBehaviorService: ObservableObject {
 
     /// Get recipe title from recipe ID (simplified lookup)
     private func getRecipeTitle(for recipeId: String) -> String {
-        switch recipeId {
-        case "5E13B837-1A80-4D22-AF8A-C474A6EA5C35":
+        // Use lowercase comparison for consistency with Firebase document IDs
+        switch recipeId.lowercased() {
+        case "5e13b837-1a80-4d22-af8a-c474a6ea5c35":
             return "Brown Butter Chocolate Chip Cookies"
-        case "7EE0A981-0DD2-4105-AA26-AB941C23D688":
+        case "7ee0a981-0dd2-4105-aa26-ab941c23d688":
             return "Creamy One-Pot Pasta"
-        case "5D5A16D4-4FC2-483B-9737-7D0451F3C236":
+        case "5d5a16d4-4fc2-483b-9737-7d0451f3c236":
             return "Camarones al Ajillo (Garlic Shrimp)"
-        case "F3890DC5-F51A-455A-8BF2-EB4BB089C5A9":
+        case "f3890dc5-f51a-455a-8bf2-eb4bb089c5a9":
             return "Ultimate Protein Power Bowl"
-        case "FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF":
+        case "fceb840f-6acb-49f3-a7f0-e1da3de286ff":
             return "Molten Chocolate Lava Cakes"
-        case "1DE8EC4C-7629-466D-B39B-87D97B48EC9F":
+        case "1de8ec4c-7629-466d-b39b-87d97b48ec9f":
             return "Ultimate Smash Burgers"
         default:
             return "Recipe"
+        }
+    }
+
+    /// Build heritage chain (user IDs) for demo recipe
+    /// Includes root owner and current sharer for multi-gen demos
+    private func buildHeritageChain(for recipe: DemoRecipeDetails, sharerId: String) -> [String] {
+        if let rootOwnerId = recipe.rootOwnerId, rootOwnerId != sharerId {
+            // Multi-gen recipe: root owner → sharer
+            return [rootOwnerId, sharerId]
+        } else {
+            // Single owner recipe
+            return [sharerId]
+        }
+    }
+
+    /// Build heritage chain names (display names) for demo recipe
+    /// Parallel to buildHeritageChain - same order, display names instead of IDs
+    private func buildHeritageChainNames(for recipe: DemoRecipeDetails, sharerName: String) -> [String] {
+        if let rootOwnerId = recipe.rootOwnerId, let rootOwnerInfo = Self.demoUserInfo[rootOwnerId] {
+            // Multi-gen recipe: root owner name → sharer name
+            return [rootOwnerInfo.displayName, sharerName]
+        } else {
+            // Single owner recipe
+            return [sharerName]
         }
     }
 
@@ -916,7 +966,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        let notificationId = UUID().uuidString
+        let notificationId = UUID().uuidString.lowercased()
         let now = Date()
 
         let notificationData: [String: Any] = [
@@ -951,7 +1001,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        let notificationId = UUID().uuidString
+        let notificationId = UUID().uuidString.lowercased()
         let now = Date()
 
         let notificationData: [String: Any] = [
@@ -987,7 +1037,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        let notificationId = UUID().uuidString
+        let notificationId = UUID().uuidString.lowercased()
         let now = Date()
 
         let notificationData: [String: Any] = [
@@ -1032,7 +1082,7 @@ final class DemoSocialBehaviorService: ObservableObject {
     private let shareAcceptDelayRange: ClosedRange<Double> = 5...30
 
     /// Delay range for demo user to modify the recipe after accepting (seconds)
-    private let recipeModifyDelayRange: ClosedRange<Double> = 120...300  // 2-5 minutes
+    private let recipeModifyDelayRange: ClosedRange<Double> = 15...45  // 15-45 seconds for testing
 
     /// Call this when user shares a recipe with a demo connection
     /// Schedules auto-accept and subsequent recipe modification
@@ -1123,7 +1173,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             )
 
             // 3. Create notification for user that demo user accepted
-            let notificationId = UUID().uuidString
+            let notificationId = UUID().uuidString.lowercased()
             let notificationData: [String: Any] = [
                 "id": notificationId,
                 "type": "shareAccepted",
@@ -1233,7 +1283,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let db = db else { return }
         guard UUID(uuidString: recipeId) != nil else { return }
 
-        let lineageId = UUID().uuidString
+        let lineageId = UUID().uuidString.lowercased()
         let now = Date()
 
         // Create lineage record for demo user (generation 1)
@@ -1343,7 +1393,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             ])
 
             // Add the new ingredient to the demo user's recipe
-            let ingredientId = UUID().uuidString
+            let ingredientId = UUID().uuidString.lowercased()
             let ingredientData: [String: Any] = [
                 "id": ingredientId,
                 "name": modification.ingredientName,
@@ -1408,7 +1458,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let now = Date()
-        let modificationId = UUID().uuidString
+        let modificationId = UUID().uuidString.lowercased()
 
         // Create modification record
         let modificationData: [String: Any] = [
@@ -1455,7 +1505,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        let notificationId = UUID().uuidString
+        let notificationId = UUID().uuidString.lowercased()
         let now = Date()
 
         // Note: FirebaseNotificationService.parseNotification() requires these exact fields:

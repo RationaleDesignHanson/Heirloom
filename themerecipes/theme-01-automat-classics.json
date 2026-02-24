@@ -61,7 +61,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 375\u00b0F (190\u00b0C). Butter a 9x13 inch baking dish.",
+        "Preheat oven to 375°F (190°C). Butter a 9x13 inch baking dish.",
         "Cook macaroni according to package directions until just al dente. Drain and set aside.",
         "In a large saucepan, melt butter over medium heat. Whisk in flour and cook for 1 minute, stirring constantly.",
         "Gradually whisk in warm milk. Cook, stirring frequently, until sauce thickens and coats the back of a spoon, about 8-10 minutes.",
@@ -254,7 +254,7 @@
         "Sprinkle flour over vegetables and stir to coat. Cook 2 minutes.",
         "Gradually whisk in reserved broth and cream. Bring to simmer and cook until thickened, about 5 minutes.",
         "Stir in shredded chicken, peas, thyme, salt, and pepper. Remove from heat and let cool slightly.",
-        "Preheat oven to 400\u00b0F (200\u00b0C).",
+        "Preheat oven to 400°F (200°C).",
         "Divide filling among 6 individual ramekins or one 9x13 baking dish.",
         "Cut puff pastry to fit over dishes. Place pastry on top and crimp edges. Cut small vents. Brush with egg wash.",
         "Bake until pastry is golden and filling is bubbling, 25-30 minutes.",
@@ -369,7 +369,7 @@
       "servings": 8,
       "source": "Horn & Hardart Archives",
       "story": "On winter days, the line for beef stew stretched out the door. The Automat's version was thick, warming, and substantial enough to fuel a long day of work.",
-      "unlockDay": 5,
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -455,11 +455,11 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C).",
+        "Preheat oven to 350°F (175°C).",
         "Soak breadcrumbs in milk for 5 minutes.",
         "Combine beef, pork, onion, soaked breadcrumbs, eggs, ketchup, Worcestershire, salt, and pepper. Mix gently until just combined.",
         "Shape into a loaf on a rimmed baking sheet or in a loaf pan.",
-        "Bake until internal temperature reaches 160\u00b0F (71\u00b0C), about 1 hour.",
+        "Bake until internal temperature reaches 160°F (71°C), about 1 hour.",
         "Let rest 10 minutes before slicing.",
         "For gravy: Melt butter in a saucepan. Whisk in flour and cook 1 minute. Gradually add broth, whisking constantly. Simmer until thickened.",
         "Serve meatloaf slices with gravy."
@@ -468,8 +468,8 @@
       "cookTime": 60,
       "servings": 8,
       "source": "Horn & Hardart Archives",
-      "story": "The Automat's meatloaf was comfort food perfection\u2014moist, well-seasoned, and always served with a ladleful of rich gravy. It was the meal that reminded everyone of home.",
-      "unlockDay": 7,
+      "story": "The Automat's meatloaf was comfort food perfection—moist, well-seasoned, and always served with a ladleful of rich gravy. It was the meal that reminded everyone of home.",
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -576,8 +576,8 @@
       "cookTime": 30,
       "servings": 6,
       "source": "Horn & Hardart Archives",
-      "story": "New York's Swedish immigrant population helped make these meatballs an Automat staple. The cream gravy was the key\u2014rich, smooth, and perfect for soaking into egg noodles.",
-      "unlockDay": 9,
+      "story": "New York's Swedish immigrant population helped make these meatballs an Automat staple. The cream gravy was the key—rich, smooth, and perfect for soaking into egg noodles.",
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -668,7 +668,7 @@
       "servings": 6,
       "source": "Horn & Hardart Archives",
       "story": "Named after 19th-century physician James Salisbury who promoted ground beef as health food, this dish became a diner staple. The Automat's version featured deeply caramelized onions.",
-      "unlockDay": 11,
+      "unlockDay": 7,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -736,7 +736,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C).",
+        "Preheat oven to 350°F (175°C).",
         "Cut hot dogs into 1-inch pieces.",
         "Combine beans, ketchup, molasses, brown sugar, mustard, onion, Worcestershire, salt, and pepper in a baking dish.",
         "Nestle hot dog pieces into the bean mixture.",
@@ -748,7 +748,7 @@
       "servings": 6,
       "source": "Horn & Hardart Archives",
       "story": "Sometimes the simplest dishes are the most beloved. Franks and beans was the Automat's answer to the question: what's for lunch when you're nine years old?",
-      "unlockDay": 14,
+      "unlockDay": 8,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -816,7 +816,7 @@
       "instructions": [
         "Rinse beans and place in a large pot. Cover with water by 2 inches. Soak overnight, or quick-soak by boiling 2 minutes then letting stand 1 hour.",
         "Drain beans. Return to pot with fresh water. Bring to boil, reduce heat, and simmer until beans are just tender, about 45 minutes. Drain, reserving cooking liquid.",
-        "Preheat oven to 300\u00b0F (150\u00b0C).",
+        "Preheat oven to 300°F (150°C).",
         "Score salt pork in a crosshatch pattern. Place half at the bottom of a bean pot or Dutch oven.",
         "Add beans and nestle onion quarters into them.",
         "Whisk together molasses, brown sugar, mustard, salt, pepper, and 2 cups reserved bean liquid. Pour over beans.",
@@ -829,7 +829,7 @@
       "servings": 10,
       "source": "Horn & Hardart Archives",
       "story": "The Automat's bean pots held gallons and baked overnight in their massive ovens. Customers lined up early knowing the beans would be sold out by noon. This recipe captures that long, slow bake that made them unforgettable.",
-      "unlockDay": 1,
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -914,7 +914,7 @@
       "servings": 6,
       "source": "Horn & Hardart Archives",
       "story": "The Automat's creamed spinach was so popular that it inspired countless steakhouse imitations. The secret was the shallots and fresh nutmeg, elevating a simple vegetable into something memorable.",
-      "unlockDay": 2,
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -997,7 +997,7 @@
       "servings": 4,
       "source": "Horn & Hardart Archives",
       "story": "Every Friday, the Automat's fish cakes disappeared within hours. Made fresh each morning, they were crispy, flaky, and always served piping hot.",
-      "unlockDay": 5,
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -1059,14 +1059,14 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 425\u00b0F (220\u00b0C). Place pie crust in pan and crimp edges.",
+        "Preheat oven to 425°F (220°C). Place pie crust in pan and crimp edges.",
         "Toast 0.5 cup coconut in a dry skillet until golden. Set aside for topping.",
         "Whisk eggs and sugar until smooth.",
         "Heat milk and cream until steaming (not boiling). Slowly whisk into egg mixture.",
         "Add vanilla, salt, and nutmeg.",
         "Scatter remaining 1 cup coconut in pie crust.",
         "Carefully pour custard over coconut.",
-        "Bake at 425\u00b0F for 15 minutes, then reduce to 350\u00b0F (175\u00b0C) and bake until custard is set but still jiggles slightly, about 30-35 minutes more.",
+        "Bake at 425°F for 15 minutes, then reduce to 350°F (175°C) and bake until custard is set but still jiggles slightly, about 30-35 minutes more.",
         "Cool completely. Top with toasted coconut before serving."
       ],
       "prepTime": 20,
@@ -1074,7 +1074,7 @@
       "servings": 8,
       "source": "Horn & Hardart Archives",
       "story": "The pie cases at the Automat were works of art. Behind their gleaming glass, coconut custard pie sat like edible treasure, waiting for someone to drop in their nickels.",
-      "unlockDay": 7,
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -1134,8 +1134,8 @@
       "cookTime": 20,
       "servings": 6,
       "source": "Horn & Hardart Archives",
-      "story": "Tapioca pudding was comfort in a cup\u2014the kind of old-fashioned dessert that reminded customers of their grandmothers' kitchens.",
-      "unlockDay": 9,
+      "story": "Tapioca pudding was comfort in a cup—the kind of old-fashioned dessert that reminded customers of their grandmothers' kitchens.",
+      "unlockDay": 13,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -1209,21 +1209,21 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 425\u00b0F (220\u00b0C).",
+        "Preheat oven to 425°F (220°C).",
         "Line a 9-inch pie plate with one round of dough.",
         "Toss apples with sugars, flour, cinnamon, nutmeg, salt, and lemon juice.",
         "Pile apple mixture into crust. Dot with butter.",
         "Top with second crust. Trim and crimp edges. Cut vents.",
         "Brush with egg wash. Sprinkle with a little sugar.",
-        "Bake 20 minutes at 425\u00b0F, then reduce to 375\u00b0F (190\u00b0C) and bake until golden and bubbling, about 35-40 minutes more.",
+        "Bake 20 minutes at 425°F, then reduce to 375°F (190°C) and bake until golden and bubbling, about 35-40 minutes more.",
         "Cool at least 2 hours before slicing."
       ],
       "prepTime": 30,
       "cookTime": 60,
       "servings": 8,
       "source": "Horn & Hardart Archives",
-      "story": "The Automat sold more apple pie than any other dessert. The secret was in the spice blend and letting the pie cool completely before cutting\u2014a patience that made each slice perfect.",
-      "unlockDay": 11,
+      "story": "The Automat sold more apple pie than any other dessert. The secret was in the spice blend and letting the pie cool completely before cutting—a patience that made each slice perfect.",
+      "unlockDay": 14,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [

@@ -5,7 +5,7 @@
     {
       "id": "sunday-suppers-001",
       "title": "Perfect Roast Chicken",
-      "description": "Crispy-skinned, juicy roast chicken\u2014the Sunday dinner that defines home cooking.",
+      "description": "Crispy-skinned, juicy roast chicken—the Sunday dinner that defines home cooking.",
       "ingredients": [
         {
           "name": "whole chicken",
@@ -65,13 +65,13 @@
       ],
       "instructions": [
         "Remove chicken from refrigerator 1 hour before cooking.",
-        "Preheat oven to 425\u00b0F (220\u00b0C).",
+        "Preheat oven to 425°F (220°C).",
         "Mix butter with thyme, rosemary, garlic, and half the salt and pepper.",
         "Gently loosen skin over breast and thighs. Spread herb butter under skin.",
         "Season cavity with remaining salt and pepper. Stuff with lemon and onion.",
         "Truss legs together with kitchen twine. Tuck wing tips under.",
         "Rub skin with olive oil and season generously with salt.",
-        "Roast 1 hour 15 minutes until thigh reaches 165\u00b0F (74\u00b0C) and juices run clear.",
+        "Roast 1 hour 15 minutes until thigh reaches 165°F (74°C) and juices run clear.",
         "Rest 15 minutes before carving."
       ],
       "prepTime": 20,
@@ -92,7 +92,7 @@
     {
       "id": "sunday-suppers-002",
       "title": "Brown Sugar Glazed Ham",
-      "description": "A spiral-cut ham with a crackling sweet glaze\u2014the centerpiece of holiday tables.",
+      "description": "A spiral-cut ham with a crackling sweet glaze—the centerpiece of holiday tables.",
       "ingredients": [
         {
           "name": "spiral-cut ham",
@@ -139,10 +139,10 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 325\u00b0F (165\u00b0C). Place ham cut-side down in a roasting pan.",
-        "Cover loosely with foil. Bake 10-12 minutes per pound until internal temp reaches 130\u00b0F (54\u00b0C).",
+        "Preheat oven to 325°F (165°C). Place ham cut-side down in a roasting pan.",
+        "Cover loosely with foil. Bake 10-12 minutes per pound until internal temp reaches 130°F (54°C).",
         "Meanwhile, mix brown sugar, mustard, honey, orange juice, ground cloves, and cinnamon.",
-        "Remove ham from oven. Increase temperature to 425\u00b0F (220\u00b0C).",
+        "Remove ham from oven. Increase temperature to 425°F (220°C).",
         "Score top of ham in diamond pattern if desired. Stud with whole cloves.",
         "Brush glaze generously over ham.",
         "Return to oven uncovered. Bake 15-20 minutes until glaze is caramelized, brushing twice more.",
@@ -153,7 +153,7 @@
       "servings": 16,
       "source": "American holiday tradition",
       "story": "Glazed ham is the traditional centerpiece for Easter and Christmas dinners. The spiral cut makes carving effortless, and the sweet-savory glaze forms a crackling crust.",
-      "unlockDay": 3,
+      "unlockDay": 2,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -165,7 +165,7 @@
     {
       "id": "sunday-suppers-003",
       "title": "Buttermilk Fried Chicken",
-      "description": "Perfectly crispy, deeply seasoned fried chicken\u2014the Southern Sunday dinner tradition.",
+      "description": "Perfectly crispy, deeply seasoned fried chicken—the Southern Sunday dinner tradition.",
       "ingredients": [
         {
           "name": "chicken pieces",
@@ -230,7 +230,7 @@
         "Mix flour with paprika, garlic powder, onion powder, cayenne, salt, and pepper.",
         "Remove chicken from buttermilk, shaking off excess.",
         "Dredge thoroughly in seasoned flour. Let rest 15 minutes.",
-        "Heat shortening in a cast-iron skillet to 350\u00b0F (175\u00b0C). Oil should be 1 inch deep.",
+        "Heat shortening in a cast-iron skillet to 350°F (175°C). Oil should be 1 inch deep.",
         "Fry chicken in batches, turning occasionally. Dark meat: 15-18 minutes. White meat: 12-15 minutes.",
         "Drain on a wire rack. Season with salt while hot."
       ],
@@ -239,7 +239,7 @@
       "servings": 6,
       "source": "Southern American tradition",
       "story": "Fried chicken after church was a weekly ritual in the South. The long buttermilk soak tenderizes the meat and creates an impossibly crunchy crust.",
-      "unlockDay": 5,
+      "unlockDay": 3,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -252,7 +252,7 @@
     {
       "id": "sunday-suppers-004",
       "title": "Roast Leg of Lamb",
-      "description": "Herb-crusted lamb roasted to pink perfection\u2014the elegant Sunday dinner.",
+      "description": "Herb-crusted lamb roasted to pink perfection—the elegant Sunday dinner.",
       "ingredients": [
         {
           "name": "bone-in leg of lamb",
@@ -304,13 +304,13 @@
       ],
       "instructions": [
         "Remove lamb from refrigerator 2 hours before cooking.",
-        "Preheat oven to 450\u00b0F (230\u00b0C).",
+        "Preheat oven to 450°F (230°C).",
         "Make small slits all over lamb. Insert garlic slices.",
         "Mix rosemary, mint, olive oil, lemon zest, salt, and pepper into a paste.",
         "Rub paste all over lamb.",
         "Place lamb on a rack in a roasting pan.",
-        "Roast 20 minutes at 450\u00b0F, then reduce to 325\u00b0F (165\u00b0C).",
-        "Continue roasting until internal temp reaches 135\u00b0F (57\u00b0C) for medium-rare, about 15 minutes per pound.",
+        "Roast 20 minutes at 450°F, then reduce to 325°F (165°C).",
+        "Continue roasting until internal temp reaches 135°F (57°C) for medium-rare, about 15 minutes per pound.",
         "Rest 20 minutes before carving. Serve with mint jelly."
       ],
       "prepTime": 30,
@@ -318,7 +318,7 @@
       "servings": 10,
       "source": "American Easter and Sunday dinner tradition",
       "story": "Roast lamb is the traditional centerpiece for Easter dinner, but it deserves more frequent appearances. The high-heat start creates a beautiful crust while the lower roast keeps it juicy.",
-      "unlockDay": 7,
+      "unlockDay": 4,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -331,7 +331,7 @@
     {
       "id": "sunday-suppers-005",
       "title": "Herb-Crusted Pork Loin Roast",
-      "description": "Juicy pork loin with a fragrant herb crust\u2014elegant enough for company, simple enough for family.",
+      "description": "Juicy pork loin with a fragrant herb crust—elegant enough for company, simple enough for family.",
       "ingredients": [
         {
           "name": "boneless pork loin",
@@ -391,12 +391,12 @@
       ],
       "instructions": [
         "Remove pork from refrigerator 1 hour before cooking.",
-        "Preheat oven to 400\u00b0F (200\u00b0C).",
+        "Preheat oven to 400°F (200°C).",
         "Mix olive oil, garlic, rosemary, sage, thyme, mustard, salt, and pepper into a paste.",
         "Rub paste all over pork, pressing it into the meat.",
         "Place pork on a rack in a roasting pan. Pour cider into pan.",
-        "Roast 55-65 minutes until internal temp reaches 145\u00b0F (63\u00b0C).",
-        "Rest 15 minutes\u2014temperature will rise to 150\u00b0F (66\u00b0C).",
+        "Roast 55-65 minutes until internal temp reaches 145°F (63°C).",
+        "Rest 15 minutes—temperature will rise to 150°F (66°C).",
         "Slice and serve with pan juices."
       ],
       "prepTime": 20,
@@ -404,7 +404,7 @@
       "servings": 8,
       "source": "American Sunday dinner tradition",
       "story": "Pork loin is leaner than it used to be, so it needs to be treated carefully. The herb crust adds flavor and helps keep it moist. Don't skip the resting time.",
-      "unlockDay": 9,
+      "unlockDay": 5,
       "sortOrder": 1,
       "difficulty": "easy",
       "tags": [
@@ -417,7 +417,7 @@
     {
       "id": "sunday-suppers-006",
       "title": "Braised Beef Short Ribs",
-      "description": "Deeply caramelized short ribs braised until falling off the bone\u2014the ultimate comfort food.",
+      "description": "Deeply caramelized short ribs braised until falling off the bone—the ultimate comfort food.",
       "ingredients": [
         {
           "name": "bone-in beef short ribs",
@@ -489,7 +489,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 325\u00b0F (165\u00b0C). Season ribs with salt and pepper.",
+        "Preheat oven to 325°F (165°C). Season ribs with salt and pepper.",
         "Heat oil in a Dutch oven over high heat. Brown ribs on all sides in batches. Remove.",
         "Add onions, carrots, and celery. Cook until caramelized, about 10 minutes.",
         "Add garlic and tomato paste; cook 2 minutes.",
@@ -504,7 +504,7 @@
       "servings": 6,
       "source": "Classic American home cooking",
       "story": "Short ribs were once a budget cut, prized by home cooks who knew that time in a low oven transforms tough meat into silk. The wine-rich braising liquid becomes a luxurious sauce.",
-      "unlockDay": 11,
+      "unlockDay": 6,
       "sortOrder": 1,
       "difficulty": "medium",
       "tags": [
@@ -516,7 +516,7 @@
     {
       "id": "sunday-suppers-007",
       "title": "Sunday Beef Pot Roast",
-      "description": "Falling-apart tender beef braised with root vegetables\u2014the meal that fills the house with warmth.",
+      "description": "Falling-apart tender beef braised with root vegetables—the meal that fills the house with warmth.",
       "ingredients": [
         {
           "name": "beef chuck roast",
@@ -595,7 +595,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 325\u00b0F (165\u00b0C).",
+        "Preheat oven to 325°F (165°C).",
         "Season roast generously with salt and pepper.",
         "Heat oil in a Dutch oven over high heat. Sear roast on all sides until well browned. Remove.",
         "Add onions, carrots, and celery. Cook 5 minutes.",
@@ -610,7 +610,7 @@
       "servings": 8,
       "source": "American Sunday dinner tradition",
       "story": "Pot roast went into the oven after church and emerged just as the family gathered. The long braise transforms an economical cut into something extraordinary.",
-      "unlockDay": 1,
+      "unlockDay": 7,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -622,7 +622,7 @@
     {
       "id": "sunday-suppers-008",
       "title": "Classic Meat Lasagna",
-      "description": "Layers of pasta, rich meat sauce, and three cheeses\u2014the Italian-American Sunday tradition.",
+      "description": "Layers of pasta, rich meat sauce, and three cheeses—the Italian-American Sunday tradition.",
       "ingredients": [
         {
           "name": "lasagna noodles",
@@ -717,7 +717,7 @@
         "Brown beef and sausage. Add onion; cook until soft. Add garlic, cook 1 minute.",
         "Stir in tomatoes, tomato paste, Italian seasoning, and salt. Simmer 30 minutes.",
         "Mix ricotta, egg, and parsley.",
-        "Preheat oven to 375\u00b0F (190\u00b0C).",
+        "Preheat oven to 375°F (190°C).",
         "Spread 1 cup meat sauce in a 9x13 pan. Layer: noodles, ricotta mixture, meat sauce, mozzarella, Parmesan.",
         "Repeat layers twice. Top with remaining noodles, sauce, and cheeses.",
         "Cover with foil. Bake 45 minutes. Uncover; bake 15 minutes more.",
@@ -727,8 +727,8 @@
       "cookTime": 90,
       "servings": 12,
       "source": "Italian-American Sunday dinner tradition",
-      "story": "Lasagna came to represent Italian-American abundance\u2014layers upon layers of goodness. Making it is a labor of love, but it feeds a crowd and gets better the next day.",
-      "unlockDay": 3,
+      "story": "Lasagna came to represent Italian-American abundance—layers upon layers of goodness. Making it is a labor of love, but it feeds a crowd and gets better the next day.",
+      "unlockDay": 8,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -741,7 +741,7 @@
     {
       "id": "sunday-suppers-009",
       "title": "Perfect Mashed Potatoes",
-      "description": "Creamy, buttery, impossibly smooth\u2014the essential side dish done right.",
+      "description": "Creamy, buttery, impossibly smooth—the essential side dish done right.",
       "ingredients": [
         {
           "name": "russet potatoes",
@@ -799,7 +799,7 @@
       "servings": 8,
       "source": "Classic American cooking",
       "story": "The secret to great mashed potatoes: warm your cream, dry your potatoes after draining, and never overwork them or they'll turn gluey. Simple, but technique matters.",
-      "unlockDay": 5,
+      "unlockDay": 9,
       "sortOrder": 2,
       "difficulty": "easy",
       "tags": [
@@ -811,7 +811,7 @@
     {
       "id": "sunday-suppers-010",
       "title": "Homemade Dinner Rolls",
-      "description": "Soft, pillowy rolls fresh from the oven\u2014nothing compares.",
+      "description": "Soft, pillowy rolls fresh from the oven—nothing compares.",
       "ingredients": [
         {
           "name": "warm milk",
@@ -865,7 +865,7 @@
         "Punch down. Divide into 24 pieces. Shape into balls.",
         "Place in a greased 9x13 pan, just touching.",
         "Cover and let rise 45 minutes until doubled.",
-        "Bake at 375\u00b0F (190\u00b0C) for 20-25 minutes until golden.",
+        "Bake at 375°F (190°C) for 20-25 minutes until golden.",
         "Brush immediately with melted butter."
       ],
       "prepTime": 30,
@@ -873,7 +873,7 @@
       "servings": 24,
       "source": "American home baking tradition",
       "story": "Homemade rolls require time, but the aroma of bread baking and the pride of serving something made from scratch makes Sunday dinner special.",
-      "unlockDay": 7,
+      "unlockDay": 10,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -885,7 +885,7 @@
     {
       "id": "sunday-suppers-011",
       "title": "Classic Apple Pie",
-      "description": "The American dessert\u2014tender spiced apples in a buttery, flaky crust.",
+      "description": "The American dessert—tender spiced apples in a buttery, flaky crust.",
       "ingredients": [
         {
           "name": "pie dough",
@@ -952,21 +952,21 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 425\u00b0F (220\u00b0C). Line a 9-inch pie plate with bottom crust.",
+        "Preheat oven to 425°F (220°C). Line a 9-inch pie plate with bottom crust.",
         "Toss apples with sugars, flour, cinnamon, nutmeg, salt, and lemon juice.",
         "Pile filling into crust, mounding in center. Dot with butter.",
         "Top with second crust. Trim and crimp edges. Cut decorative vents.",
         "Brush with egg wash. Sprinkle with coarse sugar.",
-        "Bake 25 minutes at 425\u00b0F.",
-        "Reduce to 375\u00b0F (190\u00b0C) and bake 35-40 minutes more until golden and bubbling.",
+        "Bake 25 minutes at 425°F.",
+        "Reduce to 375°F (190°C) and bake 35-40 minutes more until golden and bubbling.",
         "Cool at least 2 hours before slicing."
       ],
       "prepTime": 30,
       "cookTime": 65,
       "servings": 8,
       "source": "American baking tradition",
-      "story": "Apple pie is so American it's clich\u00e9\u2014but for good reason. The combination of tart apples, warm spices, and buttery crust is simply perfect. Serve warm with vanilla ice cream.",
-      "unlockDay": 9,
+      "story": "Apple pie is so American it's cliché—but for good reason. The combination of tart apples, warm spices, and buttery crust is simply perfect. Serve warm with vanilla ice cream.",
+      "unlockDay": 11,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -979,7 +979,7 @@
     {
       "id": "sunday-suppers-012",
       "title": "Classic Chocolate Layer Cake",
-      "description": "Rich, moist chocolate cake with silky chocolate frosting\u2014the birthday cake everyone wants.",
+      "description": "Rich, moist chocolate cake with silky chocolate frosting—the birthday cake everyone wants.",
       "ingredients": [
         {
           "name": "all-purpose flour",
@@ -1080,7 +1080,7 @@
         }
       ],
       "instructions": [
-        "Preheat oven to 350\u00b0F (175\u00b0C). Grease and flour two 9-inch round pans.",
+        "Preheat oven to 350°F (175°C). Grease and flour two 9-inch round pans.",
         "Whisk flour, sugar, cocoa, baking soda, baking powder, and salt.",
         "Add eggs, buttermilk, oil, and vanilla. Beat 2 minutes.",
         "Stir in hot coffee (batter will be thin).",
@@ -1094,8 +1094,8 @@
       "cookTime": 35,
       "servings": 12,
       "source": "American baking tradition",
-      "story": "The coffee in the batter is the secret\u2014it doesn't taste like coffee but deepens the chocolate flavor dramatically. This is the chocolate cake against which all others are measured.",
-      "unlockDay": 11,
+      "story": "The coffee in the batter is the secret—it doesn't taste like coffee but deepens the chocolate flavor dramatically. This is the chocolate cake against which all others are measured.",
+      "unlockDay": 12,
       "sortOrder": 2,
       "difficulty": "medium",
       "tags": [
@@ -1103,6 +1103,136 @@
         "cake",
         "chocolate",
         "birthday"
+      ]
+    },
+    {
+      "id": "sunday-suppers-013",
+      "title": "Yorkshire Pudding",
+      "description": "Golden, puffy, and crisp-edged—the essential British accompaniment to Sunday roast beef.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "eggs",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "whole milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "beef drippings or vegetable oil",
+          "amount": 0.25,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "Whisk flour and salt in a bowl. Make a well in center.",
+        "Beat eggs and milk together. Pour into well and whisk until smooth.",
+        "Let batter rest at room temperature for at least 30 minutes (or refrigerate up to overnight).",
+        "Preheat oven to 450°F (230°C).",
+        "Divide drippings among 12 muffin cups (about 1 teaspoon each). Place pan in oven until fat is smoking hot, about 5 minutes.",
+        "Working quickly, pour batter into hot cups, filling each about half full.",
+        "Bake 20-25 minutes until puffed and deeply golden. Do not open oven door during first 15 minutes.",
+        "Serve immediately—they deflate as they cool."
+      ],
+      "prepTime": 10,
+      "cookTime": 25,
+      "servings": 12,
+      "source": "British-American Sunday dinner tradition",
+      "story": "Yorkshire pudding came to America with British immigrants and became synonymous with Sunday roast beef. The batter puffs dramatically in hot fat, creating crispy edges and soft, eggy centers perfect for soaking up gravy.",
+      "unlockDay": 13,
+      "sortOrder": 13,
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "British",
+        "Sunday dinner",
+        "roast"
+      ]
+    },
+    {
+      "id": "sunday-suppers-014",
+      "title": "Honey-Glazed Carrots",
+      "description": "Tender carrots glistening with butter, honey, and fresh herbs—the bright side dish every table needs.",
+      "ingredients": [
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "peeled and cut into 2-inch pieces"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "honey",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "chicken broth",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "chopped"
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped",
+          "group": "For garnish"
+        }
+      ],
+      "instructions": [
+        "Place carrots in a large skillet in a single layer.",
+        "Add butter, honey, broth, thyme, salt, and pepper.",
+        "Bring to a boil over medium-high heat. Cover and reduce heat to medium.",
+        "Cook until carrots are nearly tender, about 12-15 minutes.",
+        "Uncover and increase heat to medium-high.",
+        "Cook, stirring occasionally, until liquid reduces to a glaze and carrots are tender, about 8-10 minutes.",
+        "Adjust seasoning. Garnish with parsley and serve."
+      ],
+      "prepTime": 15,
+      "cookTime": 25,
+      "servings": 8,
+      "source": "American home cooking tradition",
+      "story": "Glazed carrots have adorned Sunday tables for generations. The combination of butter and honey creates a glaze that caramelizes slightly, bringing out the natural sweetness of the carrots.",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "vegetarian",
+        "quick",
+        "holiday"
       ]
     }
   ]
