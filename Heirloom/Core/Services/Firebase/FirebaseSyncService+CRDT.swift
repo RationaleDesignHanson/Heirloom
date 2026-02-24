@@ -666,8 +666,6 @@ extension FirebaseSyncService {
             }
         }
 
-        let pass3Count = linkedCount - pass1Count - pass2Count
-
         if linkedCount > 0 {
             try? context.save()
             Log.info("Re-linked recipes to collections", category: .sync, metadata: ["linkedCount": linkedCount])
