@@ -8,6 +8,14 @@ import FirebaseCrashlytics
 struct DeveloperSettingsView: View {
     var body: some View {
         List {
+            // AI Features (Intelligence)
+            NavigationLink {
+                AISettingsView()
+            } label: {
+                Label("AI Features", systemImage: "brain")
+                    .foregroundStyle(HeirloomColors.primaryText)
+            }
+
             // Subscription Testing
             NavigationLink {
                 SubscriptionTestingView()

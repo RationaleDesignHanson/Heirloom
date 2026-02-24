@@ -28,7 +28,6 @@ struct SettingsView: View {
     @State private var toastManager = ServiceContainer.shared.resolve(ToastManager.self)
     @State private var analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
     @State private var backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-    @State private var aiConfig = ServiceContainer.shared.resolve(AIConfiguration.self)
     @State private var firebaseSyncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
     @State private var subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
     @State private var storeManager = ServiceContainer.shared.resolve(StoreManager.self)
@@ -149,31 +148,6 @@ struct SettingsView: View {
                     }
                 }
             }
-        }
-    }
-
-    // MARK: - AI Section
-
-    private var aiSection: some View {
-        Section {
-            NavigationLink {
-                AISettingsView()
-            } label: {
-                HStack {
-                    Image(systemName: "brain")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("AI Features")
-                        Text(aiConfig.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                }
-            }
-        } header: {
-            Text("Intelligence")
-        } footer: {
-            Text("Configure AI-powered features like smart ingredient parsing and recipe enhancement.")
         }
     }
 
@@ -375,22 +349,6 @@ struct SettingsView: View {
 
     private var developerSection: some View {
         Section {
-            // AI Features (moved from main settings for power users)
-            NavigationLink {
-                AISettingsView()
-            } label: {
-                HStack {
-                    Image(systemName: "brain")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("AI Features")
-                        Text(aiConfig.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                }
-            }
-
             NavigationLink {
                 DeveloperSettingsView()
             } label: {
