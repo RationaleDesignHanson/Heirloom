@@ -1080,27 +1080,48 @@ struct RecipeEditorView: View {
                 if !uncachedIndices.isEmpty {
                     Log.info("Parsing \(uncachedIndices.count) uncached ingredients in parallel", category: .ai)
 
+                    // Define Sendable tuple type for TaskGroup results
+                    typealias ParsedTuple = (quantity: Double?, quantityMax: Double?, unit: String?, name: String, preparation: String?)
+
                     // Parse all uncached ingredients in parallel using TaskGroup
-                    await withTaskGroup(of: (Int, Ingredient?).self) { group in
+                    // Use parseToTuple to avoid passing non-Sendable Ingredient across task boundaries
+                    var parsedTuples: [Int: (text: String, tuple: ParsedTuple)] = [:]
+
+                    await withTaskGroup(of: (Int, String, ParsedTuple?).self) { group in
                         for index in uncachedIndices {
                             let text = filteredIngredients[index]
                             group.addTask {
                                 do {
-                                    let parsed = try await self.aiIngredientParser.parse(text)
-                                    return (index, parsed)
+                                    let tuple = try await self.aiIngredientParser.parseToTuple(text)
+                                    return (index, text, tuple)
                                 } catch {
                                     Log.warning("Parallel AI parse failed for index \(index)", category: .ai)
-                                    return (index, nil)
+                                    return (index, text, nil)
                                 }
                             }
                         }
 
-                        // Collect results into parsedIngredients cache
-                        for await (index, parsed) in group {
-                            if let parsed = parsed {
-                                parsedIngredients[index] = parsed
+                        // Collect tuple results
+                        for await (index, text, tuple) in group {
+                            if let tuple = tuple {
+                                parsedTuples[index] = (text, tuple)
                             }
                         }
+                    }
+
+                    // Create Ingredient objects from tuples (on main actor, safe for SwiftData)
+                    for (index, data) in parsedTuples {
+                        let ingredient = Ingredient(
+                            originalText: data.text,
+                            name: data.tuple.name,
+                            quantity: data.tuple.quantity,
+                            unit: data.tuple.unit,
+                            category: .other,
+                            orderIndex: index
+                        )
+                        ingredient.quantityMax = data.tuple.quantityMax
+                        ingredient.preparation = data.tuple.preparation
+                        parsedIngredients[index] = ingredient
                     }
                 }
 

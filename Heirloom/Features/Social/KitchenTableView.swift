@@ -277,6 +277,7 @@ struct KitchenTableView: View {
                     }
                 }
             }
+            .readableWidth()
         }
     }
 

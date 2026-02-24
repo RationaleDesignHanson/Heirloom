@@ -80,6 +80,7 @@ struct SettingsView: View {
                     developerAccessSection
                 }
             }
+            .readableWidth()
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .task {

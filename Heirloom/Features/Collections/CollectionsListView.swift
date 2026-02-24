@@ -342,6 +342,7 @@ struct CollectionsListView: View {
                                 .padding(.vertical, HeirloomSpacing.lg)
                             }
                         }
+                        .readableWidth()
                     }
                     .refreshable {
                         await performPullToRefresh()

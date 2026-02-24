@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Heirloom typography system
 /// All fonts support Dynamic Type and scale with accessibility settings
@@ -206,5 +207,19 @@ extension View {
     /// - Returns: View with applied shadow
     func heirloomShadow(_ shadow: (color: Color, radius: CGFloat, x: CGFloat, y: CGFloat)) -> some View {
         self.shadow(color: shadow.color, radius: shadow.radius, x: shadow.x, y: shadow.y)
+    }
+}
+
+// MARK: - iPad Readable Width
+extension View {
+    /// Constrains content to a comfortable reading width on iPad
+    /// On iPhone, content remains full width
+    func readableWidth() -> some View {
+        frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 700 : .infinity)
+    }
+
+    /// Constrains content with custom max width on iPad
+    func readableWidth(_ maxWidth: CGFloat) -> some View {
+        frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? maxWidth : .infinity)
     }
 }

@@ -75,6 +75,7 @@ protocol AIRecipeExtractorProtocol {
 protocol AIIngredientParserProtocol {
     func parse(_ text: String) async throws -> Ingredient
     func parseBatch(_ texts: [String]) async throws -> [Ingredient]
+    func parseToTuple(_ text: String) async throws -> (quantity: Double?, quantityMax: Double?, unit: String?, name: String, preparation: String?)
 }
 
 protocol AIRecipeDetectorProtocol {
