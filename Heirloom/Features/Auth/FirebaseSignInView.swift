@@ -156,7 +156,7 @@ struct FirebaseSignInView: View {
                                 Rectangle()
                                     .fill(HeirloomColors.charcoal.opacity(0.2))
                                     .frame(height: 1)
-                                Text("or")
+                                Text("or use email")
                                     .font(HeirloomFonts.caption1)
                                     .foregroundColor(HeirloomColors.secondaryText)
                                     .padding(.horizontal, 8)
@@ -166,25 +166,51 @@ struct FirebaseSignInView: View {
                             }
                             .padding(.vertical, compact ? 2 : 4)
 
-                            // Sign in with Email button
-                            Button {
-                                showEmailSignIn = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "envelope.fill")
-                                        .font(HeirloomFonts.title2)
-                                    Text("Sign in with Email")
-                                        .font(HeirloomFonts.bodyBold)
+                            // Email Sign In / Create Account buttons (side by side)
+                            HStack(spacing: 12) {
+                                // Sign In button
+                                Button {
+                                    isCreatingAccount = false
+                                    showEmailSignIn = true
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "envelope.fill")
+                                            .font(.system(size: 16))
+                                        Text("Sign In")
+                                            .font(HeirloomFonts.bodyBold)
+                                    }
+                                    .foregroundColor(HeirloomColors.tomato)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: buttonHeight)
+                                    .background(HeirloomColors.tomato.opacity(0.1))
+                                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                                            .strokeBorder(HeirloomColors.tomato, lineWidth: 1.5)
+                                    )
                                 }
-                                .foregroundColor(HeirloomColors.tomato)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: buttonHeight)
-                                .background(HeirloomColors.tomato.opacity(0.1))
-                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                                        .strokeBorder(HeirloomColors.tomato, lineWidth: 1.5)
-                                )
+
+                                // Create Account button
+                                Button {
+                                    isCreatingAccount = true
+                                    showEmailSignIn = true
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "person.badge.plus")
+                                            .font(.system(size: 16))
+                                        Text("Create")
+                                            .font(HeirloomFonts.bodyBold)
+                                    }
+                                    .foregroundColor(HeirloomColors.familyGreen)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: buttonHeight)
+                                    .background(HeirloomColors.familyGreen.opacity(0.1))
+                                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                                            .strokeBorder(HeirloomColors.familyGreen, lineWidth: 1.5)
+                                    )
+                                }
                             }
                         }
                         .padding(.horizontal, 40)
