@@ -262,6 +262,46 @@ final class HeirloomDataExporter {
             }
         }
 
+        // Ensure Favorites collection exists and link isFavorite recipes to it
+        // (System collections are skipped during collection name linking above)
+        let favoritesDescriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate<RecipeCollection> { $0.name == "Favorites" && $0.isSystemCollection == true }
+        )
+        let favoritesCollection: RecipeCollection
+        if let existing = try? context.fetch(favoritesDescriptor).first {
+            favoritesCollection = existing
+        } else {
+            // Create Favorites collection if it doesn't exist
+            let newFavorites = RecipeCollection(name: "Favorites", iconName: "heart.fill", collectionType: .system)
+            context.insert(newFavorites)
+            favoritesCollection = newFavorites
+            Log.info("Created Favorites collection during import", category: .storage)
+        }
+
+        // Link all isFavorite recipes to Favorites collection
+        let favoriteRecipesDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.isFavorite == true }
+        )
+        if let favoriteRecipes = try? context.fetch(favoriteRecipesDescriptor) {
+            var linkedCount = 0
+            for recipe in favoriteRecipes {
+                // Check if already linked
+                let isLinked = recipe.collections?.contains(where: { $0.id == favoritesCollection.id }) ?? false
+                if !isLinked {
+                    if recipe.collections == nil {
+                        recipe.collections = []
+                    }
+                    recipe.collections?.append(favoritesCollection)
+                    linkedCount += 1
+                }
+            }
+            if linkedCount > 0 {
+                Log.info("Linked isFavorite recipes to Favorites collection", category: .storage, metadata: [
+                    "count": linkedCount
+                ])
+            }
+        }
+
         // Import user profile (if present and enabled)
         if options.restorePrivacySettings,
            let privacyData = exportWrapper.privacySettings {
