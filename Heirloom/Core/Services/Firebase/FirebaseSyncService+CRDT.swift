@@ -423,6 +423,23 @@ extension FirebaseSyncService {
 
         let isFirstSync = lastSyncDate == nil
 
+        // Create a SyncJob for progress tracking on first sync only
+        var syncJob: SyncJob?
+        if isFirstSync {
+            let job = SyncJob()
+            job.phase = .collections
+            context.insert(job)
+            try? context.save()
+            syncJob = job
+        }
+        // Mark SyncJob as failed if we exit early due to an error
+        defer {
+            if let syncJob, syncJob.status == .processing {
+                syncJob.status = .failed
+                try? context.save()
+            }
+        }
+
         // Step 1: Sync collections FIRST (fast - just metadata, shows UI immediately)
         // On first sync (fresh device), download BEFORE uploading to avoid overwriting
         // Firebase recipeIds with empty arrays from freshly-created local collections.
@@ -456,11 +473,25 @@ extension FirebaseSyncService {
         let remoteChanges = try await fetchRemoteChanges(since: lastSyncDate)
         Log.info("Processing remote changes", category: .crdt, metadata: ["count": remoteChanges.count])
 
+        // Update SyncJob with recipe count
+        if let syncJob {
+            syncJob.phase = .recipes
+            syncJob.totalRecipes = remoteChanges.count
+            syncJob.downloadedRecipes = 0
+            try? context.save()
+        }
+
         var conflictsDetected: [(crdt: RecipeCRDT, conflicts: [DetailedConflict])] = []
 
         for doc in remoteChanges {
             let recipeId = doc.documentID
             let result = try await downloadAndMergeRecipeWithCRDT(recipeId: recipeId, context: context)
+
+            // Update SyncJob progress
+            if let syncJob {
+                syncJob.downloadedRecipes += 1
+                try? context.save()
+            }
 
             if result.requiresUI {
                 // Conflict needs user resolution
@@ -493,6 +524,10 @@ extension FirebaseSyncService {
 
         // Step 5: Re-link recipes to collections (recipes downloaded after collections)
         // Collections were downloaded first for fast UI, but recipes didn't exist yet
+        if let syncJob {
+            syncJob.phase = .relinking
+            try? context.save()
+        }
         Log.info("Re-linking recipes to collections", category: .sync)
         try await relinkRecipesToCollections(context: context)
 
@@ -510,6 +545,12 @@ extension FirebaseSyncService {
                 try await uploadCollection(collection)
             }
             Log.info("First sync: collections uploaded with correct recipeIds", category: .sync)
+        }
+
+        // Mark SyncJob as completed
+        if let syncJob {
+            syncJob.status = .completed
+            try? context.save()
         }
 
         lastSyncDate = Date()

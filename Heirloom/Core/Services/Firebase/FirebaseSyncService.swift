@@ -1472,8 +1472,20 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 let firebaseName = data["name"] as? String ?? ""
                 let firebaseType = data["collectionType"] as? String ?? ""
                 let lookupKey = "\(firebaseName)|\(firebaseType)"
+                let firebaseIsSystem = data["isSystemCollection"] as? Bool ?? false
 
-                if let localMatch = localCollectionsByNameAndType[lookupKey],
+                // System collections (or Favorites): match by name only since collectionType
+                // may differ or be missing between Firebase and local (e.g., "system" vs "userCreated").
+                let localMatch: RecipeCollection?
+                if firebaseIsSystem || firebaseName == "Favorites" {
+                    localMatch = allLocalCollections.first {
+                        $0.name == firebaseName && ($0.isSystemCollection || firebaseName == "Favorites")
+                    }
+                } else {
+                    localMatch = localCollectionsByNameAndType[lookupKey]
+                }
+
+                if let localMatch,
                    localMatch.id != collectionId {
                     // Merge into existing local collection (keep local UUID, keep presets)
                     Log.info("Merging Firebase collection into existing local by name", category: .sync, metadata: [
@@ -1575,9 +1587,11 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             collections.append(collection)
         }
 
-        // Deduplicate collections with the same name
+        // Deduplicate collections with the same name across ALL local collections
+        // (not just the ones downloaded this round — catches pre-existing local duplicates too)
         // Only deduplicate locally - do NOT delete from Firestore during download
-        let collectionsByName = Dictionary(grouping: collections, by: { $0.name })
+        let allLocalAfterDownload = (try? context.fetch(FetchDescriptor<RecipeCollection>())) ?? collections
+        let collectionsByName = Dictionary(grouping: allLocalAfterDownload, by: { $0.name })
         for (name, group) in collectionsByName {
             guard group.count > 1 else { continue }
 

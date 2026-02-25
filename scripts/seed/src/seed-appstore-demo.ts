@@ -66,7 +66,7 @@ interface DemoRecipe {
   prepTime: string;
   cookTime: string;
   isFavorite: boolean;
-  collectionId: string;
+  collectionIds: string[];
   firebaseImageURL?: string;
   ingredients: Array<{
     originalText: string;
@@ -98,8 +98,8 @@ const DEMO_RECIPES: DemoRecipe[] = [
     servings: '4',
     prepTime: '10 mins',
     cookTime: '20 mins',
-    isFavorite: true,
-    collectionId: COLLECTION_IDS.weeknight,
+    isFavorite: false,
+    collectionIds: [COLLECTION_IDS.weeknight],
     ingredients: [
       { originalText: '4 boneless chicken breasts', name: 'chicken breasts', quantity: 4, unit: null, orderIndex: 0 },
       { originalText: '3 tablespoons olive oil', name: 'olive oil', quantity: 3, unit: 'tablespoon', orderIndex: 1 },
@@ -130,7 +130,7 @@ const DEMO_RECIPES: DemoRecipe[] = [
     prepTime: '15 mins',
     cookTime: '20 mins',
     isFavorite: false,
-    collectionId: COLLECTION_IDS.weeknight,
+    collectionIds: [COLLECTION_IDS.weeknight],
     ingredients: [
       { originalText: '1 lb penne pasta', name: 'penne pasta', quantity: 1, unit: 'lb', orderIndex: 0 },
       { originalText: '2 cups broccoli florets', name: 'broccoli florets', quantity: 2, unit: 'cup', orderIndex: 1 },
@@ -161,7 +161,7 @@ const DEMO_RECIPES: DemoRecipe[] = [
     prepTime: '10 mins',
     cookTime: '15 mins',
     isFavorite: true,
-    collectionId: COLLECTION_IDS.favorites,
+    collectionIds: [COLLECTION_IDS.weeknight, COLLECTION_IDS.favorites],
     ingredients: [
       { originalText: '1 lb ground beef', name: 'ground beef', quantity: 1, unit: 'lb', orderIndex: 0 },
       { originalText: '1 packet taco seasoning', name: 'taco seasoning', quantity: 1, unit: 'packet', orderIndex: 1 },
@@ -191,7 +191,7 @@ const DEMO_RECIPES: DemoRecipe[] = [
     prepTime: '15 mins',
     cookTime: '10 mins',
     isFavorite: false,
-    collectionId: COLLECTION_IDS.weeknight,
+    collectionIds: [COLLECTION_IDS.weeknight],
     ingredients: [
       { originalText: '1 lb chicken breast, sliced thin', name: 'chicken breast', quantity: 1, unit: 'lb', orderIndex: 0 },
       { originalText: '2 cups mixed vegetables', name: 'mixed vegetables', quantity: 2, unit: 'cup', orderIndex: 1 },
@@ -220,7 +220,7 @@ const DEMO_RECIPES: DemoRecipe[] = [
     prepTime: '2 mins',
     cookTime: '8 mins',
     isFavorite: true,
-    collectionId: COLLECTION_IDS.favorites,
+    collectionIds: [COLLECTION_IDS.weeknight, COLLECTION_IDS.favorites],
     ingredients: [
       { originalText: '2 slices bread', name: 'bread', quantity: 2, unit: 'slice', orderIndex: 0 },
       { originalText: '2 tablespoons butter', name: 'butter', quantity: 2, unit: 'tablespoon', orderIndex: 1 },
@@ -246,8 +246,8 @@ const DEMO_RECIPES: DemoRecipe[] = [
     servings: '4',
     prepTime: '10 mins',
     cookTime: '25 mins',
-    isFavorite: false,
-    collectionId: COLLECTION_IDS.favorites,
+    isFavorite: true,
+    collectionIds: [COLLECTION_IDS.weeknight, COLLECTION_IDS.favorites],
     ingredients: [
       { originalText: '2 tablespoons butter', name: 'butter', quantity: 2, unit: 'tablespoon', orderIndex: 0 },
       { originalText: '1 onion, diced', name: 'onion', quantity: 1, unit: null, orderIndex: 1 },
@@ -275,8 +275,8 @@ const DEMO_RECIPES: DemoRecipe[] = [
     servings: '12',
     prepTime: '20 mins',
     cookTime: '35 mins',
-    isFavorite: true,
-    collectionId: COLLECTION_IDS.desserts,
+    isFavorite: false,
+    collectionIds: [COLLECTION_IDS.desserts],
     ingredients: [
       { originalText: '2 cups all-purpose flour', name: 'all-purpose flour', quantity: 2, unit: 'cup', orderIndex: 0 },
       { originalText: '2 cups sugar', name: 'sugar', quantity: 2, unit: 'cup', orderIndex: 1 },
@@ -306,8 +306,8 @@ const DEMO_RECIPES: DemoRecipe[] = [
     servings: '8',
     prepTime: '30 mins',
     cookTime: '55 mins',
-    isFavorite: true,
-    collectionId: COLLECTION_IDS.desserts,
+    isFavorite: false,
+    collectionIds: [COLLECTION_IDS.desserts],
     ingredients: [
       { originalText: '2 pie crusts', name: 'pie crusts', quantity: 2, unit: null, orderIndex: 0 },
       { originalText: '6 cups sliced apples', name: 'sliced apples', quantity: 6, unit: 'cup', orderIndex: 1 },
@@ -337,7 +337,7 @@ const DEMO_RECIPES: DemoRecipe[] = [
     prepTime: '25 mins',
     cookTime: '60 mins',
     isFavorite: false,
-    collectionId: COLLECTION_IDS.desserts,
+    collectionIds: [COLLECTION_IDS.desserts],
     ingredients: [
       { originalText: '2 cups graham cracker crumbs', name: 'graham cracker crumbs', quantity: 2, unit: 'cup', orderIndex: 0 },
       { originalText: '3 tablespoons sugar', name: 'sugar', quantity: 3, unit: 'tablespoon', orderIndex: 1 },
@@ -449,17 +449,18 @@ async function createCollections(userId: string): Promise<void> {
   for (const collection of COLLECTIONS) {
     // Get recipe IDs for this collection
     const recipeIds = DEMO_RECIPES
-      .filter(r => r.collectionId === collection.id)
+      .filter(r => r.collectionIds.includes(collection.id))
       .map(r => r.id);
 
     await db.collection('users').doc(userId).collection('collections').doc(collection.id).set({
       id: collection.id,
       name: collection.name,
-      icon: collection.icon,
+      iconName: collection.icon,
       color: collection.color,
       isSystemCollection: collection.isSystemCollection,
       isAllRecipes: false,
       isDemoSeed: false,  // Apple demo account - NOT demo seed (Apple needs to see collections)
+      collectionType: collection.isSystemCollection ? 'system' : 'userCreated',
       recipeIds: recipeIds,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       modifiedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -493,7 +494,7 @@ async function createRecipes(userId: string): Promise<void> {
       firebaseImageURL: recipe.firebaseImageURL || null,
       timesCooked: 0,
       generationCount: 0,
-      collectionIds: [recipe.collectionId],
+      collectionIds: recipe.collectionIds,
       createdAt: admin.firestore.Timestamp.fromDate(now),
       modifiedAt: admin.firestore.Timestamp.fromDate(now),
       lastSyncedAt: admin.firestore.Timestamp.fromDate(now),

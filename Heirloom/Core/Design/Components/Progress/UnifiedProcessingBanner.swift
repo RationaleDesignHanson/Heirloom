@@ -24,6 +24,9 @@ struct UnifiedProcessingBanner: View {
     @Query(sort: \RecipeGenerationJob.createdAt, order: .reverse)
     private var generationJobs: [RecipeGenerationJob]
 
+    @Query(sort: \SyncJob.createdAt, order: .reverse)
+    private var syncJobs: [SyncJob]
+
     // State for showing queue view
     @State private var showQueueView = false
 
@@ -239,6 +242,9 @@ struct UnifiedProcessingBanner: View {
         for job in generationJobs where job.shouldShowInBanner {
             allJobs.append(AnyProcessingJob(job, type: .generation))
         }
+        for job in syncJobs where job.shouldShowInBanner {
+            allJobs.append(AnyProcessingJob(job, type: .sync))
+        }
 
         // Sort by priority and return the highest
         return allJobs.sorted { $0.bannerStatus.priority > $1.bannerStatus.priority }.first
@@ -249,7 +255,8 @@ struct UnifiedProcessingBanner: View {
         let videoCount = videoJobs.filter { $0.shouldShowInBanner }.count
         let importCount = importJobs.filter { $0.shouldShowInBanner }.count
         let genCount = generationJobs.filter { $0.shouldShowInBanner }.count
-        return videoCount + importCount + genCount
+        let syncCount = syncJobs.filter { $0.shouldShowInBanner }.count
+        return videoCount + importCount + genCount + syncCount
     }
 
     /// Count of queued (pending) jobs
@@ -283,6 +290,10 @@ struct UnifiedProcessingBanner: View {
             case .complete: progress = 1.0
             }
             totalProgress += progress
+            count += 1
+        }
+        for job in syncJobs where job.status == .processing {
+            totalProgress += job.overallProgress
             count += 1
         }
 
@@ -344,6 +355,10 @@ struct UnifiedProcessingBanner: View {
             if let genJob = generationJobs.first(where: { $0.id == job.id }) {
                 genJob.status = .dismissed
             }
+        case .sync:
+            if let syncJob = syncJobs.first(where: { $0.id == job.id }) {
+                modelContext.delete(syncJob)
+            }
         }
     }
 }
@@ -355,5 +370,5 @@ struct UnifiedProcessingBanner: View {
         Spacer()
         UnifiedProcessingBanner()
     }
-    .modelContainer(for: [VideoProcessingJob.self, ImportJob.self, RecipeGenerationJob.self], inMemory: true)
+    .modelContainer(for: [VideoProcessingJob.self, ImportJob.self, RecipeGenerationJob.self, SyncJob.self], inMemory: true)
 }

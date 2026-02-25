@@ -79,6 +79,9 @@ struct UnifiedProcessingQueueView: View {
     @Query(sort: \RecipeGenerationJob.createdAt, order: .reverse)
     private var generationJobs: [RecipeGenerationJob]
 
+    @Query(sort: \SyncJob.createdAt, order: .reverse)
+    private var syncJobs: [SyncJob]
+
     // Callbacks for job interactions
     var onVideoJobTap: ((VideoProcessingJob) -> Void)?
     var onImportJobTap: ((ImportJob) -> Void)?
@@ -260,6 +263,11 @@ struct UnifiedProcessingQueueView: View {
             jobs.append(AnyProcessingJob(job, type: .generation))
         }
 
+        // Add sync jobs
+        for job in syncJobs where job.shouldShowInBanner {
+            jobs.append(AnyProcessingJob(job, type: .sync))
+        }
+
         return jobs
     }
 
@@ -280,6 +288,10 @@ struct UnifiedProcessingQueueView: View {
             // Generation jobs
             for job in generationJobs where job.status == .processing {
                 jobs.append(AnyProcessingJob(job, type: .generation))
+            }
+            // Sync jobs
+            for job in syncJobs where job.status == .processing {
+                jobs.append(AnyProcessingJob(job, type: .sync))
             }
 
         case .queue:
@@ -377,6 +389,8 @@ struct UnifiedProcessingQueueView: View {
             if let genJob = generationJobs.first(where: { $0.id == job.id }) {
                 onGenerationJobTap?(genJob)
             }
+        case .sync:
+            break // Sync jobs don't have a detail view
         }
     }
 
@@ -401,6 +415,8 @@ struct UnifiedProcessingQueueView: View {
         case .generation:
             guard let genJob = generationJobs.first(where: { $0.id == job.id }) else { return false }
             return genJob.status == .failed
+        case .sync:
+            return false
         }
     }
 
@@ -444,6 +460,8 @@ struct UnifiedProcessingQueueView: View {
             Log.info("Retried generation job from queue", category: .general, metadata: [
                 "job_id": genJob.id.uuidString
             ])
+        case .sync:
+            break // Sync jobs cannot be resumed
         }
     }
 
@@ -484,6 +502,10 @@ struct UnifiedProcessingQueueView: View {
                     // Mark as dismissed to remove from banner
                     genJob.status = .dismissed
                 }
+            case .sync:
+                if let syncJob = syncJobs.first(where: { $0.id == job.id }) {
+                    modelContext.delete(syncJob)
+                }
             }
         }
     }
@@ -493,5 +515,5 @@ struct UnifiedProcessingQueueView: View {
 
 #Preview {
     UnifiedProcessingQueueView()
-        .modelContainer(for: [VideoProcessingJob.self, ImportJob.self, RecipeGenerationJob.self], inMemory: true)
+        .modelContainer(for: [VideoProcessingJob.self, ImportJob.self, RecipeGenerationJob.self, SyncJob.self], inMemory: true)
 }

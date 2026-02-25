@@ -104,6 +104,7 @@ enum ProcessingJobType {
     case video
     case importJob
     case generation
+    case sync
 
     var typeBadgeIcon: String {
         switch self {
@@ -113,6 +114,8 @@ enum ProcessingJobType {
             return "doc.fill"
         case .generation:
             return "sparkles"
+        case .sync:
+            return "icloud.and.arrow.down"
         }
     }
 
@@ -124,6 +127,8 @@ enum ProcessingJobType {
             return "Import"
         case .generation:
             return "Generate"
+        case .sync:
+            return "Sync"
         }
     }
 }

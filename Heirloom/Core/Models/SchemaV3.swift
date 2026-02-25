@@ -44,7 +44,8 @@ enum SchemaV3: VersionedSchema {
             RecipeGenerationJob.self,
             UserCredits.self,
             QueuedPDFImport.self,
-            KnownSource.self
+            KnownSource.self,
+            SyncJob.self
         ]
     }
 

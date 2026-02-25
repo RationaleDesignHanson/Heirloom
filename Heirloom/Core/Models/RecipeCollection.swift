@@ -543,6 +543,61 @@ final class RecipeCollection {
         }
     }
 
+    // MARK: - Deduplication
+
+    /// Idempotent dedup pass: finds collections sharing the same name,
+    /// keeps the best one (most recipes → oldest → prefer system), merges recipes, deletes duplicates.
+    static func deduplicateCollections(context: ModelContext) {
+        guard let allCollections = try? context.fetch(FetchDescriptor<RecipeCollection>()) else { return }
+
+        let grouped = Dictionary(grouping: allCollections, by: { $0.name })
+        var didDedup = false
+
+        for (name, group) in grouped {
+            guard group.count > 1 else { continue }
+
+            // Sort: most recipes first, then oldest, then prefer system collections
+            let sorted = group.sorted { a, b in
+                let aCount = a.recipes?.count ?? 0
+                let bCount = b.recipes?.count ?? 0
+                if aCount != bCount { return aCount > bCount }
+                if a.createdDate != b.createdDate { return a.createdDate < b.createdDate }
+                let aIsSystem = a.isSystemCollection || a.collectionType != "userCreated"
+                let bIsSystem = b.isSystemCollection || b.collectionType != "userCreated"
+                return aIsSystem && !bIsSystem
+            }
+
+            let primary = sorted[0]
+            let duplicates = Array(sorted.dropFirst())
+
+            for duplicate in duplicates {
+                // Merge recipes from duplicate into primary
+                let recipesToMove = Array(duplicate.recipes ?? [])
+                for recipe in recipesToMove {
+                    recipe.collections?.removeAll { $0.id == duplicate.id }
+                    if recipe.collections == nil { recipe.collections = [] }
+                    if !recipe.collections!.contains(where: { $0.id == primary.id }) {
+                        recipe.collections!.append(primary)
+                    }
+                }
+                // Inherit system flag if any duplicate has it
+                if duplicate.isSystemCollection { primary.isSystemCollection = true }
+                context.delete(duplicate)
+            }
+
+            Log.info("Deduplicated collections on launch", category: .collections, metadata: [
+                "name": name,
+                "kept": primary.id.uuidString,
+                "deleted": duplicates.count
+            ])
+            didDedup = true
+        }
+
+        if didDedup {
+            try? context.save()
+        }
+    }
+
 }
 
 // MARK: - Deletion Tombstone

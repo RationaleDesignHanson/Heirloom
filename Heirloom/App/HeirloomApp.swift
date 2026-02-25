@@ -538,6 +538,8 @@ struct HeirloomApp: App {
 
             // Create system collections on first launch (synchronous - must complete before UI renders)
             RecipeCollection.createSystemCollections(context: container.mainContext)
+            // Deduplicate any collections sharing the same name (idempotent)
+            RecipeCollection.deduplicateCollections(context: container.mainContext)
             // Explicitly save to ensure collections are persisted before UI renders
             do {
                 try container.mainContext.save()
@@ -1347,7 +1349,7 @@ struct RootView: View {
                                 predicate: #Predicate<RecipeCollection> { $0.name == "Favorites" }
                             )
                             if (try? context.fetch(favoritesDescriptor).first) == nil {
-                                let favorites = RecipeCollection(name: "Favorites", iconName: "heart.fill", collectionType: .system)
+                                let favorites = RecipeCollection(name: "Favorites", iconName: "heart.fill", color: "#FF6B6B", isSystemCollection: true, collectionType: .system)
                                 context.insert(favorites)
                                 try? context.save()
                                 DeviceLogger.shared.log("🍎 [AppStoreReview] Created Favorites collection", level: .info)
@@ -2136,21 +2138,22 @@ struct ContentView: View {
                 if isReturningUser {
                     Log.info("RETURNING USER DETECTED - skipping onboarding", category: .auth)
                     hasCompletedOnboarding = true
-
-                    // Sync theme data for returning users
-                    await syncThemeDataOnLogin()
+                    isCheckingReturningUser = false  // dismiss overlay immediately
 
                     // Start services for existing users
                     DemoSocialBehaviorService.shared.start()
                     DemoSocialBehaviorService.shared.onOnboardingComplete()
+
+                    // Theme sync in background — non-blocking
+                    Task { @MainActor in
+                        await syncThemeDataOnLogin()
+                    }
                 } else {
                     // User is authenticated but has no data - show onboarding
                     Log.info("Authenticated user with no Firebase data - showing onboarding", category: .auth)
                     needsHeritageSeeding = true
+                    isCheckingReturningUser = false
                 }
-
-                // Now we know the status - stop showing loading
-                isCheckingReturningUser = false
             }
         }
         .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in
@@ -2175,14 +2178,17 @@ struct ContentView: View {
                         Log.info("RETURNING USER DETECTED (via onChange) - skipping onboarding", category: .auth)
                         hasCompletedOnboarding = true
                         needsHeritageSeeding = false
+                        isDownloadingHeritageAfterSignIn = false  // dismiss overlay immediately
+                        isCheckingReturningUser = false
 
-                        // Sync theme data for returning users
-                        await syncThemeDataOnLogin()
-
-                        isDownloadingHeritageAfterSignIn = false
                         // Start services for existing users
                         DemoSocialBehaviorService.shared.start()
                         DemoSocialBehaviorService.shared.onOnboardingComplete()
+
+                        // Theme sync in background — non-blocking
+                        Task { @MainActor in
+                            await syncThemeDataOnLogin()
+                        }
                     } else {
                         // New user - proceed with normal onboarding flow
                         Log.info("New user detected - seeding heritage and showing onboarding", category: .auth)
