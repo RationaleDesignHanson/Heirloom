@@ -47,23 +47,12 @@ struct DeletionProgressView: View {
 
             Spacer()
 
-            // Complete button (only shown when done)
+            // Auto-close message (shown briefly before app terminates)
             if progress.isComplete {
-                Button {
-                    // Terminate the app after account deletion
-                    // This prevents returning to onboarding with stale state
-                    exit(0)
-                } label: {
-                    Text("Close App")
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(HeirloomColors.tomato)
-                        .cornerRadius(12)
-                }
-                .padding(.horizontal, HeirloomSpacing.lg)
-                .padding(.bottom, HeirloomSpacing.xl)
+                Text("Closing app...")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .padding(.bottom, HeirloomSpacing.xl)
             }
         }
         .background(HeirloomColors.appBackground)
@@ -71,6 +60,10 @@ struct DeletionProgressView: View {
             if isComplete {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
                     showCheckmark = true
+                }
+                // Auto-terminate app after brief delay to show completion
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    exit(0)
                 }
             }
         }
