@@ -50,9 +50,11 @@ struct DeletionProgressView: View {
             // Complete button (only shown when done)
             if progress.isComplete {
                 Button {
-                    onComplete()
+                    // Terminate the app after account deletion
+                    // This prevents returning to onboarding with stale state
+                    exit(0)
                 } label: {
-                    Text("Done")
+                    Text("Close App")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)

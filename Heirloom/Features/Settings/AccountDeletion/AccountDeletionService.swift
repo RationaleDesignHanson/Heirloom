@@ -150,8 +150,9 @@ final class AccountDeletionService {
             progress.currentStep = .cloudImages
             try await deleteStorageImages(userId: userId)
 
-            // Step 6: Clear local user defaults
+            // Step 6: Clear local user defaults and in-memory caches
             clearUserDefaults()
+            clearServiceCaches()
 
             // Step 7: Revoke Apple Sign-In token (if applicable)
             // CRITICAL: Apple requires token revocation for Sign in with Apple users
@@ -503,6 +504,24 @@ final class AccountDeletionService {
         UserDefaults.standard.synchronize()
 
         logger.log("UserDefaults cleared", category: .storage, level: .info, metadata: nil)
+    }
+
+    /// Clear in-memory caches from profile services
+    /// Prevents stale user data from appearing after deletion
+    private func clearServiceCaches() {
+        logger.log("Clearing service caches...", category: .storage, level: .info, metadata: nil)
+
+        // Clear FirebaseUserProfileService cache
+        if let profileService = ServiceContainer.shared.resolveOptional(FirebaseUserProfileService.self) {
+            profileService.clearCache()
+        }
+
+        // Clear FirebaseProfileService cache
+        if let socialProfileService = ServiceContainer.shared.resolveOptional(FirebaseProfileService.self) {
+            socialProfileService.clearCache()
+        }
+
+        logger.log("Service caches cleared", category: .storage, level: .info, metadata: nil)
     }
 
     // MARK: - Apple Token Revocation
