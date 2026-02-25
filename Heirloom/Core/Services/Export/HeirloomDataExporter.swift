@@ -10,6 +10,7 @@ import Foundation
 import SwiftData
 import FirebaseFirestore
 import UIKit
+import ZIPFoundation
 
 // MARK: - Export Options
 
@@ -18,7 +19,7 @@ struct HeirloomExportOptions {
     var includeConnections: Bool = true
     var includeKitchenTables: Bool = true
     var includePrivacySettings: Bool = true
-    var includeRecipeImages: Bool = false // Not yet supported
+    var includeRecipeImages: Bool = true // Bundle images in ZIP export
 
     static var fullExport: HeirloomExportOptions {
         return HeirloomExportOptions()
@@ -83,18 +84,19 @@ final class HeirloomDataExporter {
 
     // MARK: - Export
 
-    /// Export all Heirloom data to v2 format with social data
+    /// Export all Heirloom data to v2.1 format with bundled images
     /// - Parameters:
     ///   - context: SwiftData model context
     ///   - options: Export options
-    /// - Returns: URL to the temporary JSON file
+    /// - Returns: URL to the .heirloombackup ZIP file (or JSON if no images)
     func exportAllData(
         context: ModelContext,
         options: HeirloomExportOptions = .fullExport
     ) async throws -> URL {
-        Log.info("Starting Heirloom v2 export", category: .storage, metadata: [
+        Log.info("Starting Heirloom v2.1 export with image bundling", category: .storage, metadata: [
             "includeProfiles": options.includeProfiles,
-            "includeConnections": options.includeConnections
+            "includeConnections": options.includeConnections,
+            "includeRecipeImages": options.includeRecipeImages
         ])
 
         // Fetch user recipes only (exclude theme recipes - they come from JSON files)
@@ -118,8 +120,15 @@ final class HeirloomDataExporter {
             Log.info("No user recipes to export (only theme recipes exist)", category: .storage)
         }
 
-        // Convert recipes to v2 format
-        let recipeData = recipes.map { convertToRecipeExportDataV2($0) }
+        // Load images and encode as base64
+        var imageBase64Mapping: [UUID: String] = [:]
+
+        if options.includeRecipeImages {
+            imageBase64Mapping = await loadImagesAsBase64(for: recipes)
+        }
+
+        // Convert recipes to v2 format with embedded base64 images
+        let recipeData = recipes.map { convertToRecipeExportDataV2($0, imageBase64: imageBase64Mapping[$0.id]) }
 
         // Fetch user profile (if enabled)
         var userProfileData: UserProfileExportData?
@@ -178,28 +187,230 @@ final class HeirloomDataExporter {
         encoder.dateEncodingStrategy = .iso8601
         let jsonData = try encoder.encode(exportWrapper)
 
-        // Save to temp directory
         let tempDir = FileManager.default.temporaryDirectory
-        let fileName = "heirloom-export-v2-\(Date().iso8601FilenameSafe).json"
-        let fileURL = tempDir.appendingPathComponent(fileName)
+        let timestamp = Date().iso8601FilenameSafe
 
+        // Export as JSON with embedded base64 images (v2.2 format)
+        // This avoids iOS file picker issues with ZIP files
+        let fileName = "heirloom-backup-\(timestamp).json"
+        let fileURL = tempDir.appendingPathComponent(fileName)
         try jsonData.write(to: fileURL)
 
-        Log.info("Heirloom v2 export completed", category: .storage, metadata: [
+        Log.info("Heirloom v2.2 export completed with embedded images", category: .storage, metadata: [
             "fileName": fileName,
             "recipeCount": recipes.count,
             "connectionCount": connectionsData?.count ?? 0,
-            "fileSize": jsonData.count
+            "imageCount": imageBase64Mapping.count,
+            "fileSizeMB": String(format: "%.2f", Double(jsonData.count) / 1_000_000)
         ])
 
         return fileURL
     }
 
+    // MARK: - Image Encoding
+
+    /// Load recipe images and encode as base64 strings
+    /// - Parameter recipes: Recipes to load images for
+    /// - Returns: Mapping of recipeId -> base64 encoded image string
+    private func loadImagesAsBase64(for recipes: [Recipe]) async -> [UUID: String] {
+        let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
+        var imageBase64Mapping: [UUID: String] = [:]
+
+        for recipe in recipes {
+            guard let imageFileName = recipe.imageFileName else { continue }
+
+            // Load image from local storage
+            guard let image = await imageStorage.loadImage(fileName: imageFileName) else {
+                Log.warning("Could not load image for base64 encoding", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "fileName": imageFileName
+                ])
+                continue
+            }
+
+            // Compress and encode to base64
+            guard let imageData = compressImageForExport(image) else {
+                Log.warning("Failed to compress image for export", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString
+                ])
+                continue
+            }
+
+            let base64String = imageData.base64EncodedString()
+            imageBase64Mapping[recipe.id] = base64String
+
+            Log.debug("Encoded image as base64", category: .storage, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "originalSizeKB": imageData.count / 1024,
+                "base64SizeKB": base64String.count / 1024
+            ])
+        }
+
+        Log.info("Image base64 encoding complete", category: .storage, metadata: [
+            "encodedCount": imageBase64Mapping.count,
+            "totalRecipes": recipes.count
+        ])
+
+        return imageBase64Mapping
+    }
+
+    // MARK: - Image Bundling (Legacy - ZIP export)
+
+    /// Bundle recipe images into a temporary directory for ZIP export
+    /// - Parameter recipes: Recipes to bundle images for
+    /// - Returns: Mapping of recipeId -> localImagePath, and the temp images directory
+    private func bundleImages(for recipes: [Recipe]) async throws -> ([UUID: String], URL?) {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory
+        let imagesDir = tempDir.appendingPathComponent("heirloom-export-images-\(UUID().uuidString)", isDirectory: true)
+
+        // Create images directory
+        try fileManager.createDirectory(at: imagesDir, withIntermediateDirectories: true)
+
+        let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
+        var imagePathMapping: [UUID: String] = [:]
+
+        for recipe in recipes {
+            guard let imageFileName = recipe.imageFileName else { continue }
+
+            // Load image from local storage
+            guard let image = await imageStorage.loadImage(fileName: imageFileName) else {
+                Log.warning("Could not load image for bundling", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "fileName": imageFileName
+                ])
+                continue
+            }
+
+            // Create unique filename for ZIP: images/{uuid}.jpg
+            let zipFileName = "\(recipe.id.uuidString).jpg"
+            let localPath = "images/\(zipFileName)"
+            let destURL = imagesDir.appendingPathComponent(zipFileName)
+
+            // Compress to 80% quality JPEG, max 1MB
+            guard let imageData = compressImageForExport(image) else {
+                Log.warning("Failed to compress image for export", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString
+                ])
+                continue
+            }
+
+            do {
+                try imageData.write(to: destURL)
+                imagePathMapping[recipe.id] = localPath
+
+                Log.debug("Bundled image for export", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "localPath": localPath,
+                    "sizeKB": imageData.count / 1024
+                ])
+            } catch {
+                Log.warning("Failed to write image for bundling", category: .storage, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+
+        Log.info("Image bundling complete", category: .storage, metadata: [
+            "bundledCount": imagePathMapping.count,
+            "totalRecipes": recipes.count
+        ])
+
+        return (imagePathMapping, imagePathMapping.isEmpty ? nil : imagesDir)
+    }
+
+    /// Compress image for export (80% JPEG quality, max 1MB)
+    private func compressImageForExport(_ image: UIImage) -> Data? {
+        let maxBytes = 1_000_000 // 1MB
+        var workingImage = image
+
+        // Resize if too large
+        let maxDimension: CGFloat = 1200
+        let scale = min(maxDimension / image.size.width, maxDimension / image.size.height, 1.0)
+
+        if scale < 1.0 {
+            let newSize = CGSize(
+                width: image.size.width * scale,
+                height: image.size.height * scale
+            )
+            let renderer = UIGraphicsImageRenderer(size: newSize)
+            workingImage = renderer.image { _ in
+                image.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+        }
+
+        // Compress with iterative quality reduction
+        var compression: CGFloat = 0.80
+        var imageData = workingImage.jpegData(compressionQuality: compression)
+
+        while let data = imageData, data.count > maxBytes && compression > 0.1 {
+            compression -= 0.1
+            imageData = workingImage.jpegData(compressionQuality: compression)
+        }
+
+        return imageData
+    }
+
+    /// Create ZIP archive containing data.json and images/ folder
+    private func createZIPArchive(
+        jsonData: Data,
+        imagesDir: URL,
+        timestamp: String,
+        recipes: [Recipe],
+        connectionCount: Int,
+        imageCount: Int
+    ) async throws -> URL {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory
+
+        // Create a temporary directory for the archive contents
+        let archiveContentsDir = tempDir.appendingPathComponent("heirloom-archive-\(UUID().uuidString)", isDirectory: true)
+        try fileManager.createDirectory(at: archiveContentsDir, withIntermediateDirectories: true)
+
+        // Write data.json
+        let dataJsonURL = archiveContentsDir.appendingPathComponent("data.json")
+        try jsonData.write(to: dataJsonURL)
+
+        // Copy images folder
+        let archiveImagesDir = archiveContentsDir.appendingPathComponent("images", isDirectory: true)
+        try fileManager.copyItem(at: imagesDir, to: archiveImagesDir)
+
+        // Create ZIP archive with .zip extension (iOS handles .zip natively)
+        // Import still accepts both .zip and .heirloombackup for backwards compatibility
+        let zipFileName = "heirloom-backup-\(timestamp).zip"
+        let zipURL = tempDir.appendingPathComponent(zipFileName)
+
+        // Remove existing file if present
+        try? fileManager.removeItem(at: zipURL)
+
+        // Create the ZIP archive
+        try fileManager.zipItem(at: archiveContentsDir, to: zipURL)
+
+        // Clean up temp directories
+        try? fileManager.removeItem(at: archiveContentsDir)
+        try? fileManager.removeItem(at: imagesDir)
+
+        // Get final file size
+        let fileAttributes = try fileManager.attributesOfItem(atPath: zipURL.path)
+        let fileSize = fileAttributes[.size] as? Int ?? 0
+
+        Log.info("Heirloom v2.1 ZIP export completed", category: .storage, metadata: [
+            "fileName": zipFileName,
+            "recipeCount": recipes.count,
+            "connectionCount": connectionCount,
+            "imageCount": imageCount,
+            "fileSizeMB": String(format: "%.2f", Double(fileSize) / 1_000_000)
+        ])
+
+        return zipURL
+    }
+
     // MARK: - Import
 
-    /// Import Heirloom data from v1 or v2 export file
+    /// Import Heirloom data from v1, v2, or v2.1 (ZIP) export file
     /// - Parameters:
-    ///   - url: URL to the JSON export file
+    ///   - url: URL to the JSON or .heirloombackup file
     ///   - context: SwiftData model context
     ///   - options: Import options
     /// - Returns: Import result with statistics and errors
@@ -208,10 +419,28 @@ final class HeirloomDataExporter {
         context: ModelContext,
         options: HeirloomImportOptions = .mergeAll
     ) async throws -> HeirloomImportResult {
+        let fileExtension = url.pathExtension.lowercased()
+
         Log.info("Starting Heirloom import", category: .storage, metadata: [
-            "fileName": url.lastPathComponent
+            "fileName": url.lastPathComponent,
+            "fileExtension": fileExtension
         ])
 
+        // Handle ZIP archives (.heirloombackup or .zip)
+        if fileExtension == "heirloombackup" || fileExtension == "zip" {
+            return try await importFromZIP(from: url, context: context, options: options)
+        }
+
+        // Handle plain JSON files
+        return try await importFromJSON(from: url, context: context, options: options)
+    }
+
+    /// Import from plain JSON file (v1 or v2 format)
+    private func importFromJSON(
+        from url: URL,
+        context: ModelContext,
+        options: HeirloomImportOptions
+    ) async throws -> HeirloomImportResult {
         // Read JSON file
         let jsonData = try Data(contentsOf: url)
 
@@ -228,18 +457,137 @@ final class HeirloomDataExporter {
             return try await importV1Format(from: url, context: context)
         }
 
-        Log.info("Detected export version", category: .storage, metadata: [
+        return try await processImport(
+            exportWrapper: exportWrapper,
+            extractedImagesDir: nil,
+            context: context,
+            options: options
+        )
+    }
+
+    /// Import from ZIP archive (.heirloombackup)
+    private func importFromZIP(
+        from url: URL,
+        context: ModelContext,
+        options: HeirloomImportOptions
+    ) async throws -> HeirloomImportResult {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory
+        let extractDir = tempDir.appendingPathComponent("heirloom-import-\(UUID().uuidString)", isDirectory: true)
+
+        // Create extraction directory
+        try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
+
+        defer {
+            // Clean up extraction directory
+            try? fileManager.removeItem(at: extractDir)
+        }
+
+        // Extract ZIP archive
+        Log.info("Extracting ZIP archive", category: .storage, metadata: ["extractTo": extractDir.path])
+        try fileManager.unzipItem(at: url, to: extractDir)
+
+        // Find data.json (may be at root or inside a folder)
+        let dataJsonURL = try findDataJson(in: extractDir)
+
+        // Read and decode data.json
+        let jsonData = try Data(contentsOf: dataJsonURL)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let exportWrapper: HeirloomExportV2
+        do {
+            exportWrapper = try decoder.decode(HeirloomExportV2.self, from: jsonData)
+        } catch {
+            throw HeirloomImportError(
+                type: .invalidFormat,
+                itemId: nil,
+                message: "Failed to decode data.json: \(error.localizedDescription)"
+            )
+        }
+
+        // Find images directory (may be at root or inside the same folder as data.json)
+        let imagesDir = findImagesDirectory(relativeTo: dataJsonURL, in: extractDir)
+
+        Log.info("ZIP archive extracted", category: .storage, metadata: [
+            "recipeCount": exportWrapper.recipeCount,
+            "hasImagesDir": imagesDir != nil
+        ])
+
+        return try await processImport(
+            exportWrapper: exportWrapper,
+            extractedImagesDir: imagesDir,
+            context: context,
+            options: options
+        )
+    }
+
+    /// Find data.json in extracted directory (handles both flat and nested archives)
+    private func findDataJson(in directory: URL) throws -> URL {
+        let fileManager = FileManager.default
+
+        // Check root level first
+        let rootDataJson = directory.appendingPathComponent("data.json")
+        if fileManager.fileExists(atPath: rootDataJson.path) {
+            return rootDataJson
+        }
+
+        // Check one level deep (in case ZIP was created with a containing folder)
+        if let contents = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isDirectoryKey]) {
+            for item in contents {
+                var isDirectory: ObjCBool = false
+                if fileManager.fileExists(atPath: item.path, isDirectory: &isDirectory), isDirectory.boolValue {
+                    let nestedDataJson = item.appendingPathComponent("data.json")
+                    if fileManager.fileExists(atPath: nestedDataJson.path) {
+                        return nestedDataJson
+                    }
+                }
+            }
+        }
+
+        throw HeirloomImportError(
+            type: .invalidFormat,
+            itemId: nil,
+            message: "data.json not found in archive"
+        )
+    }
+
+    /// Find images directory relative to data.json location
+    private func findImagesDirectory(relativeTo dataJson: URL, in extractDir: URL) -> URL? {
+        let fileManager = FileManager.default
+
+        // Check in same directory as data.json
+        let parentDir = dataJson.deletingLastPathComponent()
+        let imagesDir = parentDir.appendingPathComponent("images", isDirectory: true)
+
+        if fileManager.fileExists(atPath: imagesDir.path) {
+            return imagesDir
+        }
+
+        return nil
+    }
+
+    /// Process imported data (shared between JSON and ZIP imports)
+    private func processImport(
+        exportWrapper: HeirloomExportV2,
+        extractedImagesDir: URL?,
+        context: ModelContext,
+        options: HeirloomImportOptions
+    ) async throws -> HeirloomImportResult {
+        Log.info("Processing import", category: .storage, metadata: [
             "version": exportWrapper.version,
             "recipeCount": exportWrapper.recipeCount,
-            "hasSocialData": exportWrapper.hasSocialData
+            "hasSocialData": exportWrapper.hasSocialData,
+            "hasBundledImages": extractedImagesDir != nil
         ])
 
         var errors: [HeirloomImportError] = []
         var recipesImported = 0
         var connectionsImported = 0
         let kitchenTablesImported = 0 // TODO: Implement Kitchen Table import in Phase 4
+        var bundledImagesRestored = 0
 
-        // Track imported recipes with image URLs for restoration
+        // Track imported recipes with image URLs for restoration (only if no bundled image)
         var recipesNeedingImageRestore: [(recipe: Recipe, firebaseURL: String)] = []
 
         // Import recipes
@@ -248,8 +596,45 @@ final class HeirloomDataExporter {
                 if let recipe = try importRecipe(recipeData, context: context, mergeMode: options.mergeRecipes) {
                     recipesImported += 1
 
-                    // Track recipes with image URLs for restoration
-                    if let firebaseURL = recipeData.firebaseImageURL {
+                    // Try to restore base64 embedded image first (v2.2 format)
+                    if let imageBase64 = recipeData.imageBase64 {
+                        do {
+                            try await restoreBase64Image(base64String: imageBase64, for: recipe)
+                            bundledImagesRestored += 1
+                        } catch {
+                            Log.warning("Failed to restore base64 image, will try Firebase URL", category: .storage, metadata: [
+                                "recipeId": recipe.id.uuidString,
+                                "error": error.localizedDescription
+                            ])
+                            // Fall back to Firebase URL if base64 image fails
+                            if let firebaseURL = recipeData.firebaseImageURL {
+                                recipesNeedingImageRestore.append((recipe: recipe, firebaseURL: firebaseURL))
+                            }
+                        }
+                    }
+                    // Try bundled image from ZIP (v2.1 format - legacy)
+                    else if let imagesDir = extractedImagesDir,
+                       let localImagePath = recipeData.localImagePath {
+                        do {
+                            try await restoreBundledImage(
+                                localImagePath: localImagePath,
+                                from: imagesDir,
+                                for: recipe
+                            )
+                            bundledImagesRestored += 1
+                        } catch {
+                            Log.warning("Failed to restore bundled image, will try Firebase URL", category: .storage, metadata: [
+                                "recipeId": recipe.id.uuidString,
+                                "localImagePath": localImagePath,
+                                "error": error.localizedDescription
+                            ])
+                            // Fall back to Firebase URL if bundled image fails
+                            if let firebaseURL = recipeData.firebaseImageURL {
+                                recipesNeedingImageRestore.append((recipe: recipe, firebaseURL: firebaseURL))
+                            }
+                        }
+                    } else if let firebaseURL = recipeData.firebaseImageURL {
+                        // No bundled image - track for Firebase restoration
                         recipesNeedingImageRestore.append((recipe: recipe, firebaseURL: firebaseURL))
                     }
                 }
@@ -261,6 +646,12 @@ final class HeirloomDataExporter {
                 ))
             }
         }
+
+        Log.info("Recipes imported", category: .storage, metadata: [
+            "imported": recipesImported,
+            "bundledImagesRestored": bundledImagesRestored,
+            "needingFirebaseRestore": recipesNeedingImageRestore.count
+        ])
 
         // Ensure Favorites collection exists and link isFavorite recipes to it
         // (System collections are skipped during collection name linking above)
@@ -298,6 +689,29 @@ final class HeirloomDataExporter {
             if linkedCount > 0 {
                 Log.info("Linked isFavorite recipes to Favorites collection", category: .storage, metadata: [
                     "count": linkedCount
+                ])
+            }
+        }
+
+        // Route shared recipes to "From Friends" collection
+        // (Shared recipes have sharedByUserId set - they came from friends)
+        let sharedRecipesDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.sharedByUserId != nil }
+        )
+        if let sharedRecipes = try? context.fetch(sharedRecipesDescriptor), !sharedRecipes.isEmpty {
+            let collectionRouter = CollectionRouter(modelContext: context)
+            var routedCount = 0
+            for recipe in sharedRecipes {
+                // Check if already in "From Friends" collection
+                let isInFromFriends = recipe.collections?.contains(where: { $0.type == .fromFriends }) ?? false
+                if !isInFromFriends {
+                    collectionRouter.routeSharedRecipe(recipe, from: recipe.sharedBy)
+                    routedCount += 1
+                }
+            }
+            if routedCount > 0 {
+                Log.info("Routed shared recipes to From Friends collection", category: .storage, metadata: [
+                    "count": routedCount
                 ])
             }
         }
@@ -634,6 +1048,85 @@ final class HeirloomDataExporter {
         ])
     }
 
+    /// Restore image from bundled ZIP archive
+    /// - Parameters:
+    ///   - localImagePath: Relative path in ZIP (e.g., "images/{uuid}.jpg")
+    ///   - imagesDir: Directory where images were extracted
+    ///   - recipe: Recipe to restore image for
+    /// Restore image from base64 encoded string (v2.2 format)
+    private func restoreBase64Image(
+        base64String: String,
+        for recipe: Recipe
+    ) async throws {
+        guard let imageData = Data(base64Encoded: base64String),
+              let image = UIImage(data: imageData) else {
+            throw HeirloomImportError(
+                type: .imageMissing,
+                itemId: recipe.id.uuidString,
+                message: "Invalid base64 image data"
+            )
+        }
+
+        // Save to local storage
+        try await recipe.saveImage(image)
+
+        // Upload to Firebase Storage for sync
+        let imageService = ServiceContainer.shared.resolve((any FirebaseImageServiceProtocol).self)
+        if let newURL = try await imageService.uploadImage(for: recipe) {
+            recipe.firebaseImageURL = newURL
+        }
+
+        Log.info("Base64 image restored successfully", category: .storage, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "title": recipe.title,
+            "imageSizeKB": imageData.count / 1024
+        ])
+    }
+
+    /// Restore image from bundled ZIP file (v2.1 format - legacy)
+    private func restoreBundledImage(
+        localImagePath: String,
+        from imagesDir: URL,
+        for recipe: Recipe
+    ) async throws {
+        // localImagePath is "images/{uuid}.jpg", imagesDir already points to the images folder
+        // So we just need the filename part
+        let fileName = (localImagePath as NSString).lastPathComponent
+        let imageURL = imagesDir.appendingPathComponent(fileName)
+
+        guard FileManager.default.fileExists(atPath: imageURL.path) else {
+            throw HeirloomImportError(
+                type: .imageMissing,
+                itemId: recipe.id.uuidString,
+                message: "Bundled image file not found: \(fileName)"
+            )
+        }
+
+        guard let imageData = try? Data(contentsOf: imageURL),
+              let image = UIImage(data: imageData) else {
+            throw HeirloomImportError(
+                type: .imageMissing,
+                itemId: recipe.id.uuidString,
+                message: "Invalid bundled image data: \(fileName)"
+            )
+        }
+
+        // Save to local storage
+        try await recipe.saveImage(image)
+
+        // Upload to Firebase Storage for sync
+        let imageService = ServiceContainer.shared.resolve((any FirebaseImageServiceProtocol).self)
+        if let newURL = try await imageService.uploadImage(for: recipe) {
+            recipe.firebaseImageURL = newURL
+        }
+
+        Log.info("Bundled image restored successfully", category: .storage, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "title": recipe.title,
+            "localImagePath": localImagePath
+        ])
+    }
+
     /// Queue recipes without images for AI generation
     private func queueMissingImagesForGeneration(context: ModelContext) async {
         // Fetch all recipes without images that aren't already queued
@@ -723,7 +1216,9 @@ final class HeirloomDataExporter {
                     cardBackText: nil,
                     comments: nil,
                     annotations: nil,
-                    firebaseImageURL: nil
+                    firebaseImageURL: nil,
+                    localImagePath: nil,
+                    imageBase64: nil
                 )
 
                 try importRecipe(v2Data, context: context, mergeMode: true)
@@ -750,7 +1245,7 @@ final class HeirloomDataExporter {
 
     // MARK: - Conversion Helpers
 
-    private func convertToRecipeExportDataV2(_ recipe: Recipe) -> RecipeExportDataV2 {
+    private func convertToRecipeExportDataV2(_ recipe: Recipe, localImagePath: String? = nil, imageBase64: String? = nil) -> RecipeExportDataV2 {
         // Convert comments to export format
         let commentsData: [CommentExportData]? = recipe.comments?.map { comment in
             CommentExportData(
@@ -809,12 +1304,21 @@ final class HeirloomDataExporter {
             heritageChainNames: recipe.heritageChainNames, // Display names for offline heritage view
             isDemoRecipe: recipe.isDemoRecipe ? true : nil, // Only export if true (demo recipes cannot be shared)
             tags: recipe.tags?.map { $0.name },
-            // Only export user-created collections (exclude theme/system collections that are recreated on restore)
-            collections: recipe.collections?.compactMap { $0.type == .userCreated ? $0.name : nil },
+            // Export user-created and auto-generated collections (exclude theme/system collections that are recreated on restore)
+            collections: recipe.collections?.compactMap { collection -> String? in
+                switch collection.type {
+                case .userCreated, .fromFriends, .webImports, .videoImports, .photoImports, .cookbook, .readRecipes:
+                    return collection.name
+                case .theme, .system, .communityRecipes:
+                    return nil  // These are recreated automatically on restore
+                }
+            },
             cardBackText: cardBackText,
             comments: commentsData,
             annotations: nil, // Annotations not yet tracked on Recipe model
-            firebaseImageURL: recipe.firebaseImageURL
+            firebaseImageURL: recipe.firebaseImageURL,
+            localImagePath: localImagePath, // V2.1: bundled image path in ZIP (legacy)
+            imageBase64: imageBase64 // V2.2: embedded base64 image data
         )
     }
 

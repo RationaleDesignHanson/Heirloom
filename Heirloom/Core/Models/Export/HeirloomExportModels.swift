@@ -139,6 +139,12 @@ struct RecipeExportDataV2: Codable {
     // V2 image preservation
     let firebaseImageURL: String? // Firebase Storage download URL for image restoration
 
+    // V2.1 bundled images (ZIP export - legacy, kept for backward compatibility)
+    let localImagePath: String? // Relative path in ZIP: "images/{uuid}.jpg"
+
+    // V2.2 embedded images (JSON export with base64)
+    let imageBase64: String? // Base64-encoded JPEG image data
+
     enum CodingKeys: String, CodingKey {
         case id, title, ingredients, instructions, servings
         case prepTime, cookTime, notes
@@ -151,6 +157,8 @@ struct RecipeExportDataV2: Codable {
         case tags, collections
         case cardBackText, comments, annotations
         case firebaseImageURL
+        case localImagePath
+        case imageBase64
     }
 }
 

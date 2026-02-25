@@ -1,8 +1,11 @@
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
+import ZIPFoundation
 
 /// Data export and import view with social data support
+/// Note: Export now uses JSON with embedded base64 images (v2.2 format)
+/// This avoids iOS file picker issues with ZIP files
 struct DataExportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -89,12 +92,19 @@ struct DataExportView: View {
                     }
                 }
             }
-            .fileImporter(
-                isPresented: $showImportPicker,
-                allowedContentTypes: [.json],
-                allowsMultipleSelection: false
-            ) { result in
-                handleImportFile(result)
+            .sheet(isPresented: $showImportPicker) {
+                DocumentPicker(
+                    onPick: { url in
+                        showImportPicker = false
+                        importFileURL = url
+                        Task {
+                            await loadImportPreview(from: url)
+                        }
+                    },
+                    onCancel: {
+                        showImportPicker = false
+                    }
+                )
             }
             .sheet(isPresented: $showImportPreview) {
                 if let previewData = importPreviewData, let fileURL = importFileURL {
@@ -233,13 +243,12 @@ struct DataExportView: View {
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 if exportType == .fullBackup {
-                    exportItem("All recipes (title, ingredients, instructions)")
-                    exportItem("Your profile (name, bio, specialties)")
-                    exportItem("Connections and relationships")
-                    exportItem("Privacy settings")
+                    exportItem("All recipes with images")
+                    exportItem("Your profile and settings")
+                    exportItem("Theme unlock progress")
                     exportItem("Recipe comments and notes")
                 } else {
-                    exportItem("All recipes (title, ingredients, instructions)")
+                    exportItem("All recipes with images")
                     exportItem("Recipe metadata (source, dates, ratings)")
                     exportItem("Comments and notes")
                 }
@@ -455,25 +464,9 @@ struct DataExportView: View {
 
     // MARK: - Import Logic
 
-    private func handleImportFile(_ result: Result<[URL], Error>) {
-        switch result {
-        case .success(let urls):
-            guard let url = urls.first else { return }
-
-            // Save URL and load preview
-            importFileURL = url
-            Task {
-                await loadImportPreview(from: url)
-            }
-
-        case .failure(let error):
-            exportError = "File selection failed: \(error.localizedDescription)"
-            Log.error("Import file selection failed", category: .storage, error: error)
-        }
-    }
-
     private func loadImportPreview(from url: URL) async {
-        // Security-scoped access is required for files selected via fileImporter
+        // With asCopy: true, the file is copied to temp directory - no security scope needed
+        // But we still try in case of fallback paths
         let didStartAccess = url.startAccessingSecurityScopedResource()
         defer {
             if didStartAccess {
@@ -481,54 +474,33 @@ struct DataExportView: View {
             }
         }
 
+        let fileExtension = url.pathExtension.lowercased()
+
+        Log.info("Loading import preview", category: .storage, metadata: [
+            "extension": fileExtension,
+            "url": url.lastPathComponent
+        ])
+
         do {
-            // Read JSON file
-            let jsonData = try Data(contentsOf: url)
-
-            // Decode to determine version and contents
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-
-            let exportWrapper: HeirloomExportV2
-            do {
-                exportWrapper = try decoder.decode(HeirloomExportV2.self, from: jsonData)
-            } catch {
-                // Try v1 format
-                Log.info("Attempting v1 import preview", category: .storage)
-                let v1Wrapper = try decoder.decode(RecipeExportWrapper.self, from: jsonData)
-
-                await MainActor.run {
-                    self.importPreviewData = ImportPreviewData(
-                        version: 1,
-                        recipeCount: v1Wrapper.recipes.count,
-                        hasProfile: false,
-                        connectionCount: 0,
-                        hasPrivacySettings: false,
-                        warnings: ["This is a recipes-only export (v1 format)"]
-                    )
-                    self.showImportPreview = true
-                }
+            // Handle ZIP archives (.heirloombackup or .zip)
+            if fileExtension == "heirloombackup" || fileExtension == "zip" {
+                try await loadZIPPreview(from: url)
                 return
             }
 
-            // Create preview data
-            var warnings: [String] = []
-
-            if exportWrapper.connections?.isEmpty == false {
-                warnings.append("Connection restoration requires manual confirmation")
+            // Handle plain JSON files
+            if fileExtension == "json" {
+                try await loadJSONPreview(from: url)
+                return
             }
 
+            // Unsupported file type
             await MainActor.run {
-                self.importPreviewData = ImportPreviewData(
-                    version: exportWrapper.version,
-                    recipeCount: exportWrapper.recipeCount,
-                    hasProfile: exportWrapper.userProfile != nil,
-                    connectionCount: exportWrapper.connections?.count ?? 0,
-                    hasPrivacySettings: exportWrapper.privacySettings != nil,
-                    warnings: warnings
-                )
-                self.showImportPreview = true
+                self.exportError = "Unsupported file type: .\(fileExtension). Please select a .zip or .json backup file."
             }
+            Log.warning("Unsupported import file type", category: .storage, metadata: [
+                "extension": fileExtension
+            ])
 
         } catch {
             await MainActor.run {
@@ -536,6 +508,156 @@ struct DataExportView: View {
             }
             Log.error("Import preview failed", category: .storage, error: error)
         }
+    }
+
+    private func loadJSONPreview(from url: URL) async throws {
+        let jsonData = try Data(contentsOf: url)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let exportWrapper: HeirloomExportV2
+        do {
+            exportWrapper = try decoder.decode(HeirloomExportV2.self, from: jsonData)
+        } catch {
+            // Try v1 format
+            Log.info("Attempting v1 import preview", category: .storage)
+            let v1Wrapper = try decoder.decode(RecipeExportWrapper.self, from: jsonData)
+
+            await MainActor.run {
+                self.importPreviewData = ImportPreviewData(
+                    version: 1,
+                    recipeCount: v1Wrapper.recipes.count,
+                    hasProfile: false,
+                    connectionCount: 0,
+                    hasPrivacySettings: false,
+                    warnings: ["This is a recipes-only export (v1 format)"]
+                )
+                self.showImportPreview = true
+            }
+            return
+        }
+
+        // Create preview data
+        var warnings: [String] = []
+
+        if exportWrapper.connections?.isEmpty == false {
+            warnings.append("Connection restoration requires manual confirmation")
+        }
+
+        await MainActor.run {
+            self.importPreviewData = ImportPreviewData(
+                version: exportWrapper.version,
+                recipeCount: exportWrapper.recipeCount,
+                hasProfile: exportWrapper.userProfile != nil,
+                connectionCount: exportWrapper.connections?.count ?? 0,
+                hasPrivacySettings: exportWrapper.privacySettings != nil,
+                warnings: warnings
+            )
+            self.showImportPreview = true
+        }
+    }
+
+    private func loadZIPPreview(from url: URL) async throws {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory
+        let extractDir = tempDir.appendingPathComponent("heirloom-preview-\(UUID().uuidString)", isDirectory: true)
+
+        // Create extraction directory
+        try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
+
+        defer {
+            // Clean up extraction directory
+            try? fileManager.removeItem(at: extractDir)
+        }
+
+        // Extract ZIP archive
+        try fileManager.unzipItem(at: url, to: extractDir)
+
+        // Find data.json
+        let dataJsonURL = try findDataJson(in: extractDir)
+
+        // Read and decode data.json
+        let jsonData = try Data(contentsOf: dataJsonURL)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let exportWrapper = try decoder.decode(HeirloomExportV2.self, from: jsonData)
+
+        // Count bundled images
+        let imagesDir = findImagesDirectory(relativeTo: dataJsonURL, in: extractDir)
+        var bundledImageCount = 0
+        if let imagesDir = imagesDir,
+           let imageFiles = try? fileManager.contentsOfDirectory(atPath: imagesDir.path) {
+            bundledImageCount = imageFiles.filter { $0.hasSuffix(".jpg") || $0.hasSuffix(".jpeg") || $0.hasSuffix(".png") }.count
+        }
+
+        // Create preview data
+        var warnings: [String] = []
+
+        if exportWrapper.connections?.isEmpty == false {
+            warnings.append("Connection restoration requires manual confirmation")
+        }
+
+        if bundledImageCount > 0 {
+            Log.info("ZIP archive contains bundled images", category: .storage, metadata: [
+                "imageCount": bundledImageCount
+            ])
+        }
+
+        await MainActor.run {
+            self.importPreviewData = ImportPreviewData(
+                version: exportWrapper.version,
+                recipeCount: exportWrapper.recipeCount,
+                hasProfile: exportWrapper.userProfile != nil,
+                connectionCount: exportWrapper.connections?.count ?? 0,
+                hasPrivacySettings: exportWrapper.privacySettings != nil,
+                warnings: warnings,
+                bundledImageCount: bundledImageCount
+            )
+            self.showImportPreview = true
+        }
+    }
+
+    /// Find data.json in extracted directory (handles both flat and nested archives)
+    private func findDataJson(in directory: URL) throws -> URL {
+        let fileManager = FileManager.default
+
+        // Check root level first
+        let rootDataJson = directory.appendingPathComponent("data.json")
+        if fileManager.fileExists(atPath: rootDataJson.path) {
+            return rootDataJson
+        }
+
+        // Check one level deep (in case ZIP was created with a containing folder)
+        if let contents = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isDirectoryKey]) {
+            for item in contents {
+                var isDirectory: ObjCBool = false
+                if fileManager.fileExists(atPath: item.path, isDirectory: &isDirectory), isDirectory.boolValue {
+                    let nestedDataJson = item.appendingPathComponent("data.json")
+                    if fileManager.fileExists(atPath: nestedDataJson.path) {
+                        return nestedDataJson
+                    }
+                }
+            }
+        }
+
+        throw NSError(domain: "DataExportView", code: 1, userInfo: [NSLocalizedDescriptionKey: "data.json not found in archive"])
+    }
+
+    /// Find images directory relative to data.json location
+    private func findImagesDirectory(relativeTo dataJson: URL, in extractDir: URL) -> URL? {
+        let fileManager = FileManager.default
+
+        // Check in same directory as data.json
+        let parentDir = dataJson.deletingLastPathComponent()
+        let imagesDir = parentDir.appendingPathComponent("images", isDirectory: true)
+
+        if fileManager.fileExists(atPath: imagesDir.path) {
+            return imagesDir
+        }
+
+        return nil
     }
 }
 
@@ -548,8 +670,50 @@ struct ImportPreviewData {
     let connectionCount: Int
     let hasPrivacySettings: Bool
     let warnings: [String]
+    var bundledImageCount: Int = 0 // Number of images bundled in ZIP export
 }
 
+
+// MARK: - Document Picker (UIKit wrapper for better custom UTType support)
+
+struct DocumentPicker: UIViewControllerRepresentable {
+    let onPick: (URL) -> Void
+    let onCancel: () -> Void
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        // Accept JSON files - export now uses JSON with embedded base64 images
+        // Also accept ZIP for backward compatibility with v2.1 exports
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.json], asCopy: true)
+        picker.delegate = context.coordinator
+        picker.allowsMultipleSelection = false
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onPick: onPick, onCancel: onCancel)
+    }
+
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onPick: (URL) -> Void
+        let onCancel: () -> Void
+
+        init(onPick: @escaping (URL) -> Void, onCancel: @escaping () -> Void) {
+            self.onPick = onPick
+            self.onCancel = onCancel
+        }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            guard let url = urls.first else { return }
+            onPick(url)
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            onCancel()
+        }
+    }
+}
 
 // MARK: - Preview
 

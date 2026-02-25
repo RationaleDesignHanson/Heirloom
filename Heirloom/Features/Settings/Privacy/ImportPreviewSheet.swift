@@ -37,6 +37,19 @@ struct ImportPreviewSheet: View {
     @State private var imageRestoreProgress: Int = 0
     @State private var imageRestoreTotal: Int = 0
 
+    // Import progress tracking
+    enum ImportPhase: String {
+        case preparing = "Preparing..."
+        case importingRecipes = "Importing recipes..."
+        case linkingCollections = "Linking collections..."
+        case restoringImages = "Restoring images..."
+        case downloadingThemes = "Downloading themes..."
+        case finishing = "Finishing up..."
+    }
+    @State private var importPhase: ImportPhase = .preparing
+    @State private var importProgress: Double = 0.0  // 0.0 to 1.0
+    @State private var progressTimer: Timer?
+
     private var exporter: HeirloomDataExporter {
         let profileService: ProfileServiceProtocol = ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
         let connectionService: ConnectionServiceProtocol = ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
@@ -61,10 +74,10 @@ struct ImportPreviewSheet: View {
                 .padding(HeirloomSpacing.lg)
             }
             .background(HeirloomColors.appBackground)
-            .navigationTitle(cleanRestore ? "Restore Preview" : "Import Preview")
+            .navigationTitle(isImporting ? "Restoring..." : (cleanRestore ? "Restore Preview" : "Import Preview"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if !showResult {
+                if !showResult && !isImporting {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") {
                             dismiss()
@@ -77,9 +90,8 @@ struct ImportPreviewSheet: View {
                                 await performImport()
                             }
                         }
-                        .disabled(isImporting)
                     }
-                } else {
+                } else if showResult {
                     ToolbarItem(placement: .primaryAction) {
                         Button("Done") {
                             dismiss()
@@ -94,22 +106,27 @@ struct ImportPreviewSheet: View {
 
     private var previewSection: some View {
         VStack(spacing: HeirloomSpacing.lg) {
-            // Header
-            headerSection
+            // Show progress during import
+            if isImporting {
+                importProgressSection
+            } else {
+                // Header
+                headerSection
 
-            // What will be imported
-            importCountsSection
+                // What will be imported
+                importCountsSection
 
-            // Warnings
-            if !previewData.warnings.isEmpty {
-                warningsSection
+                // Warnings
+                if !previewData.warnings.isEmpty {
+                    warningsSection
+                }
+
+                // Instructions
+                instructionsSection
+
+                // Image generation option
+                imageGenerationSection
             }
-
-            // Instructions
-            instructionsSection
-
-            // Image generation option
-            imageGenerationSection
         }
     }
 
@@ -131,6 +148,60 @@ struct ImportPreviewSheet: View {
                 .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
+    }
+
+    private var importProgressSection: some View {
+        VStack(spacing: HeirloomSpacing.xl) {
+            // Animated icon
+            Image(systemName: "arrow.counterclockwise.circle.fill")
+                .font(.system(size: 64))
+                .foregroundStyle(HeirloomColors.familyGreen)
+                .rotationEffect(.degrees(isImporting ? 360 : 0))
+                .animation(
+                    isImporting ? .linear(duration: 2).repeatForever(autoreverses: false) : .default,
+                    value: isImporting
+                )
+
+            // Phase text
+            Text(importPhase.rawValue)
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+                .animation(.easeInOut(duration: 0.3), value: importPhase)
+
+            // Progress bar
+            VStack(spacing: HeirloomSpacing.sm) {
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        // Background track
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(HeirloomColors.warmGray.opacity(0.3))
+                            .frame(height: 8)
+
+                        // Progress fill
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(HeirloomColors.familyGreen)
+                            .frame(width: geometry.size.width * importProgress, height: 8)
+                            .animation(.easeInOut(duration: 0.3), value: importProgress)
+                    }
+                }
+                .frame(height: 8)
+
+                // Percentage text
+                Text("\(Int(importProgress * 100))%")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .monospacedDigit()
+            }
+
+            // Recipe count hint
+            Text("Restoring \(previewData.recipeCount) recipes")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding(HeirloomSpacing.xl)
+        .frame(maxWidth: .infinity)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(16)
     }
 
     private var importCountsSection: some View {
@@ -157,14 +228,9 @@ struct ImportPreviewSheet: View {
                     )
                 }
 
-                if previewData.connectionCount > 0 {
-                    importCountRow(
-                        icon: "person.2.circle.fill",
-                        title: "Connections",
-                        count: previewData.connectionCount,
-                        color: HeirloomColors.familyGreen
-                    )
-                }
+                // Note: Connections are stored in backup but NOT restored
+                // (would require re-establishing with the other user)
+                // So we don't show them in the preview to avoid confusion
 
                 if previewData.hasPrivacySettings {
                     importCountRow(
@@ -172,6 +238,15 @@ struct ImportPreviewSheet: View {
                         title: "Privacy Settings",
                         count: 1,
                         color: HeirloomColors.warmGray
+                    )
+                }
+
+                if previewData.bundledImageCount > 0 {
+                    importCountRow(
+                        icon: "photo.circle.fill",
+                        title: "Bundled Images",
+                        count: previewData.bundledImageCount,
+                        color: HeirloomColors.familyGreen
                     )
                 }
             }
@@ -238,15 +313,15 @@ struct ImportPreviewSheet: View {
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 if cleanRestore {
-                    instructionItem("Your current recipes and collections will be replaced")
+                    instructionItem("Your recipes and collections will be restored")
                     instructionItem("Theme unlock progress will be restored")
-                    instructionItem("You'll resume exactly where you left off")
-                    instructionItem("Connections may require manual reconnection")
+                    instructionItem("Recipe images will be restored from backup")
+                    instructionItem("Friend connections are not restored")
                 } else {
                     instructionItem("Recipes will be merged with your existing collection")
                     instructionItem("Duplicate recipes will be skipped")
                     instructionItem("Your current data won't be deleted")
-                    instructionItem("Connections may require manual reconnection")
+                    instructionItem("Recipe images will be restored from backup")
                 }
             }
 
@@ -510,9 +585,8 @@ struct ImportPreviewSheet: View {
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 statisticRow(icon: "fork.knife.circle.fill", title: "Recipes", count: result.recipesImported)
 
-                if let connectionsCount = result.connectionsImported {
-                    statisticRow(icon: "person.2.circle.fill", title: "Connections", count: connectionsCount)
-                }
+                // Note: Connections are not restored (would require re-establishing)
+                // so we don't show them in the result summary
 
                 if !result.errors.isEmpty {
                     statisticRow(
@@ -588,6 +662,8 @@ struct ImportPreviewSheet: View {
     private func performImport() async {
         isImporting = true
         importError = nil
+        importPhase = .preparing
+        importProgress = 0.0
 
         // Security-scoped access is required for files selected via fileImporter
         let didStartAccess = fileURL.startAccessingSecurityScopedResource()
@@ -598,10 +674,17 @@ struct ImportPreviewSheet: View {
         }
 
         do {
+            // Phase 1: Preparing (0-10%)
+            await updateProgress(phase: .preparing, progress: 0.05)
+
             // Clean restore: delete all existing data first
             if cleanRestore {
                 await cleanExistingData()
             }
+            await updateProgress(phase: .preparing, progress: 0.10)
+
+            // Phase 2: Importing recipes (10-50%)
+            await updateProgress(phase: .importingRecipes, progress: 0.15)
 
             var options = cleanRestore ? HeirloomImportOptions.recipesOnly : HeirloomImportOptions.mergeAll
             options.generateMissingImages = generateMissingImages
@@ -619,11 +702,8 @@ struct ImportPreviewSheet: View {
                 options: options
             )
 
-            await MainActor.run {
-                self.importResult = result
-                self.showResult = true
-                self.isImporting = false
-            }
+            // Phase 3: Linking collections (50-60%)
+            await updateProgress(phase: .linkingCollections, progress: 0.50)
 
             Log.info("Import completed", category: .storage, metadata: [
                 "version": result.version,
@@ -633,14 +713,7 @@ struct ImportPreviewSheet: View {
                 "imagesToRestore": result.imagesToRestore.count
             ])
 
-            // Restore images with progress tracking
-            if !result.imagesToRestore.isEmpty {
-                await restoreImagesWithProgress(result.imagesToRestore)
-            }
-
             // IMPORTANT: Recreate system collections after clean restore
-            // System collections (All Recipes, Generated Recipes) are deleted during cleanExistingData()
-            // and must be recreated for the UI to function properly
             if cleanRestore {
                 await MainActor.run {
                     RecipeCollection.createSystemCollections(context: modelContext)
@@ -648,15 +721,41 @@ struct ImportPreviewSheet: View {
                     Log.info("Recreated system collections after restore", category: .storage)
                 }
             }
+            await updateProgress(phase: .linkingCollections, progress: 0.60)
 
-            // Refresh theme recipes from Firebase to get any updates
-            // (preserves user modifications like favorites, cook count, etc.)
+            // Phase 4: Restoring images (60-80%)
+            if !result.imagesToRestore.isEmpty {
+                await updateProgress(phase: .restoringImages, progress: 0.60)
+                await restoreImagesWithProgress(result.imagesToRestore)
+            }
+            await updateProgress(phase: .restoringImages, progress: 0.80)
+
+            // Phase 5: Downloading themes (80-95%)
             if cleanRestore {
+                await updateProgress(phase: .downloadingThemes, progress: 0.80)
                 await refreshThemeRecipesFromFirebase()
+            }
+            await updateProgress(phase: .downloadingThemes, progress: 0.95)
+
+            // Phase 6: Finishing (95-100%)
+            await updateProgress(phase: .finishing, progress: 0.95)
+
+            // Mark onboarding as complete after successful restore
+            if cleanRestore {
+                await markOnboardingComplete()
             }
 
             // Count shared recipes for update prompt
             await countSharedRecipes()
+
+            await updateProgress(phase: .finishing, progress: 1.0)
+
+            // Show result
+            await MainActor.run {
+                self.importResult = result
+                self.showResult = true
+                self.isImporting = false
+            }
 
             // Call completion handler if provided (for onboarding flow)
             // Note: Don't call immediately if there are shared recipes - wait for user decision
@@ -671,6 +770,14 @@ struct ImportPreviewSheet: View {
             }
 
             Log.error("Import failed", category: .storage, error: error)
+        }
+    }
+
+    /// Update import progress on main thread
+    private func updateProgress(phase: ImportPhase, progress: Double) async {
+        await MainActor.run {
+            self.importPhase = phase
+            self.importProgress = progress
         }
     }
 
@@ -878,6 +985,26 @@ struct ImportPreviewSheet: View {
         }
     }
 
+    /// Mark onboarding as complete after successful restore
+    /// This prevents showing onboarding again and uploads profile to Firebase
+    private func markOnboardingComplete() async {
+        // Set local flag
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.synchronize()
+
+        // Upload profile to Firebase so other devices/sessions know onboarding is done
+        let profileService = ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+        do {
+            try await profileService.syncCurrentUserProfile()
+            Log.info("Marked onboarding complete after restore", category: .storage)
+        } catch {
+            // Non-fatal - local flag is set, Firebase sync will catch up later
+            Log.warning("Failed to sync profile after restore", category: .storage, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
     /// Check for updates to shared recipes from connections
     private func checkForSharedRecipeUpdates() async {
         isCheckingSharedUpdates = true
@@ -1005,9 +1132,9 @@ struct ImportPreviewSheet: View {
             version: 2,
             recipeCount: 42,
             hasProfile: true,
-            connectionCount: 8,
+            connectionCount: 0,  // Connections not shown (not restored)
             hasPrivacySettings: true,
-            warnings: ["Connection restoration requires manual confirmation"]
+            warnings: []
         ),
         fileURL: URL(fileURLWithPath: "/tmp/test.json"),
         modelContext: ModelContext(try! ModelContainer(for: Recipe.self))
