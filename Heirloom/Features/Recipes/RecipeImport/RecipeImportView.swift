@@ -570,24 +570,21 @@ struct RecipeImportView: View {
             router.routeURLImport(recipe, sourceURL: sourceURL)
         }
 
-        // Download image BEFORE saving (so recipe has image immediately)
-        if let imageURLString = imported.imageURL,
-           let imageURL = URL(string: imageURLString) {
-            do {
-                Log.info("Downloading recipe image before save", category: .network, metadata: ["url": imageURLString])
-                let (data, _) = try await URLSession.shared.data(from: imageURL)
-
-                if let image = UIImage(data: data) {
-                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
-                    recipe.imageFileName = fileName
-                    Log.info("Recipe image downloaded and saved", category: .storage, metadata: ["fileName": fileName])
-                } else {
-                    Log.warning("Failed to create UIImage from downloaded data", category: .storage)
-                }
-            } catch {
-                Log.error("Failed to download recipe image", category: .network, metadata: ["error": error.localizedDescription])
-                // Continue without image - don't fail the import
-            }
+        // Generate AI image instead of downloading scraped image (avoids copyright issues)
+        do {
+            Log.info("Generating AI image for web import", category: .ai, metadata: ["title": recipe.title])
+            let importImageService = ServiceContainer.shared.resolve(ImportImageGenerationService.self)
+            try await importImageService.generateImageForImport(recipe: recipe)
+            Log.info("AI image generated for web import", category: .ai, metadata: [
+                "title": recipe.title,
+                "imageFileName": recipe.imageFileName ?? "none"
+            ])
+        } catch {
+            Log.warning("AI image generation failed for web import, recipe will have no image", category: .ai, metadata: [
+                "title": recipe.title,
+                "error": error.localizedDescription
+            ])
+            // Recipe proceeds without image - user can generate later
         }
 
         // Create snapshot for edit tracking
@@ -660,7 +657,7 @@ struct RecipeImportView: View {
                 context: backgroundContext
             )
 
-            // Image already downloaded before save - skip background download
+            // Image generated synchronously before save - no background download needed
 
             // Sync to Firebase in background
             await RecipeImportView.syncToFirebaseInBackground(
@@ -741,54 +738,6 @@ struct RecipeImportView: View {
             "ingredient_count": ingredientTexts.count,
             "used_ai_parsing": aiConfig.enableAIParsing
         ])
-    }
-
-    /// Download recipe image in background after recipe is saved
-    private static func downloadAndSaveImageInBackground(
-        from url: URL,
-        recipeId: UUID,
-        context: ModelContext
-    ) async {
-        Log.info("Starting background image download", category: .network, metadata: ["url": url.absoluteString])
-
-        // Get service from container
-        let imageStorageService: ImageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            Log.debug("Downloaded image data", category: .network, metadata: ["bytes": data.count])
-
-            guard let image = UIImage(data: data) else {
-                Log.warning("Failed to create UIImage from downloaded data", category: .storage)
-                return
-            }
-
-            Log.debug("Created UIImage from data", category: .storage)
-            let fileName = try await imageStorageService.saveImage(image, recipeId: recipeId)
-            Log.info("Saved image", category: .storage, metadata: ["fileName": fileName])
-
-            // Update recipe with image filename
-            await MainActor.run {
-                // Fetch recipe in this context
-                let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeId })
-                guard let recipe = try? context.fetch(descriptor).first else {
-                    Log.error("Failed to fetch recipe for image update", category: .database)
-                    return
-                }
-
-                recipe.imageFileName = fileName
-                Log.debug("Set recipe image filename", category: .database, metadata: ["fileName": fileName])
-
-                do {
-                    try context.save()
-                    Log.info("Background image download complete", category: .storage)
-                } catch {
-                    Log.error("Failed to save image filename", category: .database, metadata: ["error": error.localizedDescription])
-                }
-            }
-        } catch {
-            Log.warning("Failed to download recipe image", category: .network, metadata: ["error": error.localizedDescription])
-        }
     }
 
     /// Sync recipe to Firebase in background after recipe is saved

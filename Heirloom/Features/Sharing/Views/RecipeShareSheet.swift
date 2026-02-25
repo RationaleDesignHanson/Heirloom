@@ -10,6 +10,10 @@ struct RecipeShareSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.firebaseShare) private var firebaseShare
+    @Environment(\.network) private var networkMonitor
+
+    // Offline handling (local state for instant UI updates)
+    @State private var isOffline = false
 
     // State
     @State private var options = ShareOptions.default
@@ -49,6 +53,11 @@ struct RecipeShareSheet: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(spacing: HeirloomSpacing.lg) {
+                        // Offline banner
+                        if isOffline {
+                            offlineBanner
+                        }
+
                         // Demo users info banner
                         if hasDemoUsersInLineage {
                             demoUsersInfoBanner
@@ -115,7 +124,43 @@ struct RecipeShareSheet: View {
         }
         .onAppear {
             setupDefaultOptions()
+            isOffline = !networkMonitor.isConnected
         }
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            // Poll the NetworkMonitor's isConnected property for reliable UI updates
+            let currentlyOffline = !networkMonitor.isConnected
+            if isOffline != currentlyOffline {
+                isOffline = currentlyOffline
+            }
+        }
+    }
+
+    // MARK: - Offline Banner
+
+    private var offlineBanner: some View {
+        HStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 16))
+                .foregroundStyle(.white)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("You're offline")
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(.white)
+
+                Text("Connect to the internet to share recipes")
+                    .font(HeirloomFonts.caption2)
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+
+            Spacer()
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(HeirloomColors.warmGray)
+        )
+        .padding(.horizontal)
     }
 
     // MARK: - Demo Users Info Banner
@@ -253,6 +298,11 @@ struct RecipeShareSheet: View {
 
     /// Button description based on share method
     private var shareButtonDescription: String {
+        // Show offline message when not connected
+        if isOffline {
+            return "Connect to the internet to share"
+        }
+
         switch shareMethod {
         case .link:
             return "Recipients can edit and build on this recipe"
@@ -267,6 +317,9 @@ struct RecipeShareSheet: View {
 
     /// Whether share button should be enabled
     private var isShareButtonEnabled: Bool {
+        // Disable when offline - sharing requires network
+        guard !isOffline else { return false }
+
         switch shareMethod {
         case .link:
             return true

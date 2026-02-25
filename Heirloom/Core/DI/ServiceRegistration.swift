@@ -665,6 +665,13 @@ extension ServiceContainer {
             return ImageGenerationQueue(imageGenerator: imageGenerator)
         }
 
+        // ImportImageGenerationService (Credit-free AI image generation for imports)
+        register(ImportImageGenerationService.self, lifecycle: .singleton) { container in
+            let imageGenerator = container.resolve(RecipeImageGenerator.self)
+            let styleConfig = container.resolve(VisualStyleConfiguration.self)
+            return ImportImageGenerationService(imageGenerator: imageGenerator, styleConfig: styleConfig)
+        }
+
         // RecipeGenerationService (Recipe generation with progress tracking and retry logic)
         register(RecipeGenerationService.self, lifecycle: .singleton) { container in
             let aiGenerator = container.resolve((any AIRecipeGeneratorProtocol).self)

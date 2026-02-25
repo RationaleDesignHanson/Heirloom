@@ -12,11 +12,16 @@ import FirebaseFirestore
 
 struct SharedWithMeView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.network) private var networkMonitor
+
     @State private var pendingShares: [[String: Any]] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var selectedShare: [String: Any]?
     @State private var showReceiveSheet = false
+
+    // Offline handling (local state for instant UI updates)
+    @State private var isOffline = false
 
     private var firebaseShare: FirebaseShareService {
         ServiceContainer.shared.resolve(FirebaseShareService.self)
@@ -25,7 +30,9 @@ struct SharedWithMeView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if isLoading {
+                if isOffline {
+                    offlineView
+                } else if isLoading {
                     loadingView
                 } else if let error = errorMessage {
                     errorView(error)
@@ -45,7 +52,24 @@ struct SharedWithMeView: View {
                 }
             }
             .task {
-                await loadShares()
+                isOffline = !networkMonitor.isConnected
+                if !isOffline {
+                    await loadShares()
+                }
+            }
+            .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+                // Poll the NetworkMonitor's isConnected property for reliable UI updates
+                let currentlyOffline = !networkMonitor.isConnected
+                if isOffline != currentlyOffline {
+                    let wasOffline = isOffline
+                    isOffline = currentlyOffline
+                    // Reload when coming back online
+                    if wasOffline && !currentlyOffline {
+                        Task {
+                            await loadShares()
+                        }
+                    }
+                }
             }
             .sheet(isPresented: $showReceiveSheet) {
                 if let share = selectedShare,
@@ -150,6 +174,30 @@ struct SharedWithMeView: View {
                     .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
             )
             .padding(.horizontal, HeirloomSpacing.lg)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+
+    private var offlineView: some View {
+        VStack(spacing: HeirloomSpacing.lg) {
+            Spacer()
+
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 64))
+                .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
+
+            Text("You're Offline")
+                .font(HeirloomFonts.title2)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            Text("Connect to the internet to see recipes shared with you.")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, HeirloomSpacing.xl)
 
             Spacer()
         }

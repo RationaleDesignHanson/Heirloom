@@ -23,7 +23,6 @@ struct VideoProcessingView: View {
     @State private var showReview = false
     @State private var showError = false
     @State private var errorMessage: String?
-    @State private var recipeImage: Data?
     @State private var showPaywall = false
     @State private var hasCheckedPremium = false
 
@@ -107,9 +106,6 @@ struct VideoProcessingView: View {
                 do {
                     let result = try await processor.process(videoURL: videoURL)
                     extraction = result
-
-                    // Extract frame for recipe image
-                    recipeImage = await extractVideoFrame(from: videoURL)
 
                     // Wait a moment to show 100% before dismissing
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -399,29 +395,6 @@ struct VideoProcessingView: View {
         }
     }
 
-    // MARK: - Video Frame Extraction
-
-    private func extractVideoFrame(from videoURL: URL) async -> Data? {
-        let asset = AVAsset(url: videoURL)
-        let imageGenerator = AVAssetImageGenerator(asset: asset)
-        imageGenerator.appliesPreferredTrackTransform = true
-        imageGenerator.requestedTimeToleranceBefore = .zero
-        imageGenerator.requestedTimeToleranceAfter = .zero
-
-        // Extract frame from first 2 seconds
-        let targetTime = CMTime(seconds: 1.0, preferredTimescale: 600)
-
-        do {
-            let cgImage = try imageGenerator.copyCGImage(at: targetTime, actualTime: nil)
-            let uiImage = UIImage(cgImage: cgImage)
-            let resizedImage = uiImage.resized(toMaxWidth: 1024)
-            return resizedImage?.jpegData(compressionQuality: 0.8)
-        } catch {
-            print("Failed to extract video frame: \(error)")
-            return nil
-        }
-    }
-
     // MARK: - Save to SwiftData
 
     private func saveToSwiftData(_ extraction: VideoRecipeExtraction) -> Recipe {
@@ -441,17 +414,19 @@ struct VideoProcessingView: View {
             createdAt: Date()
         )
 
-        // Set recipe image
-        if let imageData = recipeImage, let uiImage = UIImage(data: imageData) {
-            Task {
-                do {
-                    let imageService = ImageStorageService(imageCache: ImageCache())
-                    let fileName = try await imageService.saveImage(uiImage, recipeId: recipe.id)
-                    recipe.imageFileName = fileName
-                    print("✅ Saved recipe image: \(fileName)")
-                } catch {
-                    print("⚠️ Failed to save recipe image: \(error)")
-                }
+        // Generate AI image (async, doesn't block recipe creation)
+        Task {
+            do {
+                let importImageService = ServiceContainer.shared.resolve(ImportImageGenerationService.self)
+                try await importImageService.generateImageForImport(recipe: recipe)
+                try? modelContext.save()
+                Log.info("Generated AI image for video import", category: .ai, metadata: ["title": recipe.title])
+            } catch {
+                Log.warning("AI image generation failed for video import, recipe will have no image", category: .ai, metadata: [
+                    "title": recipe.title,
+                    "error": error.localizedDescription
+                ])
+                // Recipe proceeds without image - user can generate later
             }
         }
 

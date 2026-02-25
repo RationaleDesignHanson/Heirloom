@@ -15,7 +15,11 @@ struct KitchenTableView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.firebaseAuth) private var firebaseAuth
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.network) private var networkMonitor
     @Query private var allUserCredits: [UserCredits]
+
+    // Offline handling (local state for instant UI updates)
+    @State private var isOffline = false
 
     private var connectionService: ConnectionServiceProtocol {
         ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
@@ -112,19 +116,21 @@ struct KitchenTableView: View {
                         } label: {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
-                        .disabled(isRefreshing)
+                        .disabled(isRefreshing || isOffline)
 
                         Button {
                             showUserSearch = true
                         } label: {
                             Label("Search Users", systemImage: "magnifyingglass")
                         }
+                        .disabled(isOffline)
 
                         Button {
                             showInviteView = true
                         } label: {
                             Label("Invite Connection", systemImage: "person.badge.plus")
                         }
+                        .disabled(isOffline)
 
                         Button {
                             showShareAnalytics = true
@@ -231,6 +237,16 @@ struct KitchenTableView: View {
                     await loadPendingSharesCount()
                 }
             }
+            .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+                // Poll the NetworkMonitor's isConnected property for reliable UI updates
+                let currentlyOffline = !networkMonitor.isConnected
+                if isOffline != currentlyOffline {
+                    isOffline = currentlyOffline
+                }
+            }
+            .onAppear {
+                isOffline = !networkMonitor.isConnected
+            }
         }
     }
 
@@ -239,6 +255,28 @@ struct KitchenTableView: View {
     private var contentView: some View {
         ScrollView {
             VStack(spacing: HeirloomSpacing.lg) {
+                // Offline banner
+                if isOffline {
+                    HStack(spacing: HeirloomSpacing.sm) {
+                        Image(systemName: "wifi.slash")
+                            .foregroundStyle(.white)
+
+                        Text("You're offline")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(.white)
+
+                        Text("- showing cached data")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(.white.opacity(0.9))
+
+                        Spacer()
+                    }
+                    .padding(HeirloomSpacing.md)
+                    .background(HeirloomColors.warmGray)
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                }
+
                 // Profile Header
                 ProfileHeaderView(
                     profile: profile,
