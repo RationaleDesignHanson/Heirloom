@@ -129,7 +129,7 @@ const DEMO_USERS = {
 const WEB_IMPORT_RECIPE = {
   id: 'b0111111-1111-1111-1111-111111111111',  // Deterministic ID (valid hex)
   title: 'The Best Soft & Chewy Chocolate Chip Cookies',
-  sourceType: 'urlImport',
+  sourceType: 'url',  // Must match RecipeSourceType.url.rawValue in Swift
   sourceURL: 'https://heirloomrecipebox.app/demo/recipe',
   // Image for the web import (chocolate chip cookies)
   imageURL: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&q=80',
@@ -572,20 +572,36 @@ async function createTestUser(): Promise<string> {
 }
 
 /**
- * Create user profile with hasCompletedOnboarding: true
+ * Create user profile with hasCompletedOnboarding: true and theme progress
  */
 async function createUserProfile(userId: string): Promise<void> {
-  console.log('Creating user profile...');
+  console.log('Creating user profile with theme progress...');
+
+  // Calculate trial start date: 2 days ago so currentDay = 3
+  // This gives Apple reviewers access to day 1, 2, and 3 recipes
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+  // Default themes for deletion test account (matching configureForDeletionTest in Swift)
+  const selectedThemeIds = ['german-american', 'scandinavian-heritage'];
 
   await db.collection('users').doc(userId).collection('profile').doc('data').set({
     displayName: TEST_DISPLAY_NAME,
     email: TEST_EMAIL,
     hasCompletedOnboarding: true, // Skip onboarding for test account
+
+    // Theme progress - CRITICAL for theme recipes to appear
+    selectedThemeIds: selectedThemeIds,
+    themeTrialStartDate: admin.firestore.Timestamp.fromDate(twoDaysAgo),
+
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   }, { merge: true });
 
-  console.log('  Profile created (onboarding marked complete)');
+  console.log('  Profile created with:');
+  console.log('    - hasCompletedOnboarding: true');
+  console.log(`    - selectedThemeIds: ${selectedThemeIds.join(', ')}`);
+  console.log(`    - themeTrialStartDate: ${twoDaysAgo.toISOString()} (day 3)`);
 }
 
 /**
@@ -1126,6 +1142,15 @@ async function createWebImport(userId: string): Promise<void> {
     modifiedAt: admin.firestore.Timestamp.fromDate(new Date(Date.now() - 86400000)),
   });
 
+  // Create provenance as JSON string (app reads from provenanceJSON field)
+  const provenanceData = {
+    sourceType: 'imported',
+    sourceURL: WEB_IMPORT_RECIPE.sourceURL,
+    sourceAttribution: WEB_IMPORT_RECIPE.authorName,
+    generation: 0,
+    rootProvenanceHash: uuidv4(),
+  };
+
   // Create web import recipe with provenance for attribution
   const recipeRef = db.collection('users').doc(userId).collection('recipes').doc(WEB_IMPORT_RECIPE.id);
   await recipeRef.set({
@@ -1142,14 +1167,8 @@ async function createWebImport(userId: string): Promise<void> {
     timesCooked: 0,
     generationCount: 0,
     collectionIds: [COLLECTION_IDS.webImports],
-    // Provenance for proper attribution to website author
-    provenance: {
-      sourceType: 'imported',
-      sourceURL: WEB_IMPORT_RECIPE.sourceURL,
-      sourceAttribution: WEB_IMPORT_RECIPE.authorName,
-      generation: 0,
-      rootProvenanceHash: uuidv4(),  // Unique hash for this recipe
-    },
+    // Provenance as JSON string (how app reads it via FirebaseSyncService)
+    provenanceJSON: JSON.stringify(provenanceData),
     createdAt: admin.firestore.Timestamp.fromDate(now),
     modifiedAt: admin.firestore.Timestamp.fromDate(now),
     lastSyncedAt: admin.firestore.Timestamp.fromDate(now),
@@ -1286,8 +1305,10 @@ async function seedDeletionTestAccount(): Promise<void> {
   console.log('  User will see notifications to accept these shares.');
   console.log('  Accepting uses the real acceptShare flow for correct heritageChain.');
   console.log('');
-  console.log('  Theme collections (German-American, Scandinavian) will be');
-  console.log('  created automatically by the app on sign-in.');
+  console.log('  Theme Progress (synced to Firebase):');
+  console.log('    - Selected themes: german-american, scandinavian-heritage');
+  console.log('    - Trial day: 3 (started 2 days ago)');
+  console.log('    - Theme collections appear automatically on sign-in');
   console.log('');
   console.log('  Apple reviewers can use this account to test account deletion.');
   console.log('  After deletion, run this script again to re-seed.');

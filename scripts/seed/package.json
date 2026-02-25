@@ -13,6 +13,8 @@
     "seed:algolia": "npx ts-node src/orchestrate.ts algolia",
     "seed:screenshot": "npx ts-node src/screenshot-demo/seed.ts seed",
     "cleanup:screenshot": "npx ts-node src/screenshot-demo/seed.ts cleanup",
+    "seed:deletetest": "npx ts-node src/seed-deletion-test-account.ts",
+    "cleanup:deletetest": "npx ts-node src/seed-deletion-test-account.ts cleanup",
     "verify": "npx ts-node src/orchestrate.ts verify",
     "cleanup:all": "npx ts-node src/orchestrate.ts cleanup",
     "cleanup:social": "npx ts-node src/orchestrate.ts cleanup:social",
