@@ -2564,9 +2564,10 @@ struct ContentView: View {
     private func syncThemeDataOnLogin() async {
         // Step 0: ALWAYS restore theme selections from Firebase first
         // This doesn't need ModelContainer and must happen before anything else
+        var restoredFromFirebase = false
         if let profileService = ServiceContainer.shared.resolveOptional(FirebaseUserProfileService.self) {
-            let restored = await profileService.restoreThemeSelectionsFromFirebase()
-            if restored {
+            restoredFromFirebase = await profileService.restoreThemeSelectionsFromFirebase()
+            if restoredFromFirebase {
                 Log.info("Restored theme selections from Firebase profile", category: .theme)
                 // Force ThemeUnlockTracker to reload from UserDefaults
                 themeUnlockTracker.objectWillChange.send()
@@ -2592,8 +2593,18 @@ struct ContentView: View {
             ])
 
             // Step 2: Download theme recipes for selected themes
-            // selectedThemeIds should now be restored from Firebase (Step 0 above)
-            let selectedThemeIds = themeUnlockTracker.selectedThemeIds
+            // Read directly from UserDefaults to ensure we get freshly restored values
+            // (themeUnlockTracker.selectedThemeIds is a computed property but may have caching)
+            let selectedThemeIds: [String]
+            if restoredFromFirebase {
+                // Read directly from UserDefaults to avoid any caching issues
+                selectedThemeIds = UserDefaults.standard.stringArray(forKey: "selected_theme_ids") ?? []
+                Log.info("Using freshly restored theme IDs from UserDefaults", category: .theme, metadata: [
+                    "themeIds": selectedThemeIds.joined(separator: ", ")
+                ])
+            } else {
+                selectedThemeIds = themeUnlockTracker.selectedThemeIds
+            }
 
             guard !selectedThemeIds.isEmpty else {
                 Log.info("No selected themes after restore - user may need to re-select themes", category: .theme)
@@ -2601,7 +2612,8 @@ struct ContentView: View {
             }
 
             Log.info("Downloading theme recipes for selected themes", category: .theme, metadata: [
-                "selectedThemes": selectedThemeIds.count
+                "selectedThemes": selectedThemeIds.count,
+                "themeIds": selectedThemeIds.joined(separator: ", ")
             ])
 
             let recipeService = ThemeRecipeService()
@@ -2611,7 +2623,8 @@ struct ContentView: View {
 
             Log.info("Theme sync complete on login", category: .theme, metadata: [
                 "themesLoaded": themes.count,
-                "recipesDownloaded": recipes.count
+                "recipesDownloaded": recipes.count,
+                "wasRestoredFromFirebase": restoredFromFirebase
             ])
 
         } catch {

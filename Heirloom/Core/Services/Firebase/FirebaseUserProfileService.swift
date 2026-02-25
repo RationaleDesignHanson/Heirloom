@@ -178,6 +178,7 @@ class FirebaseUserProfileService {
     @discardableResult
     func restoreThemeSelectionsFromFirebase() async -> Bool {
         guard let userId = auth.currentUser?.uid else {
+            Log.warning("Cannot restore theme selections - no authenticated user", category: .auth)
             return false
         }
 
@@ -186,37 +187,77 @@ class FirebaseUserProfileService {
                 .collection("profile").document("data").getDocument()
 
             guard let data = profileDoc.data() else {
-                Log.info("No profile data to restore themes from", category: .auth)
+                Log.info("No profile data to restore themes from", category: .auth, metadata: [
+                    "userId": userId
+                ])
                 return false
             }
 
             var restored = false
+            var restoredThemeIds: [String] = []
 
             // Restore theme selections
             if let themeIds = data["selectedThemeIds"] as? [String], !themeIds.isEmpty {
                 let currentThemes = UserDefaults.standard.stringArray(forKey: "selected_theme_ids") ?? []
                 if currentThemes.isEmpty {
                     UserDefaults.standard.set(themeIds, forKey: "selected_theme_ids")
+                    restoredThemeIds = themeIds
                     Log.info("Restored theme selections from Firebase", category: .auth, metadata: [
-                        "themeCount": themeIds.count
+                        "themeCount": themeIds.count,
+                        "themes": themeIds.joined(separator: ", ")
                     ])
                     restored = true
+                } else {
+                    Log.info("Theme selections already exist locally, skipping restore", category: .auth, metadata: [
+                        "localThemes": currentThemes.count,
+                        "firebaseThemes": themeIds.count
+                    ])
                 }
+            } else {
+                Log.info("No selectedThemeIds in Firebase profile", category: .auth, metadata: [
+                    "availableKeys": Array(data.keys).joined(separator: ", ")
+                ])
             }
 
             // Restore trial start date
             if let trialTimestamp = data["themeTrialStartDate"] as? Timestamp {
                 let currentStart = UserDefaults.standard.object(forKey: "theme_trial_start_date") as? Date
                 if currentStart == nil {
-                    UserDefaults.standard.set(trialTimestamp.dateValue(), forKey: "theme_trial_start_date")
-                    Log.info("Restored trial start date from Firebase", category: .auth)
+                    let trialDate = trialTimestamp.dateValue()
+                    UserDefaults.standard.set(trialDate, forKey: "theme_trial_start_date")
+
+                    // Calculate trial day for logging
+                    let daysSinceStart = Calendar.current.dateComponents([.day], from: trialDate, to: Date()).day ?? 0
+                    let trialDay = min(max(daysSinceStart + 1, 1), 15)
+
+                    Log.info("Restored trial start date from Firebase", category: .auth, metadata: [
+                        "trialStartDate": trialDate.description,
+                        "currentTrialDay": trialDay
+                    ])
                     restored = true
                 }
             }
 
+            // Force synchronize UserDefaults to ensure values are persisted immediately
+            UserDefaults.standard.synchronize()
+
+            // Post notification to update ThemeUnlockTracker
+            if restored {
+                await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("ThemeProgressRestored"),
+                        object: nil,
+                        userInfo: ["selectedThemeIds": restoredThemeIds]
+                    )
+                }
+                Log.info("Posted ThemeProgressRestored notification", category: .auth)
+            }
+
             return restored
         } catch {
-            Log.error("Failed to restore theme selections from Firebase", category: .auth, error: error)
+            Log.error("Failed to restore theme selections from Firebase", category: .auth, error: error, metadata: [
+                "userId": userId
+            ])
             return false
         }
     }
