@@ -53,7 +53,7 @@ struct OnboardingSubscriptionScreen: View {
 
             VStack(spacing: 0) {
                 // Progress indicator
-                Text("5/6")
+                Text("6/7")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .center)

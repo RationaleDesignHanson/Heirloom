@@ -59,7 +59,8 @@ struct AccountDeletionView: View {
                 case .complete:
                     if let progress = deletionProgress {
                         DeletionProgressView(progress: progress) {
-                            dismiss()
+                            // Exit app after account deletion - user must restart fresh
+                            exit(0)
                         }
                     }
                 }

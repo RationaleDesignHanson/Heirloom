@@ -3,7 +3,7 @@
 //  Heirloom
 //
 //  Created during Firebase Migration - Phase 3
-//  Sign in screen for Firebase authentication
+//  Sign in screen with emotional hook: "Your family's recipes deserve a home"
 //
 
 import SwiftUI
@@ -49,27 +49,32 @@ struct FirebaseSignInView: View {
                         .frame(width: imageSize, height: imageSize)
                         .shadow(color: Color(red: 0.2, green: 0.15, blue: 0.1).opacity(0.3), radius: 12, x: 0, y: 6)
 
-                    // Title
+                    // Title - Emotional hook
                     VStack(spacing: HeirloomSpacing.sm) {
-                        Text("Welcome to Heirloom")
+                        Text("Your family's recipes deserve a home")
                             .font(HeirloomFonts.title1)
                             .foregroundColor(HeirloomColors.primaryText)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Preserve the recipes you love — save from anywhere, share with people you trust.")
+                        Text("Scattered across screenshots, texts, and fading cards — until now.")
                             .font(HeirloomFonts.body)
                             .foregroundColor(HeirloomColors.secondaryText)
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .padding(.horizontal, 24)
                     .padding(.top, compact ? 12 : 20)
 
-                    // Features list
-                    VStack(alignment: .leading, spacing: compact ? 6 : 12) {
-                        featureRow(icon: "icloud", text: "Automatic cloud sync")
-                        featureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes with family")
-                        featureRow(icon: "shield.checkered", text: "Secure and private")
+                    // Value proposition features (minimal horizontal row) - hide when email form is shown
+                    if !showEmailSignIn {
+                        HStack(spacing: 32) {
+                            miniFeature(icon: "square.and.arrow.down", label: "Save")
+                            miniFeature(icon: "sparkles", label: "Structure")
+                            miniFeature(icon: "lock.shield", label: "Private")
+                        }
+                        .padding(.top, compact ? 12 : 20)
                     }
-                    .padding(.horizontal, 40)
-                    .padding(.top, compact ? 16 : 32)
 
                     Spacer(minLength: compact ? 8 : 16)
 
@@ -250,18 +255,15 @@ struct FirebaseSignInView: View {
     }
 
     @ViewBuilder
-    private func featureRow(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
+    private func miniFeature(icon: String, label: String) -> some View {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(HeirloomFonts.title2)
+                .font(.system(size: 18))
                 .foregroundColor(HeirloomColors.tomato)
-                .frame(width: 24)
 
-            Text(text)
-                .font(HeirloomFonts.body)
-                .foregroundColor(HeirloomColors.primaryText)
-
-            Spacer()
+            Text(label)
+                .font(HeirloomFonts.caption1)
+                .foregroundColor(HeirloomColors.secondaryText)
         }
     }
 
@@ -428,6 +430,7 @@ struct FirebaseSignInView: View {
             }
         }
         .padding(.horizontal, 40)
+        .padding(.bottom, 40) // Extra padding for home indicator
         .contentShape(Rectangle())
         .onTapGesture {
             // Dismiss keyboard when tapping outside text fields

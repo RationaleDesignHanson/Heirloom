@@ -3,7 +3,7 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-02-05.
-//  Screen 6: Profile setup during onboarding
+//  Screen 7: Profile setup during onboarding (simplified)
 //
 
 import SwiftUI
@@ -19,8 +19,8 @@ struct OnboardingProfileData {
     var avatarImage: UIImage?
 }
 
-/// Profile setup screen - Screen 6 of 6
-/// Allows user to set display name, bio, location, cuisine interests, and optional photo
+/// Profile setup screen - Screen 7 of 7
+/// Simplified: display name + optional photo only
 struct OnboardingProfileSetupScreen: View {
     let onContinue: (OnboardingProfileData) -> Void
 
@@ -51,7 +51,7 @@ struct OnboardingProfileSetupScreen: View {
 
             VStack(spacing: 0) {
                 // Progress indicator
-                Text("6/6")
+                Text("7/7")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -64,13 +64,13 @@ struct OnboardingProfileSetupScreen: View {
                     VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
-                            Text("Introduce yourself")
+                            Text("Set up your profile")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Let connections know who you are")
+                            Text("Just a name to get started.")
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -81,24 +81,20 @@ struct OnboardingProfileSetupScreen: View {
                         // Avatar picker
                         avatarPicker
 
-                        // Form fields
+                        // Form fields (simplified - just name)
                         VStack(spacing: 20) {
                             // Display name field
                             displayNameField
-
-                            // Bio field
-                            bioField
-
-                            // Location field
-                            locationField
-
-                            // Website field
-                            websiteField
-
-                            // Cuisine interests
-                            cuisineSection
                         }
                         .padding(.horizontal, 24)
+
+                        // Add more later hint
+                        Text("You can add more details anytime in Settings.")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundColor(HeirloomColors.secondaryText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
                     }
                     .padding(.bottom, 140) // Space for fixed bottom CTAs
                     .frame(maxWidth: .infinity, minHeight: geometry.size.height)

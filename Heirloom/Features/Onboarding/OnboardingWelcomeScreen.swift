@@ -3,16 +3,16 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-02-01.
-//  Updated for new 5-screen onboarding flow
-//  Task 1: "Turn recipe chaos into a recipe box" visual
+//  Updated for capture breadth narrative - Feb 2026
+//  "Save from anywhere" - showing all input sources
 //
 
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-/// Welcome screen - Screen 1 of 5
-/// Shows the "3 inputs → 1 recipe" transformation visual
+/// Capture breadth screen - Screen 1 of 7
+/// Shows all the ways users can save recipes: video, web, photo, handwriting, voice, generative
 struct OnboardingWelcomeScreen: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -21,8 +21,6 @@ struct OnboardingWelcomeScreen: View {
     var onRestoreFromBackup: (() -> Void)?
 
     @State private var showSources = false
-    @State private var showArrow = false
-    @State private var showResult = false
     @State private var showRestoreFilePicker = false
     @State private var showRestorePreview = false
     @State private var restoreFileURL: URL?
@@ -43,7 +41,7 @@ struct OnboardingWelcomeScreen: View {
 
             VStack(spacing: 0) {
                 // Progress indicator
-                Text("1/5")
+                Text("1/7")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -54,15 +52,15 @@ struct OnboardingWelcomeScreen: View {
                 GeometryReader { geometry in
                     ScrollView {
                     VStack(spacing: 24) {
-                        // Header
+                        // Header - Capture breadth
                         VStack(spacing: 12) {
-                            Text("Turn recipe chaos into a recipe box")
+                            Text("Save from anywhere")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Save from links, videos, cookbooks, and photos—all in one tap.")
+                            Text("However your recipes exist, Heirloom can capture them.")
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(HeirloomColors.secondaryText)
                                 .multilineTextAlignment(.center)
@@ -162,155 +160,64 @@ struct OnboardingWelcomeScreen: View {
             }
         }
         .onAppear {
-            // Staggered entrance animations
-            withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
+            // Trigger staggered grid animation
+            withAnimation(.easeOut(duration: 0.3).delay(0.2)) {
                 showSources = true
-            }
-            withAnimation(.easeOut(duration: 0.3).delay(0.6)) {
-                showArrow = true
-            }
-            withAnimation(.easeOut(duration: 0.5).delay(0.8)) {
-                showResult = true
             }
         }
     }
 
-    // MARK: - Inputs to Recipe Visual
+    // MARK: - Capture Sources Grid
 
     private var inputsToRecipeVisual: some View {
-        HStack(spacing: 12) {
-            // Left side: 3 stacked source cards
-            sourceCardsStack
-                .frame(maxWidth: .infinity)
-
-            // Middle: Arrow indicator
-            arrowIndicator
-
-            // Right side: Clean recipe result
-            recipeResultCard
-                .frame(maxWidth: .infinity)
+        VStack(spacing: 20) {
+            // 2x3 grid of capture sources
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
+                captureSourceTile(icon: "video.fill", label: "Video", delay: 0.0)
+                captureSourceTile(icon: "globe", label: "Websites", delay: 0.1)
+                captureSourceTile(icon: "photo.fill", label: "Photos + PDFs", delay: 0.2)
+                captureSourceTile(icon: "pencil.and.scribble", label: "Handwriting", delay: 0.3)
+                captureSourceTile(icon: "mic.fill", label: "Voice", delay: 0.4)
+                captureSourceTile(icon: "sparkles", label: "Generative", delay: 0.5)
+            }
+            .padding(.horizontal, 8)
         }
         .padding(.vertical, 20)
     }
 
-    // MARK: - Source Cards Stack
+    private func captureSourceTile(icon: String, label: String, delay: Double) -> some View {
+        VStack(spacing: 10) {
+            // Icon circle
+            ZStack {
+                Circle()
+                    .fill(HeirloomColors.tomato.opacity(0.1))
+                    .frame(width: 56, height: 56)
 
-    private var sourceCardsStack: some View {
-        ZStack {
-            // Video source (back, tilted left)
-            sourceCard(
-                imageName: "onboarding-source-video",
-                label: "Video",
-                icon: "play.circle.fill"
-            )
-            .rotationEffect(.degrees(-8))
-            .offset(x: -16, y: -20)
-            .opacity(showSources ? 1 : 0)
-            .offset(x: showSources ? 0 : -30)
-            .animation(.easeOut(duration: 0.5).delay(0.2), value: showSources)
-
-            // Cookbook source (middle, slight tilt)
-            sourceCard(
-                imageName: "onboarding-source-cookbook",
-                label: "Cookbook",
-                icon: "book.fill"
-            )
-            .rotationEffect(.degrees(4))
-            .offset(x: 8, y: 0)
-            .opacity(showSources ? 1 : 0)
-            .offset(x: showSources ? 0 : -30)
-            .animation(.easeOut(duration: 0.5).delay(0.35), value: showSources)
-
-            // Website source (front, tilted right)
-            sourceCard(
-                imageName: "onboarding-source-website",
-                label: "Website",
-                icon: "globe"
-            )
-            .rotationEffect(.degrees(-2))
-            .offset(x: -4, y: 24)
-            .opacity(showSources ? 1 : 0)
-            .offset(x: showSources ? 0 : -30)
-            .animation(.easeOut(duration: 0.5).delay(0.5), value: showSources)
-        }
-        .frame(height: 200)
-    }
-
-    private func sourceCard(imageName: String, label: String, icon: String) -> some View {
-        VStack(spacing: 0) {
-            // Image
-            Image(imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 100, height: 100)
-                .clipped()
-                .cornerRadius(8)
-
-            // Label with icon
-            HStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 10))
-                Text(label)
-                    .font(HeirloomFonts.caption2)
+                    .font(.system(size: 24))
+                    .foregroundColor(HeirloomColors.tomato)
             }
-            .foregroundColor(HeirloomColors.secondaryText)
-            .padding(.top, 6)
+
+            // Label
+            Text(label)
+                .font(HeirloomFonts.caption1)
+                .foregroundColor(HeirloomColors.primaryText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(8)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
         .background(Color.white)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
-    }
-
-    // MARK: - Arrow Indicator
-
-    private var arrowIndicator: some View {
-        VStack(spacing: 4) {
-            Image(systemName: "arrow.right")
-                .font(.system(size: 24, weight: .medium))
-                .foregroundColor(HeirloomColors.tomato)
-                .opacity(showArrow ? 1 : 0)
-                .scaleEffect(showArrow ? 1 : 0.5)
-        }
-        .frame(width: 40)
-    }
-
-    // MARK: - Recipe Result Card
-
-    private var recipeResultCard: some View {
-        VStack(spacing: 0) {
-            // Recipe image
-            Image("onboarding-source-recipe")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 140, height: 180)
-                .clipped()
-                .cornerRadius(12)
-                .overlay(
-                    // Subtle Heirloom badge
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 12))
-                            Text("Saved")
-                                .font(HeirloomFonts.caption2)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(HeirloomColors.tomato.opacity(0.9))
-                        .cornerRadius(12)
-                        .padding(8)
-                    },
-                    alignment: .bottom
-                )
-        }
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
-        .opacity(showResult ? 1 : 0)
-        .offset(x: showResult ? 0 : 30)
+        .shadow(color: .black.opacity(0.06), radius: 6, y: 3)
+        .opacity(showSources ? 1 : 0)
+        .offset(y: showSources ? 0 : 20)
+        .animation(.easeOut(duration: 0.4).delay(delay), value: showSources)
     }
 
     // MARK: - Restore File Handling

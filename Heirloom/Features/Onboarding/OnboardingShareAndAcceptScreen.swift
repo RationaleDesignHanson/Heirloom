@@ -35,7 +35,7 @@ struct OnboardingShareAndAcceptScreen: View {
 
             VStack(spacing: 0) {
                 // Progress indicator
-                Text("4/5")
+                Text("3/7")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -159,22 +159,17 @@ struct OnboardingShareAndAcceptScreen: View {
                 .opacity(showRecipeCard ? 1 : 0)
                 .scaleEffect(showRecipeCard ? 1 : 0.9)
 
-            // Timeline
+            // Timeline (top to bottom: Grandma → Mom → You → Future)
             VStack(alignment: .leading, spacing: 0) {
-                // Future hint
-                if showFuture {
-                    timelineFutureNode
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-
-                // You (current)
-                if showYou {
+                // Grandma Kay (origin - top)
+                if showGrandma {
                     timelineNode(
-                        name: "You",
-                        detail: "Your version",
-                        isCurrentUser: true
+                        name: "Grandma Kay",
+                        detail: "The original",
+                        isCurrentUser: false,
+                        isFirst: true
                     )
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
                 // Mom
@@ -184,18 +179,23 @@ struct OnboardingShareAndAcceptScreen: View {
                         detail: "Added red wine",
                         isCurrentUser: false
                     )
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
-                // Grandma Kay (origin)
-                if showGrandma {
+                // You (current)
+                if showYou {
                     timelineNode(
-                        name: "Grandma Kay",
-                        detail: "The original",
-                        isCurrentUser: false,
-                        isOrigin: true
+                        name: "You",
+                        detail: "Your version",
+                        isCurrentUser: true
                     )
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
+                // Future hint (bottom)
+                if showFuture {
+                    timelineFutureNode
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -214,7 +214,7 @@ struct OnboardingShareAndAcceptScreen: View {
                 .frame(width: 120, height: 90)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            Text("Nana's Pot Roast")
+            Text("Grandma's Brisket")
                 .font(.system(size: 14, weight: .semibold))
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -236,7 +236,7 @@ struct OnboardingShareAndAcceptScreen: View {
         name: String,
         detail: String,
         isCurrentUser: Bool,
-        isOrigin: Bool = false
+        isFirst: Bool = false
     ) -> some View {
         HStack(alignment: .top, spacing: 12) {
             // Timeline connector
@@ -251,12 +251,10 @@ struct OnboardingShareAndAcceptScreen: View {
                     )
                     .shadow(color: (isCurrentUser ? HeirloomColors.tomato : HeirloomColors.familyGreen).opacity(0.3), radius: 4)
 
-                // Line (not shown for origin)
-                if !isOrigin {
-                    Rectangle()
-                        .fill(HeirloomColors.warmGray.opacity(0.3))
-                        .frame(width: 2, height: 32)
-                }
+                // Line going down (always show except we'll handle future differently)
+                Rectangle()
+                    .fill(HeirloomColors.warmGray.opacity(0.3))
+                    .frame(width: 2, height: 32)
             }
 
             // Content
@@ -270,7 +268,7 @@ struct OnboardingShareAndAcceptScreen: View {
                     .foregroundColor(HeirloomColors.secondaryText)
                     .italic()
             }
-            .padding(.bottom, isOrigin ? 0 : 20)
+            .padding(.bottom, 20)
         }
     }
 
@@ -278,9 +276,14 @@ struct OnboardingShareAndAcceptScreen: View {
 
     private var timelineFutureNode: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Timeline connector (dashed)
+            // Timeline connector (dashed going down)
             VStack(spacing: 0) {
-                // Dashed line going up
+                // Empty dot (future)
+                Circle()
+                    .stroke(HeirloomColors.warmGray.opacity(0.4), lineWidth: 2)
+                    .frame(width: 12, height: 12)
+
+                // Dashed line going down
                 Rectangle()
                     .fill(HeirloomColors.warmGray.opacity(0.2))
                     .frame(width: 2, height: 24)
@@ -292,16 +295,6 @@ struct OnboardingShareAndAcceptScreen: View {
                             }
                         }
                     )
-
-                // Empty dot (future)
-                Circle()
-                    .stroke(HeirloomColors.warmGray.opacity(0.4), lineWidth: 2)
-                    .frame(width: 12, height: 12)
-
-                // Line down to "You"
-                Rectangle()
-                    .fill(HeirloomColors.warmGray.opacity(0.3))
-                    .frame(width: 2, height: 16)
             }
 
             // Content
@@ -311,8 +304,7 @@ struct OnboardingShareAndAcceptScreen: View {
                     .foregroundColor(HeirloomColors.secondaryText.opacity(0.7))
                     .italic()
             }
-            .padding(.top, 20)
-            .padding(.bottom, 8)
+            .padding(.top, 0)
         }
         .opacity(0.8)
     }

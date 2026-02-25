@@ -3,24 +3,23 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-01-08.
-//  Updated for new 6-screen onboarding flow on 2026-02-05
+//  Updated for 7-screen onboarding flow on 2026-02-25
+//  Aligned with pitch deck narrative: capture → transform → lineage → privacy → save → upsell → profile
 //
 
 import SwiftUI
 import SwiftData
 import UIKit
 
-/// Container view that manages the 6-screen onboarding flow
+/// Container view that manages the 7-screen onboarding flow
 struct OnboardingContainerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
-    @State private var currentScreen: OnboardingScreen = .welcome
+    @State private var currentScreen: OnboardingScreen = .capture
     @State private var hasSeededHeritage = false
-    @State private var selectedThemeIds: [String] = []
-    @State private var showThemeSelection = false
     @State private var pendingProfileData: OnboardingProfileData?
 
     /// Binding to control which tab should be selected after onboarding
@@ -30,23 +29,25 @@ struct OnboardingContainerView: View {
     var onComplete: () -> Void
 
     enum OnboardingScreen {
-        case welcome           // Screen 1: Recipe box vision
-        case shareSheetAha     // Screen 2: One-tap save tutorial
-        case shareAndAccept    // Screen 3: Intentional sharing model
-        case discover          // Screen 4: Optional community
-        case premiumTrial      // Screen 5: Premium upsell (moved later - less aggressive)
-        case profileSetup      // Screen 6: Profile setup (display name + optional photo)
+        case capture           // Screen 1: "Save from anywhere" - capture breadth
+        case transformation    // Screen 2: "Heirloom structures them" - AI transformation
+        case lineage           // Screen 3: "Recipes have history" - generational timeline
+        case privacy           // Screen 4: "Private by default" - trust building
+        case howToSave         // Screen 5: "Two ways to save" - share extension + in-app
+        case premiumTrial      // Screen 6: Premium upsell
+        case profileSetup      // Screen 7: Profile setup (name + photo)
         case completing        // Final: Saving profile and finishing up
     }
 
     var body: some View {
         NavigationStack {
             switch currentScreen {
-            case .welcome:
+            case .capture:
+                // Screen 1: "Save from anywhere" - capture breadth
                 OnboardingWelcomeScreen(
                     onContinue: {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .shareSheetAha
+                            currentScreen = .transformation
                         }
                     },
                     onRestoreFromBackup: {
@@ -60,10 +61,11 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .shareSheetAha:
-                OnboardingShareExtensionScreen {
+            case .transformation:
+                // Screen 2: "Heirloom structures them for you" - AI transformation
+                OnboardingTransformationScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .shareAndAccept
+                        currentScreen = .lineage
                     }
                 }
                 .transition(.asymmetric(
@@ -71,10 +73,11 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .shareAndAccept:
+            case .lineage:
+                // Screen 3: "Recipes have history" - generational timeline
                 OnboardingShareAndAcceptScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .discover
+                        currentScreen = .privacy
                     }
                 }
                 .transition(.asymmetric(
@@ -82,28 +85,32 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .discover:
-                OnboardingDiscoverScreen(
-                    onStartSaving: {
-                        // Navigate to premium trial before profile setup
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .premiumTrial
-                        }
-                    },
-                    onExploreDiscover: {
-                        // Navigate to Discover tab after onboarding completes
-                        selectedTab = 1 // Discover tab
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .premiumTrial
-                        }
+            case .privacy:
+                // Screen 4: "Private by default" - trust building
+                OnboardingPrivacyScreen {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentScreen = .howToSave
                     }
-                )
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .howToSave:
+                // Screen 5: "Two ways to save recipes" - share extension + in-app
+                OnboardingHowToSaveScreen {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentScreen = .premiumTrial
+                    }
+                }
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
                 ))
 
             case .premiumTrial:
+                // Screen 6: Premium upsell
                 OnboardingSubscriptionScreen(
                     onStartTrial: {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -122,15 +129,19 @@ struct OnboardingContainerView: View {
                 ))
 
             case .profileSetup:
+                // Screen 7: Profile setup (name + photo)
                 OnboardingProfileSetupScreen(
                     onContinue: { profileData in
                         pendingProfileData = profileData
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentScreen = .completing
                         }
-                        // Show theme selection after transitioning to completing screen
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            showThemeSelection = true
+                        // Save profile and finalize directly (no theme selection)
+                        Task {
+                            await saveOnboardingProfile()
+                            await MainActor.run {
+                                finalizeOnboarding()
+                            }
                         }
                     }
                 )
@@ -140,8 +151,7 @@ struct OnboardingContainerView: View {
                 ))
 
             case .completing:
-                // Clean loading screen shown while theme selection sheet is presented
-                // and while profile is being saved
+                // Final: Saving profile and finishing up
                 completingView
                     .transition(.opacity)
             }
@@ -162,14 +172,7 @@ struct OnboardingContainerView: View {
                 }
             }
         }
-        .sheet(isPresented: $showThemeSelection) {
-            ThemeSelectionScreen { themeIds in
-                handleThemeSelection(themeIds)
-            }
-            .task {
-                await loadThemesIfNeeded()
-            }
-        }
+        // Theme selection moved to Discovery tab
     }
 
     // MARK: - Completing View
@@ -200,38 +203,6 @@ struct OnboardingContainerView: View {
     }
 
     // MARK: - Private Methods
-
-    // MARK: - Theme Selection Handler
-
-    private func handleThemeSelection(_ themeIds: [String]) {
-        selectedThemeIds = themeIds
-
-        // Only setup themes if user selected any
-        if !themeIds.isEmpty {
-            // Start the trial (if user has premium)
-            themeUnlockTracker.startTrial(withThemeIds: themeIds)
-
-            // Create collections for selected themes
-            createThemeCollections(for: themeIds)
-
-            // Download initial recipes (fire and forget - can complete after onboarding)
-            Task.detached {
-                await self.downloadInitialRecipes(for: themeIds)
-            }
-        }
-
-        // Close theme selection sheet
-        showThemeSelection = false
-
-        // Save profile and finalize onboarding
-        // Must await profile save before finalizing to prevent task cancellation
-        Task {
-            await saveOnboardingProfile()
-            await MainActor.run {
-                finalizeOnboarding()
-            }
-        }
-    }
 
     // MARK: - Profile Saving
 
@@ -288,86 +259,6 @@ struct OnboardingContainerView: View {
             }
         } catch {
             Log.error("Failed to upload avatar in background", category: .onboarding, error: error)
-        }
-    }
-
-    // MARK: - Theme Loading
-
-    private func loadThemesIfNeeded() async {
-        let descriptor = FetchDescriptor<RecipeTheme>()
-        let existingThemes = (try? modelContext.fetch(descriptor)) ?? []
-
-        // Only load if we don't have themes
-        if existingThemes.isEmpty {
-            let loader = ThemeLoader()
-            do {
-                _ = try await loader.loadThemes(into: modelContext)
-                Log.info("Loaded themes from Firebase", category: .onboarding)
-            } catch {
-                Log.error("Failed to load themes", category: .onboarding, error: error)
-            }
-        }
-    }
-
-    // MARK: - Collection Creation
-
-    private func createThemeCollections(for themeIds: [String]) {
-        let descriptor = FetchDescriptor<RecipeTheme>()
-        guard let allThemes = try? modelContext.fetch(descriptor) else { return }
-
-        let selectedThemes = allThemes.filter { themeIds.contains($0.firebaseId) }
-
-        for theme in selectedThemes {
-            // Check if collection already exists
-            let themeName = theme.name
-            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
-                predicate: #Predicate<RecipeCollection> { collection in
-                    collection.name == themeName && collection.collectionType == "theme"
-                }
-            )
-
-            if let existing = try? modelContext.fetch(collectionDescriptor).first {
-                // Link existing collection to theme
-                existing.sourceTheme = theme
-                existing.sourceThemeId = theme.firebaseId
-                theme.collection = existing
-            } else {
-                // Create new collection
-                let collection = RecipeCollection(
-                    name: theme.name,
-                    iconName: theme.iconName,
-                    collectionType: .theme
-                )
-                collection.sourceTheme = theme
-                collection.sourceThemeId = theme.firebaseId
-                theme.collection = collection
-                modelContext.insert(collection)
-            }
-        }
-
-        do {
-            try modelContext.save()
-            Log.info("Created collections for \(selectedThemes.count) themes", category: .onboarding)
-        } catch {
-            Log.error("Failed to create theme collections", category: .onboarding, error: error)
-        }
-    }
-
-    private func downloadInitialRecipes(for themeIds: [String]) async {
-        do {
-            Log.info("Downloading initial recipes for \(themeIds.count) themes", category: .onboarding)
-
-            let recipeService = ThemeRecipeService()
-            let recipes = try await recipeService.downloadRecipes(for: themeIds, into: modelContext)
-
-            // Recipes are downloaded with sourceThemeId - collections will find them via queries
-            // No need to set the many-to-many relationship explicitly - SwiftData manages it
-
-            try modelContext.save()
-
-            Log.info("Downloaded \(recipes.count) recipes", category: .onboarding)
-        } catch {
-            Log.error("Failed to download initial recipes", category: .onboarding, error: error)
         }
     }
 
