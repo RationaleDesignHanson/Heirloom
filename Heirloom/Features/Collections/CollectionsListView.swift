@@ -969,15 +969,33 @@ struct CollectionsListView: View {
     // MARK: - CTA Banner
 
     private var ctaBanner: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Add your own recipe")
                 .font(HeirloomFonts.body)
                 .fontWeight(.semibold)
                 .foregroundStyle(.white)
 
-            Text("Press the + button above to import or generate recipes")
+            Text("Tap + above, or share from any app using our extension")
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(.white.opacity(0.9))
+
+            // Discover link
+            Button {
+                tabCoordinator.selectedTab = 1 // Discover tab
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Need inspiration?")
+                        .foregroundStyle(.white.opacity(0.8))
+                    Text("Explore Discover")
+                        .fontWeight(.medium)
+                        .foregroundStyle(.white)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .font(HeirloomFonts.caption1)
+            }
+            .padding(.top, 2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
