@@ -11,6 +11,17 @@ struct LineageTimelineView: View {
     @State private var sortOrder: TimelineSortOrder = .generation
     @State private var selectedNodeID: UUID?
 
+    /// Maps actual generation numbers to sequential display numbers (0, 1, 2, 3...)
+    /// This fixes gaps like Gen 0 → Gen 2 when intermediate nodes are missing
+    private var generationDisplayMap: [Int: Int] {
+        let uniqueGenerations = Set(tree.nodes.map { $0.generation }).sorted()
+        var map: [Int: Int] = [:]
+        for (index, generation) in uniqueGenerations.enumerated() {
+            map[generation] = index
+        }
+        return map
+    }
+
     private var sortedNodes: [LineageNode] {
         switch sortOrder {
         case .chronological:
@@ -38,6 +49,7 @@ struct LineageTimelineView: View {
                     ForEach(Array(sortedNodes.enumerated()), id: \.element.id) { index, node in
                         TimelineItemView(
                             node: node,
+                            displayGeneration: generationDisplayMap[node.generation] ?? node.generation,
                             isFirst: index == 0,
                             isLast: index == sortedNodes.count - 1,
                             parentNode: tree.parent(of: node.recipe.id),
@@ -106,6 +118,7 @@ struct LineageTimelineView: View {
 
 private struct TimelineItemView: View {
     let node: LineageNode
+    let displayGeneration: Int  // Sequential generation number for display (fixes gaps)
     let isFirst: Bool
     let isLast: Bool
     let parentNode: LineageNode?
@@ -138,12 +151,23 @@ private struct TimelineItemView: View {
 
     // MARK: - Timeline Indicator
 
+    /// Color for the node based on display generation
+    private var displayGenerationColor: Color {
+        switch displayGeneration {
+        case 0: return HeirloomColors.tomato
+        case 1: return .blue
+        case 2: return .green
+        case 3: return .orange
+        default: return HeirloomColors.warmGray
+        }
+    }
+
     private var timelineIndicator: some View {
         VStack(spacing: 0) {
             // Line above (if not first)
             if !isFirst {
                 Rectangle()
-                    .fill(node.generationColor.opacity(0.3))
+                    .fill(displayGenerationColor.opacity(0.3))
                     .frame(width: 3)
                     .frame(height: 30)
             }
@@ -151,7 +175,7 @@ private struct TimelineItemView: View {
             // Generation dot
             ZStack {
                 Circle()
-                    .fill(node.generationColor)
+                    .fill(displayGenerationColor)
                     .frame(width: 32, height: 32)
 
                 if isSelected {
@@ -160,7 +184,7 @@ private struct TimelineItemView: View {
                         .frame(width: 38, height: 38)
                 }
 
-                Text("G\(node.generation)")
+                Text("G\(displayGeneration)")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(HeirloomColors.buttonTextLight)
             }
@@ -169,12 +193,23 @@ private struct TimelineItemView: View {
             // Line below (if not last)
             if !isLast {
                 Rectangle()
-                    .fill(node.generationColor.opacity(0.3))
+                    .fill(displayGenerationColor.opacity(0.3))
                     .frame(width: 3)
                     .frame(maxHeight: .infinity)
             }
         }
         .frame(width: 40)
+    }
+
+    /// Display badge text for the generation
+    private var displayGenerationBadge: String {
+        switch displayGeneration {
+        case 0: return "Original"
+        case 1: return "1st Gen"
+        case 2: return "2nd Gen"
+        case 3: return "3rd Gen"
+        default: return "\(displayGeneration)th Gen"
+        }
     }
 
     // MARK: - Recipe Card
@@ -194,9 +229,9 @@ private struct TimelineItemView: View {
                         contributorRow(contributor)
                     }
 
-                    Text(node.generationBadge)
+                    Text(displayGenerationBadge)
                         .font(HeirloomFonts.caption2)
-                        .foregroundStyle(node.generationColor)
+                        .foregroundStyle(displayGenerationColor)
                 }
 
                 Spacer()

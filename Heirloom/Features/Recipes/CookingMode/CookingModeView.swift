@@ -595,6 +595,10 @@ struct CookingModeView: View {
                 Button {
                     if currentStep < activeInstructions.count - 1 {
                         withAnimation(.easeInOut(duration: 0.2)) {
+                            // Auto-mark current step as complete when moving to next
+                            if !completedSteps.contains(currentStep) {
+                                completedSteps.insert(currentStep)
+                            }
                             currentStep += 1
                         }
                     } else {

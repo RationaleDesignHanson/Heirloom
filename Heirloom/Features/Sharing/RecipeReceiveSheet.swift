@@ -292,7 +292,7 @@ struct RecipeReceiveSheet: View {
                         .tint(HeirloomColors.buttonTextLight)
                 } else {
                     Image(systemName: "checkmark.circle.fill")
-                    Text("Add to My Recipes")
+                    Text("Accept")
                 }
             }
             .font(HeirloomFonts.bodyBold)
