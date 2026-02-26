@@ -1,0 +1,1037 @@
+{
+  "themeId": "childrens-stories",
+  "themeName": "Children's & Young-Adult Stories",
+  "recipes": [
+    {
+      "id": "childrens-stories-001",
+      "title": "Dr. Seuss' Green Eggs & Ham",
+      "description": "Bright emerald scrambled eggs folded with savory diced ham, made vibrantly green with a swirl of spinach puree. This playful breakfast proves that trying something new can be the best decision you make all day.",
+      "prepTime": "10 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "eggs",
+        "children's literature",
+        "fun"
+      ],
+      "source": "Green Eggs and Ham by Dr. Seuss",
+      "story": "Dr. Seuss wrote his famous book using only fifty different words. Sam-I-Am eventually convinces a friend to try the quirky dish. The playful colours encourage picky eaters to try new flavours.",
+      "ingredients": [
+        {
+          "name": "eggs",
+          "amount": 6,
+          "unit": "large"
+        },
+        {
+          "name": "milk",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "spinach puree",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "fresh or frozen, thawed"
+        },
+        {
+          "name": "diced cooked ham",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Crack the eggs into a bowl and add the milk and spinach puree. Whisk vigorously until the mixture is a uniform bright green.",
+        "Melt the butter in a non-stick skillet over medium-low heat.",
+        "Pour in the egg mixture and let it sit for 30 seconds until the edges begin to set.",
+        "Gently push the eggs from the edges toward the center, forming soft curds. Continue for 2 to 3 minutes until softly set but still slightly glossy.",
+        "Fold in the diced ham, season with salt and pepper, and serve immediately on warm plates."
+      ]
+    },
+    {
+      "id": "childrens-stories-002",
+      "title": "Goldilocks' Just-Right Porridge",
+      "description": "Creamy, slow-simmered oats with a golden drizzle of honey, a pat of melting butter, and a warm dusting of cinnamon. Not too hot, not too cold, but just right for a cozy morning at the bears' table.",
+      "prepTime": "5 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 3",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "breakfast",
+        "oatmeal",
+        "fairy tale",
+        "comfort food"
+      ],
+      "source": "Goldilocks and the Three Bears",
+      "story": "In the fairy tale Goldilocks and the Three Bears, Goldilocks tastes three bowls of porridge -- one too hot, one too cold and one just right. The tale uses porridge to teach moderation and respect for others.",
+      "ingredients": [
+        {
+          "name": "rolled oats",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "whole milk",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "Pinch of salt"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "ground cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Fresh berries, for topping (optional)"
+        }
+      ],
+      "instructions": [
+        "Combine the oats, milk, and salt in a medium saucepan. Bring to a gentle simmer over medium heat, stirring frequently.",
+        "Reduce heat to low and cook for 8 to 10 minutes, stirring occasionally, until the porridge is thick and creamy.",
+        "Divide the porridge into three bowls -- a big one, a medium one, and a small one.",
+        "Top each bowl with a pat of butter, a drizzle of honey, and a sprinkle of cinnamon.",
+        "Add fresh berries if desired and serve at just the right temperature."
+      ]
+    },
+    {
+      "id": "childrens-stories-003",
+      "title": "Hansel & Gretel's Gingerbread House",
+      "description": "Fragrant, spiced gingerbread panels assembled into a charming edible cottage with royal icing mortar and a candy-studded roof. This enchanting baking project turns an afternoon in the kitchen into a fairy tale adventure.",
+      "prepTime": "1 hour",
+      "cookTime": "15 minutes",
+      "servings": "Makes 1 house",
+      "difficulty": "hard",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "dessert",
+        "baking",
+        "fairy tale",
+        "holiday",
+        "project"
+      ],
+      "source": "Hansel and Gretel by the Brothers Grimm",
+      "story": "In the Brothers Grimm story, hungry siblings find a cottage made of gingerbread and candy. Building gingerbread houses has become a festive tradition inspired by the cautionary tale.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 3.5,
+          "unit": "cups"
+        },
+        {
+          "name": "baking soda",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground ginger",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "ground cinnamon",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "ground cloves",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "softened"
+        },
+        {
+          "name": "dark brown sugar, packed",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsulphured molasses",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 3,
+          "unit": "cups",
+          "preparation": "for royal icing"
+        },
+        {
+          "name": "egg whites",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "for royal icing"
+        },
+        {
+          "name": "lemon juice",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": "for royal icing"
+        },
+        {
+          "name": "Assorted candies for decorating"
+        }
+      ],
+      "instructions": [
+        "Whisk together the flour, baking soda, ginger, cinnamon, cloves, and salt in a large bowl.",
+        "In a separate bowl, cream the butter and brown sugar until fluffy. Beat in the molasses and egg. Gradually mix in the dry ingredients to form a stiff dough. Wrap and refrigerate for at least 1 hour.",
+        "Preheat the oven to 350°F. Roll the dough out on parchment paper to 1/4 inch thickness. Cut out panels for the house: two rectangles for sides, two rectangles with peaked tops for the front and back, and two rectangles for the roof.",
+        "Bake the panels for 12 to 15 minutes until firm and just starting to darken at the edges. Let cool completely on the baking sheet.",
+        "Make the royal icing by beating the egg whites with the lemon juice, then gradually adding the powdered sugar until thick and glossy.",
+        "Assemble the house by piping thick lines of royal icing along the edges of the panels and pressing them together. Let each wall set for 10 minutes before adding the next. Attach the roof panels last.",
+        "Decorate the house with candies, using royal icing as glue. Let the entire structure dry for at least 2 hours before displaying."
+      ]
+    },
+    {
+      "id": "childrens-stories-004",
+      "title": "Hogwarts Pumpkin Pasties",
+      "description": "Golden, flaky hand pies filled with sweet spiced pumpkin custard, just like the ones sold from the trolley on the Hogwarts Express. Each warm, crescent-shaped pastry is a pocket of pure autumn magic.",
+      "prepTime": "25 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Makes 8 pasties",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "snack",
+        "pastry",
+        "Harry Potter",
+        "pumpkin"
+      ],
+      "source": "Harry Potter series by J.K. Rowling",
+      "story": "On the Hogwarts Express in Harry Potter, witch and wizard students buy pumpkin pasties. Mission Food Adventure notes they resemble hand pies filled with sweet spiced pumpkin puree. The pasties are a wizarding twist on traditional Cornish pasties.",
+      "ingredients": [
+        {
+          "name": "(14 oz) refrigerated pie crust, or homemade pie dough",
+          "amount": 1,
+          "unit": "package"
+        },
+        {
+          "name": "pumpkin puree",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "not pumpkin pie filling"
+        },
+        {
+          "name": "dark brown sugar, packed",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "ground cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground ginger",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "freshly grated nutmeg",
+          "amount": 0.125,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of salt"
+        },
+        {
+          "name": "egg, beaten with 1 tablespoon water for egg wash",
+          "amount": 1
+        },
+        {
+          "name": "coarse sugar, for sprinkling",
+          "amount": 1,
+          "unit": "tablespoon"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 400°F and line a baking sheet with parchment paper.",
+        "Mix the pumpkin puree with the brown sugar, cinnamon, ginger, nutmeg, and salt until smooth.",
+        "Roll out the pie dough and cut into 5-inch circles. You should get about 8 rounds.",
+        "Place a heaping tablespoon of the pumpkin filling in the center of each circle. Brush the edges with egg wash.",
+        "Fold the dough over to form a half-moon shape. Press the edges firmly with a fork to seal.",
+        "Place on the prepared baking sheet. Brush the tops with egg wash and sprinkle with coarse sugar.",
+        "Bake for 20 to 25 minutes until the pastry is golden brown and flaky. Let cool slightly before serving."
+      ]
+    },
+    {
+      "id": "childrens-stories-005",
+      "title": "Three Broomsticks' Butterbeer",
+      "description": "A frothy, butterscotch-flavored cream soda topped with a cloud of whipped butterscotch foam. This enchanting non-alcoholic drink is rich, sweet, and fizzy -- the perfect treat for young wizards and muggles alike.",
+      "prepTime": "10 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "drink",
+        "Harry Potter",
+        "butterscotch",
+        "non-alcoholic"
+      ],
+      "source": "Harry Potter series by J.K. Rowling",
+      "story": "Butterbeer appears throughout the Harry Potter series and is said to taste like butterscotch but less sickly sweet. J.K. Rowling imagined butterbeer as a comforting pub drink available to young wizards.",
+      "ingredients": [
+        {
+          "name": "cream soda",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": "chilled"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "dark brown sugar",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "heavy whipping cream",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "butterscotch sauce",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "optional"
+        }
+      ],
+      "instructions": [
+        "Melt the butter in a small saucepan over low heat. Add the brown sugar and stir until dissolved and bubbly, about 2 minutes. Remove from heat and let cool to room temperature.",
+        "In a chilled bowl, whip the heavy cream with the vanilla extract until soft peaks form. Gently fold in the cooled butterscotch mixture.",
+        "Divide the chilled cream soda among four glasses, filling each about three-quarters full.",
+        "Spoon a generous dollop of the butterscotch whipped cream on top of each glass.",
+        "Drizzle with butterscotch sauce if desired and serve immediately with a straw."
+      ]
+    },
+    {
+      "id": "childrens-stories-006",
+      "title": "Katniss's Lamb Stew with Dried Plums",
+      "description": "Tender lamb shoulder braised with sweet dried plums in a rich red wine sauce with herbs and vegetables. This Capitol-worthy dish contrasts luxury with survival, delivering deep, complex flavors over a bed of wild rice.",
+      "prepTime": "25 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "main dish",
+        "lamb",
+        "Hunger Games",
+        "stew"
+      ],
+      "source": "The Hunger Games by Suzanne Collins",
+      "story": "In Suzanne Collins' The Hunger Games, Katniss Everdeen's favourite Capitol dish is lamb stew with dried plums. The book describes tender lamb cooked with dried plums. The luxurious stew contrasts the Capitol's excess with the districts' scarcity.",
+      "ingredients": [
+        {
+          "name": "lamb shoulder",
+          "amount": 2,
+          "unit": "lb",
+          "preparation": "cut into 1 1/2-inch cubes"
+        },
+        {
+          "name": "pitted dried plums",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "prunes"
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and sliced"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "red wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "beef stock",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 2,
+          "unit": "sprigs"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 1,
+          "unit": "sprig"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "wild rice, cooked, for serving",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Season the lamb cubes generously with salt and pepper. Heat the olive oil in a large Dutch oven over high heat and brown the lamb in batches. Set aside.",
+        "Reduce heat to medium. Saute the onions, carrots, and garlic until softened, about 5 minutes. Sprinkle in the flour and stir for 1 minute.",
+        "Pour in the red wine, scraping up the brown bits from the bottom of the pot. Add the beef stock, thyme, and rosemary.",
+        "Return the lamb to the pot and bring to a gentle simmer. Cover and cook for 1 hour.",
+        "Add the dried plums, stir gently, and continue cooking covered for another 45 minutes to 1 hour until the lamb is very tender and the sauce is thick.",
+        "Remove the herb stems. Adjust seasoning with salt and pepper. Serve the stew ladled over cooked wild rice."
+      ]
+    },
+    {
+      "id": "childrens-stories-007",
+      "title": "Lennie's Baked Beans & Ketchup",
+      "description": "A hearty, smoky bake of three kinds of beans with ground beef, crispy bacon, and a sweet-tangy ketchup glaze. This stick-to-your-ribs dish is the kind of simple, honest food that fuels hardworking folks through long days.",
+      "prepTime": "15 minutes",
+      "cookTime": "1 hour",
+      "servings": "Serves 8",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "main dish",
+        "American",
+        "beans",
+        "comfort food"
+      ],
+      "source": "Of Mice and Men by John Steinbeck",
+      "story": "In Of Mice and Men, itinerant ranch hands eat beans straight from the can; Lennie longs for ketchup. Bites from Books offers a recipe for hearty baked beans with ground beef, bacon, canned beans and ketchup. The simple meal underscores the characters' harsh lives and small comforts.",
+      "ingredients": [
+        {
+          "name": "(28 oz) pork and beans",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "(15 oz) kidney beans, drained and rinsed",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "(15 oz) lima beans, drained and rinsed",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "ground beef",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "bacon",
+          "amount": 6,
+          "unit": "slices",
+          "preparation": "chopped"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "ketchup",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "brown sugar, packed",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "yellow mustard",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 350°F. Cook the chopped bacon in a large oven-safe skillet or Dutch oven until crisp. Remove the bacon and set aside, leaving the drippings.",
+        "Brown the ground beef in the bacon drippings, breaking it into small pieces. Add the onion and cook until softened.",
+        "Drain off any excess fat. Add all three types of beans, the ketchup, brown sugar, mustard, and Worcestershire sauce. Stir to combine.",
+        "Crumble the reserved bacon back in and mix well. Season with salt and pepper.",
+        "Transfer to the oven and bake uncovered for 45 minutes to 1 hour until bubbly and slightly thickened on top.",
+        "Let cool for 10 minutes before serving. The beans will thicken further as they rest."
+      ]
+    },
+    {
+      "id": "childrens-stories-008",
+      "title": "Edmund's Turkish Delight",
+      "description": "Delicate rose-scented jelly cubes dusted in snowy powdered sugar, with a soft, yielding bite that dissolves on the tongue. These jewel-toned sweets are so enchanting you might just betray your siblings for another piece.",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour",
+      "servings": "Makes about 36 pieces",
+      "difficulty": "hard",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "candy",
+        "dessert",
+        "Narnia",
+        "rose"
+      ],
+      "source": "The Lion, the Witch and the Wardrobe by C.S. Lewis",
+      "story": "In C.S. Lewis' The Lion, the Witch and the Wardrobe, the White Witch tempts Edmund with Turkish delight. Kitchen Mason describes traditional Turkish delight as a rose-scented gel made with water, cornstarch, sugar and lemon juice. Edmund's craving for the exotic sweet leads to betrayal.",
+      "ingredients": [
+        {
+          "name": "granulated sugar",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "water, divided",
+          "amount": 1.25,
+          "unit": "cups"
+        },
+        {
+          "name": "cornstarch, divided",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "lemon juice",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "rosewater",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "-3 drops red or pink food coloring",
+          "amount": 2
+        },
+        {
+          "name": "powdered sugar, for coating",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "cornstarch, for coating",
+          "amount": 2,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "In a medium saucepan, combine the sugar and 3/4 cup of water. Stir over medium heat until the sugar dissolves, then bring to a boil and cook until it reaches 240°F (soft-ball stage) on a candy thermometer.",
+        "In a separate saucepan, whisk 3/4 cup of cornstarch with 1/2 cup of water until smooth. Cook over medium heat, stirring constantly, until the mixture forms a thick paste.",
+        "Gradually pour the hot sugar syrup into the cornstarch paste, stirring vigorously to combine. Cook the mixture over low heat, stirring frequently, for 45 minutes to 1 hour until it is very thick, pulls away from the sides of the pan, and has turned a translucent golden color.",
+        "Remove from heat and stir in the lemon juice, rosewater, and food coloring.",
+        "Pour into a lightly oiled 8x8 inch pan and smooth the top. Let set at room temperature for at least 6 hours or overnight.",
+        "Mix the powdered sugar and remaining 2 tablespoons of cornstarch together. Cut the Turkish delight into 1-inch cubes and toss generously in the coating. Store in an airtight container."
+      ]
+    },
+    {
+      "id": "childrens-stories-009",
+      "title": "Percy Jackson's Blue Cookies & Ambrosia Brownies",
+      "description": "A double batch of demigod-worthy treats: vibrant blue chocolate chip cookies with a soft, chewy center, plus rich honey-swirled brownies that taste like ambrosia. Two bakes, one tray of comfort from Camp Half-Blood.",
+      "prepTime": "25 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Makes 24 cookies and 12 brownies",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "dessert",
+        "baking",
+        "Percy Jackson",
+        "cookies",
+        "brownies"
+      ],
+      "source": "Percy Jackson series by Rick Riordan",
+      "story": "In Rick Riordan's Percy Jackson series, Percy's mother makes blue chocolate-chip cookies. Percy notes that nectar tastes like his mom's blue cookies. The books also describe ambrosia tasting like homemade brownies for him. Blue foods in the series symbolise rebellion against Percy's stepfather and offer healing comfort.",
+      "ingredients": [
+        {
+          "name": "For cookies: 2 1/4 cups all-purpose flour"
+        },
+        {
+          "name": "For cookies: 1 cup unsalted butter, softened"
+        },
+        {
+          "name": "For cookies: 3/4 cup granulated sugar"
+        },
+        {
+          "name": "For cookies: 3/4 cup brown sugar, packed"
+        },
+        {
+          "name": "For cookies: 2 large eggs"
+        },
+        {
+          "name": "For cookies: 1 teaspoon vanilla extract"
+        },
+        {
+          "name": "For cookies: 1 teaspoon baking soda"
+        },
+        {
+          "name": "For cookies: 1/2 teaspoon salt"
+        },
+        {
+          "name": "For cookies: 1 teaspoon blue gel food coloring"
+        },
+        {
+          "name": "For cookies: 1 1/2 cups chocolate chips"
+        },
+        {
+          "name": "For brownies: 1/2 cup unsalted butter"
+        },
+        {
+          "name": "For brownies: 1 cup sugar"
+        },
+        {
+          "name": "For brownies: 2 large eggs"
+        },
+        {
+          "name": "For brownies: 1/3 cup cocoa powder"
+        },
+        {
+          "name": "For brownies: 1/2 cup all-purpose flour"
+        },
+        {
+          "name": "For brownies: 1/4 teaspoon salt"
+        },
+        {
+          "name": "For brownies: 3 tablespoons honey"
+        },
+        {
+          "name": "For brownies: 1 teaspoon vanilla extract"
+        }
+      ],
+      "instructions": [
+        "For the cookies: Preheat the oven to 375°F. Cream the butter with both sugars until fluffy. Beat in the eggs, vanilla, and blue food coloring until evenly tinted.",
+        "Mix in the flour, baking soda, and salt until just combined. Fold in the chocolate chips.",
+        "Drop rounded tablespoons of dough onto lined baking sheets. Bake for 9 to 11 minutes until the edges are set but the centers are still soft. Cool on the sheet for 5 minutes.",
+        "For the brownies: Reduce oven to 350°F. Melt the butter and whisk in the sugar. Beat in the eggs, honey, and vanilla.",
+        "Fold in the cocoa powder, flour, and salt until just combined. Pour into a greased 8x8 inch pan.",
+        "Bake for 22 to 25 minutes until a toothpick comes out with moist crumbs. Let cool completely before cutting into squares."
+      ]
+    },
+    {
+      "id": "childrens-stories-010",
+      "title": "Eleven's Eggo Waffles",
+      "description": "Crispy on the outside and fluffy within, these golden homemade waffles are stacked high and drenched in butter and warm maple syrup. A comforting breakfast ritual that feels like home, no matter what dimension you are in.",
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "breakfast",
+        "waffles",
+        "Stranger Things",
+        "comfort food"
+      ],
+      "source": "Stranger Things TV series",
+      "story": "In the TV show Stranger Things, Eleven becomes obsessed with Eggo waffles; she steals boxes and they become a symbol of her connection to her new friends. The nostalgic breakfast food represents warmth and normalcy for a child raised in a laboratory.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "eggs, separated",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "whole milk",
+          "amount": 1.75,
+          "unit": "cups"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "melted"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Butter and maple syrup, for serving"
+        }
+      ],
+      "instructions": [
+        "Preheat a waffle iron. Whisk together the flour, sugar, baking powder, and salt in a large bowl.",
+        "In a separate bowl, whisk the egg yolks with the milk, melted butter, and vanilla.",
+        "Pour the wet ingredients into the dry and stir until just combined. A few lumps are fine.",
+        "Beat the egg whites to stiff peaks and gently fold them into the batter for extra fluffiness.",
+        "Cook the waffles in the preheated iron according to the manufacturer's instructions, until golden and crisp.",
+        "Stack the waffles on plates, top with pats of butter and a generous pour of warm maple syrup."
+      ]
+    },
+    {
+      "id": "childrens-stories-011",
+      "title": "Curious George's Banana Bread",
+      "description": "A moist, fragrant loaf studded with walnuts and packed with the sweet flavor of overripe bananas. This simple, wholesome quick bread is perfect for curious little monkeys and the patient people who look after them.",
+      "prepTime": "15 minutes",
+      "cookTime": "55 minutes",
+      "servings": "Makes 1 loaf (8 slices)",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "baking",
+        "bread",
+        "banana",
+        "children's literature"
+      ],
+      "source": "Curious George by H.A. Rey",
+      "story": "In H.A. Rey's beloved Curious George stories, the mischievous little monkey has an insatiable love for bananas. Whether swinging from trees or causing good-natured chaos, George always finds his way back to his favorite fruit. This banana bread transforms his beloved snack into a warm, comforting loaf.",
+      "ingredients": [
+        {
+          "name": "very ripe bananas, mashed",
+          "amount": 3
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.333,
+          "unit": "cup",
+          "preparation": "melted"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "egg, beaten",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "baking soda",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of salt"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "chopped walnuts",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "optional"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 350°F. Grease a 9x5 inch loaf pan.",
+        "Mash the bananas in a large bowl until smooth. Stir in the melted butter.",
+        "Mix in the sugar, beaten egg, and vanilla extract.",
+        "Sprinkle in the baking soda and salt, then stir to combine. Gently fold in the flour until just incorporated. Fold in the walnuts if using.",
+        "Pour the batter into the prepared loaf pan and smooth the top.",
+        "Bake for 50 to 55 minutes until a toothpick inserted in the center comes out clean. The top should be deeply golden and slightly cracked.",
+        "Let cool in the pan for 10 minutes, then turn out onto a wire rack. Slice and serve warm or at room temperature."
+      ]
+    },
+    {
+      "id": "childrens-stories-012",
+      "title": "Charlie Bucket's Cabbage Soup",
+      "description": "A humble but deeply satisfying pot of cabbage simmered in a light broth, the kind of honest, warming soup that sustained the Bucket family through lean times. Simple ingredients cooked with love make this more than the sum of its parts.",
+      "prepTime": "10 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "soup",
+        "vegetable",
+        "Roald Dahl",
+        "budget-friendly"
+      ],
+      "source": "Charlie and the Chocolate Factory by Roald Dahl",
+      "story": "In Roald Dahl's Charlie and the Chocolate Factory, the Bucket family is so poor that they survive almost entirely on cabbage soup. Charlie's grandparents share a single bed while Mrs. Bucket stretches thin cabbage water into meals for seven people. The soup represents both hardship and the love that holds the family together.",
+      "ingredients": [
+        {
+          "name": "green cabbage, cored and roughly chopped",
+          "amount": 0.5,
+          "unit": "head"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "(14 oz) diced tomatoes",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "chicken or vegetable stock",
+          "amount": 6,
+          "unit": "cups"
+        },
+        {
+          "name": "butter or olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1
+        },
+        {
+          "name": "dried thyme",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        },
+        {
+          "name": "Crusty bread, for serving"
+        }
+      ],
+      "instructions": [
+        "Heat the butter or olive oil in a large pot over medium heat. Add the onion, carrots, and celery and cook until softened, about 5 minutes.",
+        "Add the garlic and cook for another minute until fragrant.",
+        "Stir in the chopped cabbage and cook for 3 to 4 minutes until it begins to wilt.",
+        "Add the diced tomatoes, stock, bay leaf, and thyme. Bring to a boil, then reduce heat and simmer for 25 minutes until all vegetables are tender.",
+        "Remove the bay leaf. Season generously with salt and pepper.",
+        "Ladle into bowls and serve with crusty bread. As Mrs. Bucket would say, a warm bowl of soup is never a small thing."
+      ]
+    },
+    {
+      "id": "childrens-stories-013",
+      "title": "Paddington's Marmalade Sandwiches",
+      "description": "Thick-cut, bittersweet Seville orange marmalade spread generously between slices of soft white bread and optionally griddled to golden, buttery perfection. A bear's emergency ration and London's most endearing snack.",
+      "prepTime": "10 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "snack",
+        "sandwich",
+        "Paddington Bear",
+        "British",
+        "marmalade"
+      ],
+      "source": "Paddington Bear by Michael Bond",
+      "story": "Michael Bond's Paddington Bear always keeps a marmalade sandwich under his hat for emergencies. Found at Paddington Station by the Brown family, the small bear from Darkest Peru develops a lifelong devotion to orange marmalade. The humble sandwich became so iconic that a Paddington statue at the station holds one aloft.",
+      "ingredients": [
+        {
+          "name": "soft white sandwich bread",
+          "amount": 4,
+          "unit": "slices"
+        },
+        {
+          "name": "thick-cut Seville orange marmalade",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "softened (for griddling, optional)"
+        }
+      ],
+      "instructions": [
+        "Lay out four slices of bread on a clean surface.",
+        "Spread two tablespoons of marmalade generously on each of two slices, making sure to reach all the way to the edges.",
+        "Top with the remaining bread slices and press down gently.",
+        "For a classic Paddington sandwich, serve as is. For a toasted version, butter the outsides of the bread and cook in a skillet over medium heat for 2 minutes per side until golden and crisp.",
+        "Cut diagonally, wrap one in wax paper for under your hat, and enjoy the other immediately."
+      ]
+    },
+    {
+      "id": "childrens-stories-014",
+      "title": "The Very Hungry Caterpillar's Fruit Salad",
+      "description": "A rainbow medley of fresh fruits arranged in the order the caterpillar ate them, from a single apple on Monday to a glorious weekend feast. This colorful, wholesome salad is a joyful celebration of nature's sweetest offerings.",
+      "prepTime": "20 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "fruit",
+        "healthy",
+        "no-cook",
+        "children's literature",
+        "colorful"
+      ],
+      "source": "The Very Hungry Caterpillar by Eric Carle",
+      "story": "In Eric Carle's beloved picture book, a tiny caterpillar eats his way through one apple, two pears, three plums, four strawberries, and five oranges before overindulging on Saturday. The story teaches counting, days of the week, and healthy eating, ending with the caterpillar's transformation into a beautiful butterfly.",
+      "ingredients": [
+        {
+          "name": "apple, cored and sliced",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "ripe pears, cored and sliced",
+          "amount": 2
+        },
+        {
+          "name": "plums, pitted and quartered",
+          "amount": 3
+        },
+        {
+          "name": "strawberries, hulled and halved",
+          "amount": 8,
+          "unit": "large"
+        },
+        {
+          "name": "oranges",
+          "amount": 3,
+          "preparation": "peeled and segmented"
+        },
+        {
+          "name": "watermelon cubes",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Juice of 1 lime"
+        },
+        {
+          "name": "honey",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Fresh mint leaves, for garnish"
+        }
+      ],
+      "instructions": [
+        "Prepare all the fruit: core and slice the apple, core and slice the pears, pit and quarter the plums, hull and halve the strawberries, peel and segment the oranges, and cube the watermelon.",
+        "Arrange the fruit in a large bowl or platter in groups, following the caterpillar's weekly journey: apple first, then pears, plums, strawberries, and oranges.",
+        "Add the watermelon cubes as a colorful bonus from the weekend feast.",
+        "Whisk together the lime juice and honey to make a light dressing. Drizzle over the fruit.",
+        "Garnish with fresh mint leaves and serve immediately. Encourage little ones to count the pieces as they eat."
+      ]
+    }
+  ]
+}

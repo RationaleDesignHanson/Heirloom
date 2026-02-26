@@ -1,0 +1,967 @@
+{
+  "themeId": "fantasy-scifi",
+  "themeName": "Fantasy & Science Fiction",
+  "recipes": [
+    {
+      "id": "fantasy-scifi-001",
+      "title": "Lembas Bread",
+      "description": "A golden, compact waybread enriched with honey, oat flour, and fragrant thyme. Each dense, buttery square is designed to sustain weary travellers on long journeys. Wrapped in leaves to stay moist, this Elvish recipe brings Middle-earth to your kitchen.",
+      "prepTime": "15 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 12",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "snack",
+        "Tolkien",
+        "fantasy"
+      ],
+      "source": "The Lord of the Rings by J.R.R. Tolkien",
+      "story": "In J.R.R. Tolkien's legendarium, Elves bake lembas, a sustaining waybread carried by travellers. The Inn at the Crossroads notes that the bread was designed to be durable and high in calories for long journeys. Wrapped in leaves, lembas keeps for weeks and restores strength on epic quests.",
+      "ingredients": [
+        {
+          "name": "whole-wheat flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "oat flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "almond flour",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "melted"
+        },
+        {
+          "name": "honey",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dried thyme",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "milk",
+          "amount": 2,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "Preheat your oven to 350°F (175°C) and line a baking sheet with parchment paper.",
+        "In a large bowl, whisk together the whole-wheat flour, oat flour, almond flour, baking powder, thyme, and salt.",
+        "In a separate bowl, cream the melted butter with the honey, then beat in the egg and milk until smooth.",
+        "Pour the wet ingredients into the dry and stir until a thick dough forms.",
+        "Roll the dough out to about 1/2 inch thickness on a floured surface and cut into 2-inch squares.",
+        "Place squares on the prepared baking sheet and bake for 18-20 minutes until just golden around the edges.",
+        "Allow to cool completely, then wrap each piece in a large leaf or parchment paper for an authentic presentation."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-002",
+      "title": "Blue Milk",
+      "description": "A creamy, chilled beverage tinted a striking blue using natural spirulina or butterfly-pea flower powder. Subtly sweet with a hint of vanilla, this galactic refreshment brings the moisture farms of Tatooine straight to your glass.",
+      "prepTime": "5 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "beverage",
+        "Star Wars",
+        "sci-fi"
+      ],
+      "source": "Star Wars: Episode IV - A New Hope",
+      "story": "In the Star Wars universe, blue milk (bantha milk) is a rich blue beverage produced by female banthas and consumed by Luke Skywalker at his aunt and uncle's farm on Tatooine. Disney parks now sell versions of the drink, making it one of the most iconic fictional beverages in cinema history.",
+      "ingredients": [
+        {
+          "name": "whole milk or coconut milk",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sugar",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "blue spirulina powder or butterfly-pea flower powder",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of salt"
+        }
+      ],
+      "instructions": [
+        "In a saucepan, gently warm the milk and cream over medium-low heat until steaming but not boiling.",
+        "Add the sugar and stir until fully dissolved.",
+        "Remove from heat and whisk in the vanilla extract and blue spirulina powder until the colour is even and vibrant.",
+        "Add a pinch of salt to balance the sweetness.",
+        "Transfer to a pitcher and refrigerate until thoroughly chilled, at least 1 hour.",
+        "Stir well before serving over ice in tall glasses."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-003",
+      "title": "Pan-Galactic Gargle Blaster",
+      "description": "A potent, electrifying cocktail inspired by the most celebrated drink in the known universe. This Earth-safe adaptation blends gin, vodka, herbal liqueur, and fizzing tonic into a citrus-charged concoction that hits like a gold brick wrapped in lemon.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "cocktail",
+        "beverage",
+        "Hitchhiker's Guide",
+        "sci-fi"
+      ],
+      "source": "The Hitchhiker's Guide to the Galaxy by Douglas Adams",
+      "story": "Douglas Adams invented the Pan-Galactic Gargle Blaster in The Hitchhiker's Guide to the Galaxy. The imaginary cocktail is described as the best drink in existence and likened to having your brains smashed out by a slice of lemon wrapped around a large gold brick. Adams' humorous recipe calls for mythical ingredients like Ol' Janx Spirit; this Earth-safe version pays homage to the satirical sci-fi classic.",
+      "ingredients": [
+        {
+          "name": "gin",
+          "amount": 1.5,
+          "unit": "oz"
+        },
+        {
+          "name": "vodka",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "herbal liqueur such as Chartreuse",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "honey syrup",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "Angostura bitters",
+          "amount": 2,
+          "unit": "dashes"
+        },
+        {
+          "name": "Tonic water to top"
+        },
+        {
+          "name": "Lemon twist for garnish"
+        }
+      ],
+      "instructions": [
+        "Fill a cocktail shaker with ice.",
+        "Add the gin, vodka, herbal liqueur, lemon juice, honey syrup, and bitters.",
+        "Shake vigorously for 15 seconds until well chilled.",
+        "Strain into two chilled coupe glasses.",
+        "Top each glass with a splash of tonic water for effervescence.",
+        "Garnish with a lemon twist and serve with caution."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-004",
+      "title": "Everlasting Gobstopper",
+      "description": "A multi-layered hard candy that changes colour with each successive shell, inspired by Willy Wonka's magical confection. Built up in stages of fruit-flavoured sugar, these jawbreakers are a rewarding candy-making project that captures the wonder of the Chocolate Factory.",
+      "prepTime": "20 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 10",
+      "difficulty": "hard",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "candy",
+        "dessert",
+        "Willy Wonka",
+        "fantasy"
+      ],
+      "source": "Charlie and the Chocolate Factory by Roald Dahl",
+      "story": "Roald Dahl's Charlie and the Chocolate Factory features the Everlasting Gobstopper, a candy that changes colour and flavour yet never gets smaller. Willy Wonka designed it so children with little money could enjoy sweets. The multi-layered candy appears in the book and film adaptations as a test of character.",
+      "ingredients": [
+        {
+          "name": "granulated sugar",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "light corn syrup",
+          "amount": 0.667,
+          "unit": "cup"
+        },
+        {
+          "name": "water",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "citric acid",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "strawberry extract",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "lime extract",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "grape extract",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Red, green, and purple food colouring"
+        },
+        {
+          "name": "Cooking spray for moulds"
+        }
+      ],
+      "instructions": [
+        "Combine sugar, corn syrup, and water in a heavy saucepan and cook over medium-high heat, stirring until the sugar dissolves.",
+        "Stop stirring once the mixture boils and cook until it reaches 300°F (hard-crack stage) on a candy thermometer.",
+        "Remove from heat and stir in the citric acid.",
+        "Divide the syrup into three portions and quickly add a different flavour extract and food colouring to each.",
+        "Spray small round moulds with cooking spray. Pour the first colour into each mould to form a thin shell and let it set for 2 minutes.",
+        "Layer the second and third colours on top, allowing each to partially set before adding the next.",
+        "Let the gobstoppers cool completely, then pop them from the moulds. Store in an airtight container."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-005",
+      "title": "Daenerys' Dragon Eggs",
+      "description": "Rich no-bake treats shaped into glossy eggs, coated in overlapping sliced almonds to create stunning dragon-scale textures. Beneath the scaled exterior lies a fudgy centre of peanut butter, cocoa, and oats that is as satisfying as it is dramatic.",
+      "prepTime": "30 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "dessert",
+        "no-bake",
+        "Game of Thrones",
+        "fantasy"
+      ],
+      "source": "A Song of Ice and Fire by George R.R. Martin",
+      "story": "In a Game of Thrones-inspired recipe, peanut butter, cocoa and oats are formed into no-bake dragon eggs. The Starving Chef notes that sliced almonds pressed onto the surface create the appearance of scales. The treats honour Daenerys Targaryen's dragon eggs and delight fans at watch parties.",
+      "ingredients": [
+        {
+          "name": "unsalted butter",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "milk",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsweetened cocoa powder",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "chunky peanut butter",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "rolled oats",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sliced almonds",
+          "amount": 1,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "In a saucepan, bring the butter, milk, and cocoa powder to a rolling boil and cook for 1 minute, stirring constantly.",
+        "Remove from heat and stir in the peanut butter, oats, and vanilla extract until well combined.",
+        "Mix in the powdered sugar until a thick, moldable dough forms.",
+        "Let the mixture cool for 10 minutes until it is firm enough to handle.",
+        "Shape the dough into egg-shaped ovals, about 2-3 inches long.",
+        "Press sliced almonds in overlapping rows around each egg to create a scale pattern.",
+        "Place the dragon eggs on a parchment-lined tray and refrigerate for at least 1 hour until firm."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-006",
+      "title": "Ent-Draught",
+      "description": "A refreshing, revitalising herbal drink inspired by the mysterious waters of Fangorn Forest. This cool green elixir blends cucumber, mint, and honey with a hint of ginger, evoking the ancient tree-herders' invigorating draught that made hobbits grow taller.",
+      "prepTime": "10 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "drink",
+        "herbal",
+        "Lord of the Rings",
+        "fantasy"
+      ],
+      "source": "The Two Towers by J.R.R. Tolkien",
+      "story": "In The Two Towers, Treebeard gives Merry and Pippin draughts of Ent-water from the springs of Fangorn. The mysterious liquid makes the hobbits grow noticeably taller. Tolkien describes it as cool and refreshing, with an invigorating quality unlike any ordinary drink.",
+      "ingredients": [
+        {
+          "name": "cucumber",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "peeled and chopped"
+        },
+        {
+          "name": "fresh mint leaves",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "cold water",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "fresh ginger",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": "grated"
+        },
+        {
+          "name": "Pinch of salt"
+        },
+        {
+          "name": "Ice cubes for serving"
+        }
+      ],
+      "instructions": [
+        "Blend the cucumber, mint leaves, and 1 cup of cold water until smooth.",
+        "Strain through a fine mesh sieve into a pitcher, pressing to extract all the liquid.",
+        "Warm the honey with the ginger in a small saucepan until the honey dissolves, then let cool.",
+        "Add the honey-ginger mixture, remaining water, lemon juice, and salt to the pitcher.",
+        "Stir well and refrigerate until thoroughly chilled.",
+        "Serve over ice in tall glasses, garnished with a sprig of fresh mint."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-007",
+      "title": "Romulan Ale",
+      "description": "A strikingly blue beverage inspired by the Federation's most infamous contraband. Blue curacao gives this fizzy drink its signature alien colour, while ginger beer adds a spicy kick that hints at the ale's legendary potency.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "beverage",
+        "cocktail",
+        "Star Trek",
+        "sci-fi"
+      ],
+      "source": "Star Trek franchise",
+      "story": "In Star Trek, Romulan Ale is an illegal bright-blue beverage renowned for its potency. An Alison's Wonderland Recipes article explains that the drink's iconic colour comes from blue curacao and describes toning down the recipe so you won't suffer the same hangover as in the show. Romulan Ale is banned in the Federation, making its appearance in the series a running joke.",
+      "ingredients": [
+        {
+          "name": "blue curacao",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "chilled wheat beer or ginger beer",
+          "amount": 8,
+          "unit": "oz"
+        },
+        {
+          "name": "lemon-lime soda or seltzer",
+          "amount": 4,
+          "unit": "oz"
+        },
+        {
+          "name": "Ice cubes"
+        }
+      ],
+      "instructions": [
+        "Chill two tall glasses in the freezer for 10 minutes.",
+        "Pour 1 oz of blue curacao into each glass.",
+        "Slowly pour the chilled wheat beer or ginger beer over the curacao, tilting the glass to preserve the colour.",
+        "Gently stir once or twice to partially mix the layers.",
+        "Top each glass with lemon-lime soda or seltzer for fizz.",
+        "Serve immediately while the blue colour is at its most vibrant."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-008",
+      "title": "Cram",
+      "description": "A dense, durable travel bread from the shores of Long Lake, designed to keep indefinitely and sustain travellers through harsh terrain. Less refined than Elvish lembas, this rugged flatbread of barley and rye has a hearty, nutty flavour perfect for adventuring.",
+      "prepTime": "10 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 8",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "bread",
+        "snack",
+        "Tolkien",
+        "fantasy"
+      ],
+      "source": "The Hobbit by J.R.R. Tolkien",
+      "story": "In The Hobbit, the men of Lake-town provision Thorin's company with cram for their journey to the Lonely Mountain. Tolkien described cram as a biscuit-like substance that was nutritious but not particularly pleasant. Unlike the superior Elvish lembas, cram represents the practical, no-nonsense provisions of mortal Men.",
+      "ingredients": [
+        {
+          "name": "barley flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "rye flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "rolled oats",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "melted"
+        },
+        {
+          "name": "water",
+          "amount": 0.5,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "Preheat your oven to 375°F (190°C) and line a baking sheet with parchment paper.",
+        "In a large bowl, combine the barley flour, rye flour, rolled oats, salt, and baking powder.",
+        "Add the honey, melted butter, and water, stirring until a stiff dough comes together.",
+        "Turn the dough onto a floured surface and roll it out to about 1/4 inch thickness.",
+        "Cut into rectangular biscuits about 3 inches long and place on the prepared baking sheet.",
+        "Prick each biscuit several times with a fork to prevent puffing.",
+        "Bake for 22-25 minutes until hard and lightly browned. Cool completely on a wire rack."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-009",
+      "title": "Spice Melange Tea",
+      "description": "An aromatic, cinnamon-forward tea blend inspired by the most valuable substance in the known universe. Warm spices mingle with strong black tea and a touch of honey, evoking the desert winds of Arrakis and the prescient visions of the spice.",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "beverage",
+        "tea",
+        "Dune",
+        "sci-fi"
+      ],
+      "source": "Dune by Frank Herbert",
+      "story": "In Frank Herbert's Dune, the spice melange is the most precious substance in the universe, found only on the desert planet Arrakis. It extends life, expands consciousness, and is essential for interstellar travel. The Fremen brew spice coffee and tea as part of their daily rituals. This warming blend captures the exotic essence of melange without the risk of prescient visions.",
+      "ingredients": [
+        {
+          "name": "water",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "bags strong black tea",
+          "amount": 3,
+          "preparation": "such as Assam"
+        },
+        {
+          "name": "cinnamon sticks",
+          "amount": 2
+        },
+        {
+          "name": "whole cloves",
+          "amount": 4
+        },
+        {
+          "name": "cardamom pods, lightly crushed",
+          "amount": 3,
+          "unit": "green"
+        },
+        {
+          "name": "ground nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground ginger",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Splash of milk or cream, optional"
+        }
+      ],
+      "instructions": [
+        "Bring the water to a boil in a saucepan.",
+        "Add the cinnamon sticks, cloves, cardamom pods, nutmeg, and ginger and simmer for 5 minutes to infuse the spices.",
+        "Remove from heat and add the tea bags. Steep for 4-5 minutes.",
+        "Remove the tea bags and strain out the whole spices.",
+        "Stir in the honey until dissolved.",
+        "Pour into mugs and add a splash of milk or cream if desired.",
+        "Serve hot and let the spice flow."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-010",
+      "title": "Fizzy Lifting Drink",
+      "description": "A bubbly, effervescent lemon-lime punch that tickles the nose and lifts the spirits. Inspired by the dangerously floaty beverage from Wonka's factory, this sparkling concoction uses sherbet and soda to create an irresistible fizz.",
+      "prepTime": "10 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "beverage",
+        "punch",
+        "Willy Wonka",
+        "fantasy"
+      ],
+      "source": "Charlie and the Chocolate Factory by Roald Dahl",
+      "story": "In Roald Dahl's Charlie and the Chocolate Factory, the Fizzy Lifting Drink is a carbonated beverage so powerful it causes anyone who drinks it to float to the ceiling. Charlie and Grandpa Joe sneak a taste and nearly meet their end at the ceiling fan. Wonka warns that the only way down is to burp. This non-levitating version delivers all the fizz with none of the altitude.",
+      "ingredients": [
+        {
+          "name": "lime sherbet",
+          "amount": 1,
+          "unit": "pint"
+        },
+        {
+          "name": "lemon-lime soda",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "chilled"
+        },
+        {
+          "name": "ginger ale",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "chilled"
+        },
+        {
+          "name": "pineapple juice",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "chilled"
+        },
+        {
+          "name": "fresh lime juice",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Lime slices for garnish"
+        }
+      ],
+      "instructions": [
+        "Scoop the lime sherbet into a large punch bowl.",
+        "Gently pour the chilled lemon-lime soda and ginger ale over the sherbet.",
+        "Add the pineapple juice and fresh lime juice.",
+        "Stir very gently so the sherbet begins to melt and foam but retains its fizz.",
+        "Ladle into glasses and garnish each with a lime slice.",
+        "Serve immediately while maximally effervescent, and remember to burp before you float away."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-011",
+      "title": "Redwall Abbey's Deeper'n'Ever Pie",
+      "description": "A hearty root-vegetable pie baked in a golden pastry crust, straight from the kitchens of Redwall Abbey. Loaded with turnips, potatoes, and mushrooms in a savoury gravy, this woodland feast is comfort food worthy of a celebration in Great Hall.",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "main dish",
+        "pie",
+        "vegetarian",
+        "Redwall",
+        "fantasy"
+      ],
+      "source": "The Redwall series by Brian Jacques",
+      "story": "In Brian Jacques' beloved Redwall series, the mice and woodland creatures of Redwall Abbey are famous for their magnificent feasts. Deeper'n'Ever Turnip'n'Tater'n'Beetroot Pie is one of the most celebrated dishes, first appearing in 'Mossflower.' The moles of Redwall are the master chefs behind this subterranean delicacy, digging the roots themselves from the Abbey gardens.",
+      "ingredients": [
+        {
+          "name": "turnips",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "potatoes",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "beetroot",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "mushrooms",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "preparation": "diced"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vegetable stock",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "dried sage",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "puff pastry, thawed",
+          "amount": 1,
+          "unit": "sheet"
+        },
+        {
+          "name": "egg, beaten for egg wash",
+          "amount": 1
+        }
+      ],
+      "instructions": [
+        "Preheat your oven to 400°F (200°C).",
+        "Boil the turnips, potatoes, and beetroot in salted water for 10 minutes until just tender, then drain.",
+        "In a large skillet, melt the butter and sauté the onion and mushrooms until softened, about 5 minutes.",
+        "Sprinkle the flour over the vegetables and stir for 1 minute, then gradually add the vegetable stock, stirring until thickened.",
+        "Add the boiled root vegetables and sage, season with salt and pepper, and transfer to a deep pie dish.",
+        "Drape the puff pastry over the filling, trim the edges, and crimp to seal. Cut a few steam vents in the top.",
+        "Brush with egg wash and bake for 30-35 minutes until the pastry is puffed and deeply golden.",
+        "Let rest for 5 minutes before serving generous slices."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-012",
+      "title": "Butterbeer Fudge",
+      "description": "A rich, butterscotch-flavoured fudge with a creamy, melt-in-your-mouth texture. This solid take on the wizarding world's favourite drink packs all the warmth and sweetness of Butterbeer into a confection that makes the perfect treat for any magical gathering.",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 16",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "dessert",
+        "candy",
+        "fudge",
+        "Harry Potter",
+        "fantasy"
+      ],
+      "source": "Harry Potter series by J.K. Rowling",
+      "story": "In J.K. Rowling's Harry Potter series, Butterbeer is served at the Three Broomsticks in Hogsmeade and is the favourite drink of Hogwarts students. Described as tasting like a less-sickly butterscotch, it warms you from the inside out. This fudge variation captures the butterscotch essence in a chewy, shareable confection quite different from the frothy beverage.",
+      "ingredients": [
+        {
+          "name": "granulated sugar",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "evaporated milk",
+          "amount": 0.667,
+          "unit": "cup"
+        },
+        {
+          "name": "butterscotch chips",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "white chocolate chips",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "(7 oz) marshmallow cream",
+          "amount": 1,
+          "unit": "jar"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "butter extract",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of salt"
+        }
+      ],
+      "instructions": [
+        "Line an 8x8-inch baking dish with parchment paper and lightly grease it.",
+        "In a heavy saucepan, combine the sugar, butter, and evaporated milk over medium heat, stirring constantly.",
+        "Bring to a rolling boil and cook for exactly 4 minutes, stirring without stopping.",
+        "Remove from heat and immediately stir in the butterscotch chips and white chocolate chips until completely melted and smooth.",
+        "Fold in the marshmallow cream, vanilla extract, butter extract, and salt until uniform.",
+        "Pour the mixture into the prepared dish and spread evenly.",
+        "Refrigerate for at least 2 hours until fully set, then cut into small squares to serve."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-013",
+      "title": "Synthahol Sour",
+      "description": "A sophisticated non-alcoholic cocktail inspired by Star Trek's celebrated substitute for real spirits. Bright citrus and aromatic bitters combine with a frothy egg-white top, delivering all the social elegance of Ten Forward without the morning-after regret.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "beverage",
+        "mocktail",
+        "Star Trek",
+        "sci-fi"
+      ],
+      "source": "Star Trek: The Next Generation",
+      "story": "In Star Trek: The Next Generation, synthahol is an artificial alcohol substitute served aboard Federation starships. It provides the taste and initial relaxation of real alcohol, but its intoxicating effects can be easily dismissed at will. Guinan serves it in Ten Forward, though she keeps a private stock of the real thing for special occasions. This mocktail pays tribute to the Federation's responsible approach to revelry.",
+      "ingredients": [
+        {
+          "name": "non-alcoholic whiskey or spirit alternative",
+          "amount": 3,
+          "unit": "oz"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 1.5,
+          "unit": "oz"
+        },
+        {
+          "name": "simple syrup",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "egg white or 1 oz aquafaba",
+          "amount": 1
+        },
+        {
+          "name": "aromatic bitters",
+          "amount": 3,
+          "unit": "dashes"
+        },
+        {
+          "name": "Lemon wheel and cherry for garnish"
+        },
+        {
+          "name": "Ice"
+        }
+      ],
+      "instructions": [
+        "Add the non-alcoholic spirit, lemon juice, simple syrup, and egg white or aquafaba to a cocktail shaker without ice.",
+        "Dry shake vigorously for 15 seconds to build a frothy foam.",
+        "Add a handful of ice to the shaker and shake again for another 15 seconds.",
+        "Strain into two chilled coupe glasses.",
+        "Add a few drops of bitters on top of the foam for aroma and visual appeal.",
+        "Garnish each glass with a lemon wheel and a cocktail cherry."
+      ]
+    },
+    {
+      "id": "fantasy-scifi-014",
+      "title": "Ambrosia",
+      "description": "A luscious, golden-hued fruit salad fit for the gods of Olympus. Layers of citrus, tropical fruit, coconut, and honeyed cream create a dessert that tastes divine enough to grant immortality, or at least make you feel like a demigod for the afternoon.",
+      "prepTime": "20 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 8",
+      "difficulty": "easy",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "dessert",
+        "fruit",
+        "Greek mythology",
+        "Percy Jackson",
+        "fantasy"
+      ],
+      "source": "Percy Jackson series / Greek mythology",
+      "story": "In Greek mythology, ambrosia is the food of the gods, granting immortality to those who consume it. In Rick Riordan's Percy Jackson series, ambrosia heals demigods and tastes like whatever comfort food the eater loves most. Mortals who eat it, however, are consumed by fire. This classic Southern-style ambrosia salad channels the mythological original into a heavenly, shareable dessert that is perfectly safe for mortals.",
+      "ingredients": [
+        {
+          "name": "mandarin orange segments, drained",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "pineapple chunks, drained",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "seedless grapes, halved",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "sweetened shredded coconut",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "mini marshmallows",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "sour cream or Greek yogurt",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "maraschino cherries, halved",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "chopped pecans",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "optional"
+        }
+      ],
+      "instructions": [
+        "In a large bowl, combine the mandarin oranges, pineapple chunks, grapes, coconut, and mini marshmallows.",
+        "In a small bowl, whisk together the sour cream or yogurt and honey until smooth.",
+        "Fold the honeyed cream into the fruit mixture until everything is evenly coated.",
+        "Gently stir in the maraschino cherries.",
+        "Cover and refrigerate for at least 1 hour to let the flavours meld together.",
+        "Just before serving, sprinkle with chopped pecans if desired and spoon into individual bowls."
+      ]
+    }
+  ]
+}

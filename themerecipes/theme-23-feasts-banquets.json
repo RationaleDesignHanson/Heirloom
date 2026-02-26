@@ -1,0 +1,1164 @@
+{
+  "themeId": "feasts-banquets",
+  "themeName": "Feasts & Banquets",
+  "recipes": [
+    {
+      "id": "feasts-banquets-001",
+      "title": "Honey Cake",
+      "description": "A fragrant, golden-brown spiced honey cake studded with toasted almonds, inspired by the courtly feasts of medieval fantasy. Each slice is dense with warm spices and the rich sweetness of pure honey, evoking the opulence of royal banquets.",
+      "prepTime": "20 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 10",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "medieval",
+        "fantasy",
+        "Game of Thrones"
+      ],
+      "source": "Inspired by A Song of Ice and Fire by George R.R. Martin",
+      "story": "Medieval fantasy novels depict honey cakes at courtly feasts. In A Song of Ice and Fire, Daenerys receives honey cakes in Qarth. The cakes provide sweetness and sustenance on long journeys.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "honey",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "eggs",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "melted"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "baking soda",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground cinnamon",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground ginger",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground cloves",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "warm water",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "sliced almonds",
+          "amount": 0.333,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325°F (165°C) and grease a 9-inch round cake pan.",
+        "Whisk together the flour, baking powder, baking soda, cinnamon, ginger, cloves, and nutmeg in a large bowl.",
+        "In a separate bowl, beat the eggs and sugar until light and fluffy, then stir in the honey, melted butter, and warm water.",
+        "Gradually fold the dry ingredients into the wet mixture until just combined.",
+        "Pour the batter into the prepared pan and scatter the sliced almonds over the top.",
+        "Bake for 40 to 45 minutes, until a toothpick inserted in the center comes out clean.",
+        "Cool in the pan for 15 minutes, then turn out onto a wire rack to cool completely before slicing."
+      ]
+    },
+    {
+      "id": "feasts-banquets-002",
+      "title": "Peeta's Cheese Buns",
+      "description": "Soft, golden rolls bursting with melted cheese, inspired by the beloved baker's boy from The Hunger Games. These warm, pillowy buns have a crisp exterior and a gooey, savory center that makes them impossible to resist.",
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "bread",
+        "snack",
+        "Hunger Games",
+        "cheese"
+      ],
+      "source": "Inspired by The Hunger Games by Suzanne Collins",
+      "story": "In The Hunger Games, Peeta Mellark is known for his cheese buns. Katniss associates Peeta with bread and survival.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "packet  active dry yeast",
+          "amount": 1,
+          "preparation": "2 1/4 teaspoons"
+        },
+        {
+          "name": "warm milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "softened"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "shredded sharp cheddar cheese",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "egg, beaten",
+          "amount": 1,
+          "preparation": "for egg wash"
+        }
+      ],
+      "instructions": [
+        "Dissolve the yeast and sugar in the warm milk and let stand for 5 minutes until frothy.",
+        "In a large bowl, combine the flour and salt, then add the yeast mixture and softened butter. Knead for 8 to 10 minutes until the dough is smooth and elastic.",
+        "Fold 1 1/2 cups of the shredded cheese into the dough, kneading briefly to distribute evenly.",
+        "Cover the dough and let it rise in a warm place for about 1 hour, until doubled in size.",
+        "Punch down the dough and divide it into 12 equal pieces. Shape each piece into a round bun and place on a parchment-lined baking sheet.",
+        "Let the buns rise for another 20 minutes. Preheat oven to 375°F (190°C).",
+        "Brush the tops with beaten egg and sprinkle with the remaining cheese.",
+        "Bake for 18 to 20 minutes until golden brown. Serve warm."
+      ]
+    },
+    {
+      "id": "feasts-banquets-003",
+      "title": "Elven Stew",
+      "description": "A delicate, fragrant vegetarian stew of woodland mushrooms, tender root vegetables, and white beans simmered in white wine and fresh herbs. This ethereal dish captures the refined, nature-attuned cuisine of Tolkien's immortal Elves.",
+      "prepTime": "20 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "stew",
+        "vegetarian",
+        "Tolkien",
+        "Lord of the Rings"
+      ],
+      "source": "Inspired by the works of J.R.R. Tolkien",
+      "story": "Inspired by Tolkien's legends, this fragrant vegetarian stew evokes the cuisine enjoyed by Elves. Tolkien contrasts rustic hobbit fare with ethereal elven cuisine.",
+      "ingredients": [
+        {
+          "name": "mixed mushrooms , sliced",
+          "amount": 8,
+          "unit": "oz",
+          "preparation": "cremini, shiitake, oyster"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "parsnips",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "white and light green parts, sliced",
+          "amount": 2,
+          "unit": "leeks,"
+        },
+        {
+          "name": "(15 oz) white beans, drained and rinsed",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "vegetable stock",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "dry white wine",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "fresh thyme leaves",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1
+        },
+        {
+          "name": "Salt and freshly ground pepper to taste"
+        },
+        {
+          "name": "Fresh parsley for garnish"
+        }
+      ],
+      "instructions": [
+        "Heat the olive oil in a large pot over medium heat. Add the leeks and garlic and sauté for 3 to 4 minutes until softened.",
+        "Add the mushrooms and cook for 5 minutes until they release their moisture and begin to brown.",
+        "Add the carrots and parsnips, stirring to combine, and cook for another 3 minutes.",
+        "Pour in the white wine and scrape up any browned bits from the bottom of the pot.",
+        "Add the vegetable stock, white beans, thyme, and bay leaf. Bring to a simmer.",
+        "Reduce heat to low, cover, and simmer for 30 to 35 minutes until the root vegetables are tender.",
+        "Season with salt and pepper, discard the bay leaf, and serve garnished with fresh parsley."
+      ]
+    },
+    {
+      "id": "feasts-banquets-004",
+      "title": "Cheese & Fruit Platter",
+      "description": "An elegant arrangement of fine cheeses, ripe figs, grapes, and honeyed nuts that echoes the communal platters of ancient Greek banquets and Edwardian country houses alike. This timeless spread invites conversation and celebration.",
+      "prepTime": "15 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 8",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "appetizer",
+        "cheese",
+        "Odyssey",
+        "Downton Abbey"
+      ],
+      "source": "Inspired by The Odyssey and Downton Abbey",
+      "story": "Banquet scenes from The Odyssey to Downton Abbey feature platters of cheese, figs, and grapes. Sharing platters encourage conversation and hospitality across cultures.",
+      "ingredients": [
+        {
+          "name": "aged cheddar",
+          "amount": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "name": "brie or camembert",
+          "amount": 4,
+          "unit": "oz"
+        },
+        {
+          "name": "blue cheese",
+          "amount": 4,
+          "unit": "oz",
+          "preparation": "such as Stilton or Roquefort"
+        },
+        {
+          "name": "manchego or gouda",
+          "amount": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "name": "fresh figs, halved",
+          "amount": 6
+        },
+        {
+          "name": "red and green grapes",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "toasted walnuts",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "marcona almonds",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "honey",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Crackers or sliced baguette for serving"
+        }
+      ],
+      "instructions": [
+        "Remove the cheeses from the refrigerator 30 minutes before serving to bring them to room temperature.",
+        "Arrange the cheeses on a large wooden board or platter, spacing them apart for easy access.",
+        "Place the halved figs and clusters of grapes around the cheeses.",
+        "Scatter the toasted walnuts and marcona almonds in the gaps.",
+        "Drizzle honey over the brie and blue cheese.",
+        "Add crackers or sliced baguette around the edges of the board and serve."
+      ]
+    },
+    {
+      "id": "feasts-banquets-005",
+      "title": "Spiced Wine",
+      "description": "A deeply warming mulled red wine infused with honey, cinnamon, cloves, and star anise, drawn from the medieval tradition of serving spiced wine at great feasts. Each sip carries the aromatic heat of a firelit banquet hall.",
+      "prepTime": "5 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "beverage",
+        "medieval",
+        "fantasy",
+        "wine"
+      ],
+      "source": "Inspired by medieval feast traditions",
+      "story": "Medieval feasts and fantasy novels serve spiced wine. Spiced wine warms travellers and warriors alike.",
+      "ingredients": [
+        {
+          "name": "(750 ml) dry red wine",
+          "amount": 1,
+          "unit": "bottle"
+        },
+        {
+          "name": "honey",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "cinnamon sticks",
+          "amount": 2
+        },
+        {
+          "name": "whole cloves",
+          "amount": 4
+        },
+        {
+          "name": "whole star anise",
+          "amount": 2
+        },
+        {
+          "name": "orange",
+          "amount": 1,
+          "preparation": "sliced into rounds"
+        },
+        {
+          "name": "lemon peel",
+          "amount": 1,
+          "unit": "strip"
+        }
+      ],
+      "instructions": [
+        "Pour the red wine into a medium saucepan over low heat.",
+        "Add the honey, cinnamon sticks, cloves, star anise, orange slices, and lemon peel.",
+        "Heat gently for 20 to 25 minutes, stirring occasionally. Do not allow the wine to boil.",
+        "Taste and add more honey if desired.",
+        "Strain the spiced wine through a fine-mesh sieve into a warmed pitcher or directly into mugs.",
+        "Serve warm, garnished with a cinnamon stick or orange slice."
+      ]
+    },
+    {
+      "id": "feasts-banquets-006",
+      "title": "Roast Boar",
+      "description": "A slow-roasted pork shoulder rubbed with garlic, rosemary, and wild herbs, inspired by the mighty roast boar that anchors every Gaulish village feast in the Asterix comics and graces the tables of medieval banquets. The meat is fall-apart tender with a crackling, herb-crusted exterior.",
+      "prepTime": "30 minutes",
+      "cookTime": "4 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "main dish",
+        "pork",
+        "medieval",
+        "Asterix"
+      ],
+      "source": "Inspired by Asterix and medieval banquet traditions",
+      "story": "Every adventure in the Asterix comics ends with a grand village feast, the centerpiece of which is always a magnificent roast boar. Wild boar was also the star of real medieval banquets, where it was carried to the table on a great platter as a symbol of the hunt's bounty.",
+      "ingredients": [
+        {
+          "name": "bone-in pork shoulder",
+          "amount": 5,
+          "unit": "lb"
+        },
+        {
+          "name": "garlic",
+          "amount": 6,
+          "unit": "cloves",
+          "preparation": "sliced"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        },
+        {
+          "name": "fresh thyme leaves",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "coarse sea salt",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "freshly ground black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dry red wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "chicken or beef stock",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "onion, quartered",
+          "amount": 1,
+          "unit": "large"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325°F (165°C). Score the skin of the pork shoulder in a crosshatch pattern.",
+        "Use a paring knife to make deep slits all over the meat and insert the garlic slices into each slit.",
+        "Rub the shoulder with olive oil, then coat generously with the rosemary, thyme, salt, and pepper.",
+        "Place the onion quarters and bay leaves in the bottom of a roasting pan. Set the pork on top, fat side up.",
+        "Pour the wine and stock around the meat. Cover tightly with foil.",
+        "Roast for 3 1/2 hours, basting every hour. Remove the foil for the last 30 minutes to crisp the exterior.",
+        "Let the meat rest for 20 minutes, then pull or slice and serve with the pan juices spooned over the top."
+      ]
+    },
+    {
+      "id": "feasts-banquets-007",
+      "title": "Downton Abbey's Beef Consommé",
+      "description": "A crystal-clear, deeply flavored beef consommé that epitomizes the refined elegance of an Edwardian dinner service. This labor of love, clarified to perfection, is the kind of first course that Mrs. Patmore would proudly send upstairs at Downton Abbey.",
+      "prepTime": "30 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 6",
+      "difficulty": "hard",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "soup",
+        "British",
+        "Downton Abbey",
+        "Edwardian"
+      ],
+      "source": "Inspired by Downton Abbey",
+      "story": "Consommé appears frequently on the Downton Abbey dinner table, a hallmark of Edwardian fine dining. The painstaking clarification process transforms humble stock into a jewel-clear broth that showcases the skill of the kitchen. Mrs. Patmore and her staff would have prepared consommé for the Crawley family's formal dinners.",
+      "ingredients": [
+        {
+          "name": "rich beef stock",
+          "amount": 8,
+          "unit": "cups",
+          "preparation": "chilled and defatted"
+        },
+        {
+          "name": "lean ground beef",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "egg whites, lightly beaten",
+          "amount": 2
+        },
+        {
+          "name": "carrot, finely diced",
+          "amount": 1
+        },
+        {
+          "name": "celery stalk, finely diced",
+          "amount": 1
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "small"
+        },
+        {
+          "name": "tomato",
+          "amount": 1,
+          "preparation": "chopped"
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 3,
+          "unit": "sprigs"
+        },
+        {
+          "name": "whole black peppercorns",
+          "amount": 6
+        },
+        {
+          "name": "Salt to taste"
+        },
+        {
+          "name": "Fresh chives for garnish"
+        }
+      ],
+      "instructions": [
+        "In a large bowl, combine the ground beef, egg whites, carrot, celery, onion, and tomato. Mix thoroughly.",
+        "Place the chilled beef stock in a large stockpot. Add the ground beef mixture and stir to combine.",
+        "Set the pot over medium heat and stir gently until the mixture begins to simmer. A raft of solids will form on the surface.",
+        "Once the raft has formed, stop stirring. Reduce heat to a very low simmer. Add the bay leaf, thyme, and peppercorns.",
+        "Simmer very gently for 1 1/2 hours without disturbing the raft. The broth beneath will become perfectly clear.",
+        "Carefully ladle the consommé through a fine-mesh sieve lined with damp cheesecloth into a clean pot, discarding the raft.",
+        "Season with salt, reheat gently, and serve in warmed bowls garnished with fresh chives."
+      ]
+    },
+    {
+      "id": "feasts-banquets-008",
+      "title": "Henry VIII's Roasted Turkey Leg",
+      "description": "Massive, juicy turkey legs brined in ale and roasted with herbs until the skin is burnished and crackling, inspired by the legendary Tudor feasts of Henry VIII. These imposing drumsticks are meant to be eaten with your hands, just as they were at Hampton Court.",
+      "prepTime": "20 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "main dish",
+        "poultry",
+        "Tudor",
+        "historical"
+      ],
+      "source": "Inspired by Tudor-era feasts of Henry VIII",
+      "story": "The court of Henry VIII was famous for its lavish banquets featuring dozens of courses. Tudor feasts at Hampton Court Palace could include roasted meats, game pies, and elaborate sugar sculptures. Turkey, newly arrived from the Americas, quickly became a prized banquet centerpiece during the 16th century.",
+      "ingredients": [
+        {
+          "name": "turkey legs (about 1 lb each)",
+          "amount": 4,
+          "unit": "large"
+        },
+        {
+          "name": "ale or brown beer",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "water",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "kosher salt",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "smoked paprika",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "onion powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "freshly ground black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "melted"
+        },
+        {
+          "name": "Fresh sage and rosemary sprigs"
+        }
+      ],
+      "instructions": [
+        "Combine the ale, water, kosher salt, and brown sugar in a large container, stirring until dissolved. Submerge the turkey legs and brine in the refrigerator for at least 4 hours or overnight.",
+        "Preheat oven to 325°F (165°C). Remove the turkey legs from the brine and pat thoroughly dry.",
+        "Mix together the smoked paprika, garlic powder, onion powder, and black pepper. Brush the legs with melted butter and coat with the spice mixture.",
+        "Place the turkey legs on a rack set in a roasting pan. Tuck sage and rosemary sprigs around them.",
+        "Roast for 1 1/2 hours, basting every 30 minutes with pan drippings.",
+        "Increase oven temperature to 400°F (200°C) and roast for a final 15 to 20 minutes until the skin is deeply browned and crispy.",
+        "Let rest for 10 minutes before serving. Eat with your hands, Tudor-style."
+      ]
+    },
+    {
+      "id": "feasts-banquets-009",
+      "title": "Hogwarts Great Hall Shepherd's Pie",
+      "description": "A hearty, golden-topped shepherd's pie loaded with savory lamb, peas, and carrots beneath a cloud of creamy mashed potato. This is the kind of warming, stick-to-your-ribs fare that would appear on the enchanted tables of the Hogwarts Great Hall.",
+      "prepTime": "30 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "main dish",
+        "British",
+        "Harry Potter",
+        "comfort food"
+      ],
+      "source": "Inspired by J.K. Rowling's Harry Potter series",
+      "story": "The Hogwarts feasts are among the most memorable scenes in Harry Potter. When students arrive at the Great Hall, the long tables magically fill with roast beef, Yorkshire pudding, shepherd's pie, and countless other dishes. Shepherd's pie, with its comforting layers of meat and mashed potato, is quintessential British school fare.",
+      "ingredients": [
+        {
+          "name": "ground lamb",
+          "amount": 1.5,
+          "unit": "lb"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "frozen peas",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "beef stock",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "potatoes",
+          "amount": 2,
+          "unit": "lb",
+          "preparation": "peeled and cubed"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "whole milk",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "shredded cheddar",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "optional"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 400°F (200°C). Boil the potatoes in salted water until tender, about 15 minutes. Drain and mash with butter and milk. Season with salt and pepper.",
+        "While the potatoes cook, brown the ground lamb in a large oven-safe skillet over medium-high heat. Drain excess fat.",
+        "Add the onion, carrots, and garlic to the lamb. Cook for 5 minutes until softened.",
+        "Stir in the tomato paste, beef stock, Worcestershire sauce, and peas. Simmer for 10 minutes until the sauce thickens.",
+        "Spread the mashed potatoes evenly over the meat filling and use a fork to create peaks on the surface. Sprinkle with cheddar if desired.",
+        "Bake for 25 to 30 minutes until the top is golden and the filling is bubbling.",
+        "Let stand for 5 minutes before serving."
+      ]
+    },
+    {
+      "id": "feasts-banquets-010",
+      "title": "Redwall Abbey's Strawberry Cordial",
+      "description": "A sweet, jewel-toned strawberry cordial inspired by the beloved feasts of Redwall Abbey. Made from fresh summer strawberries simmered with honey and a hint of lemon, this refreshing drink captures the warmth and generosity of Brian Jacques' woodland community.",
+      "prepTime": "15 minutes",
+      "cookTime": "30 minutes",
+      "servings": "Serves 8",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "beverage",
+        "non-alcoholic",
+        "Redwall",
+        "fantasy"
+      ],
+      "source": "Inspired by Brian Jacques' Redwall series",
+      "story": "The Redwall novels by Brian Jacques are legendary for their sumptuous feast descriptions. The mice, hares, and badgers of Redwall Abbey celebrate every victory with tables groaning with pies, trifles, and pitchers of cordial. Strawberry cordial is a particular favorite, served chilled in the Great Hall on warm summer evenings.",
+      "ingredients": [
+        {
+          "name": "fresh strawberries, hulled and halved",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "honey",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "water",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "Juice of 1 lemon"
+        },
+        {
+          "name": "fresh mint leaves",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "optional"
+        },
+        {
+          "name": "Sparkling water for serving"
+        }
+      ],
+      "instructions": [
+        "Combine the strawberries, honey, sugar, and water in a medium saucepan over medium heat.",
+        "Bring to a gentle simmer and cook for 20 minutes, stirring occasionally, until the strawberries are very soft and the liquid is deep red.",
+        "Remove from heat and stir in the lemon juice. Let cool slightly.",
+        "Strain the cordial through a fine-mesh sieve, pressing on the solids to extract all the flavor. Discard the pulp.",
+        "Chill the cordial in the refrigerator until cold.",
+        "To serve, pour a generous amount of cordial into glasses and top with sparkling water. Garnish with fresh mint if desired."
+      ]
+    },
+    {
+      "id": "feasts-banquets-011",
+      "title": "Viking Mead",
+      "description": "A golden, honey-based mead steeped with warming spices, drawing from the drinking traditions of Norse sagas and Viking longhouses. This simplified stovetop version captures the sweet, potent spirit of the mead hall without requiring months of fermentation.",
+      "prepTime": "10 minutes",
+      "cookTime": "30 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "beverage",
+        "Viking",
+        "Norse",
+        "historical"
+      ],
+      "source": "Inspired by Norse saga traditions",
+      "story": "In Norse mythology and the Viking sagas, mead is the drink of gods and heroes. Odin himself was said to have stolen the Mead of Poetry from the giants. Viking warriors gathered in great mead halls like Heorot in Beowulf to drink, feast, and tell tales of their adventures. This quick mead-style drink pays homage to that ancient tradition.",
+      "ingredients": [
+        {
+          "name": "honey",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "water",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "dry white wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "cinnamon stick",
+          "amount": 1
+        },
+        {
+          "name": "whole cloves",
+          "amount": 3
+        },
+        {
+          "name": "piece fresh ginger",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "sliced"
+        },
+        {
+          "name": "orange peel",
+          "amount": 1,
+          "unit": "strip"
+        },
+        {
+          "name": "lemon peel",
+          "amount": 1,
+          "unit": "strip"
+        },
+        {
+          "name": "Pinch of nutmeg"
+        }
+      ],
+      "instructions": [
+        "Combine the water and honey in a saucepan over medium heat, stirring until the honey dissolves completely.",
+        "Add the cinnamon stick, cloves, ginger, orange peel, lemon peel, and nutmeg.",
+        "Bring to a gentle simmer and cook for 25 minutes, allowing the spices to infuse the liquid.",
+        "Remove from heat and stir in the white wine.",
+        "Strain through a fine-mesh sieve into a pitcher, discarding the spices.",
+        "Serve warm in goblets or mugs, or chill and serve cold over ice."
+      ]
+    },
+    {
+      "id": "feasts-banquets-012",
+      "title": "Roman Garum Fish Sauce Pasta",
+      "description": "A bold, umami-rich pasta inspired by the ancient Roman love of garum, the fermented fish sauce that was the ketchup of the Roman Empire. Modern fish sauce and anchovy paste stand in for authentic garum, tossed with garlic, olive oil, and fresh herbs over al dente spaghetti.",
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "main dish",
+        "pasta",
+        "Roman",
+        "historical"
+      ],
+      "source": "Inspired by Apicius and ancient Roman cuisine",
+      "story": "Apicius, the famous Roman cookbook from the 1st century AD, reveals how central garum (fermented fish sauce) was to Roman feasting. The wealthy patricians of Rome held legendary banquets called convivia, where dozens of courses were served reclining on couches. This modern interpretation captures that ancient umami depth in a simple, elegant pasta.",
+      "ingredients": [
+        {
+          "name": "spaghetti",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "extra-virgin olive oil",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic, thinly sliced",
+          "amount": 4,
+          "unit": "cloves"
+        },
+        {
+          "name": "fish sauce",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "anchovy paste",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "red pepper flakes",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "chopped fresh parsley",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "fresh oregano or marjoram",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Juice of 1 lemon"
+        },
+        {
+          "name": "reserved pasta cooking water",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "Freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Cook the spaghetti in a large pot of generously salted boiling water until al dente. Reserve 1/2 cup of the pasta water before draining.",
+        "While the pasta cooks, heat the olive oil in a large skillet over medium-low heat. Add the sliced garlic and cook gently for 2 minutes until just golden.",
+        "Stir in the anchovy paste and fish sauce, letting them melt into the oil for 1 minute.",
+        "Add the red pepper flakes and cook for 30 seconds.",
+        "Toss the drained pasta into the skillet along with the reserved pasta water. Toss vigorously to coat every strand.",
+        "Remove from heat and add the lemon juice, parsley, and oregano. Toss again.",
+        "Serve immediately with a generous grinding of black pepper."
+      ]
+    },
+    {
+      "id": "feasts-banquets-013",
+      "title": "Beowulf's Mead Hall Braised Lamb",
+      "description": "Tender, slow-braised lamb shanks in a rich ale and root vegetable broth, inspired by the roaring hearth fires and groaning tables of Heorot, the great mead hall in Beowulf. This is a feast dish built for cold nights and bold appetites.",
+      "prepTime": "25 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "main dish",
+        "lamb",
+        "Anglo-Saxon",
+        "Beowulf"
+      ],
+      "source": "Inspired by the Old English epic Beowulf",
+      "story": "Beowulf opens in the great mead hall of Heorot, where King Hrothgar's warriors gather to feast on roasted meats and drink mead. The Anglo-Saxon poem celebrates the bonds forged over shared food and drink. Braised lamb, cooked low and slow, captures the hearty, communal spirit of those ancient hall feasts.",
+      "ingredients": [
+        {
+          "name": "shanks",
+          "amount": 4,
+          "unit": "lamb"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onion, roughly chopped",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "carrots",
+          "amount": 3,
+          "preparation": "peeled and cut into chunks"
+        },
+        {
+          "name": "parsnips",
+          "amount": 2,
+          "preparation": "peeled and cut into chunks"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "crushed"
+        },
+        {
+          "name": "dark ale or stout",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "beef stock",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 2,
+          "unit": "sprigs"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 3,
+          "unit": "sprigs"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325°F (165°C). Season the lamb shanks generously with salt and pepper.",
+        "Heat the oil in a large Dutch oven over high heat. Sear the lamb shanks on all sides until deeply browned, about 3 minutes per side. Remove and set aside.",
+        "Reduce heat to medium. Add the onion, carrots, and parsnips. Cook for 5 minutes until beginning to color.",
+        "Add the garlic and tomato paste, stirring for 1 minute. Pour in the ale and stock, scraping up the browned bits from the bottom.",
+        "Return the lamb shanks to the pot and add the rosemary, thyme, and bay leaves. Bring to a simmer.",
+        "Cover with a tight-fitting lid and transfer to the oven. Braise for 2 1/2 to 3 hours until the meat is falling off the bone.",
+        "Remove the shanks and vegetables to a warm platter. Skim fat from the braising liquid, then reduce on the stovetop for 5 minutes. Pour over the shanks and serve."
+      ]
+    },
+    {
+      "id": "feasts-banquets-014",
+      "title": "Game of Thrones' Pigeon Pie",
+      "description": "A magnificent golden-crusted pie filled with tender braised pigeon (or squab), mushrooms, and a rich wine sauce, inspired by the infamous pigeon pie served at King Joffrey's wedding feast in A Song of Ice and Fire. This showstopping centerpiece is worthy of a royal banquet.",
+      "prepTime": "45 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 8",
+      "difficulty": "hard",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "main dish",
+        "pie",
+        "Game of Thrones",
+        "medieval"
+      ],
+      "source": "Inspired by A Song of Ice and Fire by George R.R. Martin",
+      "story": "In A Storm of Swords, the royal wedding of Joffrey Baratheon and Margaery Tyrell features an enormous pigeon pie from which live doves are released. Pigeon pie was a genuine medieval banquet dish, often elaborately decorated and presented as the climax of a feast. George R.R. Martin drew on real historical feasting traditions to craft his fictional world's culinary culture.",
+      "ingredients": [
+        {
+          "name": "squab or Cornish game hens, deboned (about 2 lb meat total)",
+          "amount": 4
+        },
+        {
+          "name": "cremini mushrooms, quartered",
+          "amount": 8,
+          "unit": "oz"
+        },
+        {
+          "name": "bacon",
+          "amount": 4,
+          "unit": "slices",
+          "preparation": "diced"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "red wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "chicken stock",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh thyme leaves",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": "minced"
+        },
+        {
+          "name": "(14 oz) puff pastry, thawed",
+          "amount": 1,
+          "unit": "package"
+        },
+        {
+          "name": "egg, beaten",
+          "amount": 1,
+          "preparation": "for egg wash"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Cut the squab or game hen meat into bite-sized pieces and season with salt and pepper. In a large skillet, cook the bacon until crisp. Remove bacon and set aside, leaving the fat in the pan.",
+        "Brown the meat in the bacon fat over high heat in batches. Remove and set aside with the bacon.",
+        "Reduce heat to medium. Add the butter, then sauté the onion and mushrooms for 6 to 8 minutes until softened and golden.",
+        "Add the garlic, thyme, and rosemary. Cook for 1 minute. Sprinkle the flour over the vegetables and stir for 1 minute. Pour in the wine and stock, stirring to combine. Simmer until the sauce thickens, about 5 minutes.",
+        "Return the meat and bacon to the sauce. Season to taste. Transfer the filling to a deep pie dish or baking dish and let cool slightly.",
+        "Preheat oven to 400°F (200°C). Roll out the puff pastry and drape it over the filling, crimping the edges to seal. Cut a few slits in the top for steam. Brush with beaten egg.",
+        "Bake for 35 to 40 minutes until the pastry is puffed and deeply golden. Let rest for 10 minutes before cutting and serving."
+      ]
+    }
+  ]
+}

@@ -377,13 +377,15 @@ struct ThemePacksSheet: View {
         // This clears stale SwiftData selections if Firebase has no data for this user
         await syncThemeSelectionsWithFirebase()
 
-        guard themes.isEmpty else { return }
-
+        // Always refresh themes from Firebase to pick up new themes
+        // ThemeLoader will update existing themes and add new ones
         isLoading = true
         let themeLoader = ThemeLoader()
         do {
-            _ = try await themeLoader.loadThemes(into: modelContext)
-            Log.info("Loaded themes for Discovery", category: .onboarding)
+            let loadedThemes = try await themeLoader.loadThemes(into: modelContext)
+            Log.info("Loaded themes for Discovery", category: .onboarding, metadata: [
+                "count": loadedThemes.count
+            ])
         } catch {
             Log.error("Failed to load themes", category: .onboarding, error: error)
         }

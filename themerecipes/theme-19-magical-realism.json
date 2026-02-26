@@ -1,0 +1,1101 @@
+{
+  "themeId": "magical-realism",
+  "themeName": "Magical Realism & World Cuisine",
+  "recipes": [
+    {
+      "id": "magical-realism-001",
+      "title": "Ratatouille",
+      "description": "A vibrant Provençal vegetable stew of tender eggplant, zucchini, bell peppers and tomatoes, layered with fresh herbs and slow-baked until meltingly soft. This rustic dish celebrates the magic of simple ingredients transformed by patience and care.",
+      "prepTime": "30 minutes",
+      "cookTime": "50 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "vegetarian",
+        "French",
+        "Pixar"
+      ],
+      "source": "Inspired by Pixar's Ratatouille",
+      "story": "In the film, critic Anton Ego tastes the dish and is transported back to his childhood. Ratatouille originated in 18th-century Provence as a peasant dish of courgettes, aubergines, peppers, tomatoes and onions.",
+      "ingredients": [
+        {
+          "name": "eggplant",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "sliced into thin rounds"
+        },
+        {
+          "name": "zucchini",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "sliced into thin rounds"
+        },
+        {
+          "name": "bell peppers (red and yellow)",
+          "amount": 2,
+          "preparation": "diced"
+        },
+        {
+          "name": "ripe tomatoes",
+          "amount": 4,
+          "preparation": "sliced into thin rounds"
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "olive oil",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh thyme leaves",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1
+        },
+        {
+          "name": "Salt and pepper to taste"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 375°F (190°C).",
+        "Sauté the diced onion and garlic in 2 tablespoons of olive oil over medium heat until softened, about 5 minutes.",
+        "Spread the sautéed onion mixture across the bottom of a baking dish and nestle in the bay leaf.",
+        "Arrange alternating slices of eggplant, zucchini, and tomato in overlapping rows on top of the onion base.",
+        "Scatter the diced bell peppers around the edges and sprinkle thyme leaves over the top.",
+        "Drizzle with the remaining olive oil and season generously with salt and pepper.",
+        "Cover with foil and bake for 35 minutes, then uncover and bake an additional 15 minutes until the vegetables are tender and lightly browned."
+      ]
+    },
+    {
+      "id": "magical-realism-002",
+      "title": "Tiana's Gumbo",
+      "description": "A rich, soul-warming Louisiana gumbo built on a deeply toasted dark roux, loaded with andouille sausage, chicken and shrimp. This is the dish that brings the whole neighbourhood together, just as it does in Tiana's kitchen.",
+      "prepTime": "30 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 6",
+      "difficulty": "hard",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "main dish",
+        "Cajun",
+        "Disney"
+      ],
+      "source": "Inspired by Disney's The Princess and the Frog",
+      "story": "In Disney's The Princess and the Frog, Tiana cooks gumbo that brings the neighbourhood together. Her gumbo represents family, tradition and love of good food. Sharing gumbo inspires Tiana's dream of owning her own restaurant.",
+      "ingredients": [
+        {
+          "name": "andouille sausage",
+          "amount": 0.5,
+          "unit": "lb",
+          "preparation": "sliced"
+        },
+        {
+          "name": "boneless chicken thighs, cubed",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "shrimp",
+          "amount": 0.5,
+          "unit": "lb",
+          "preparation": "peeled and deveined"
+        },
+        {
+          "name": "okra",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced"
+        },
+        {
+          "name": "bell pepper",
+          "amount": 1,
+          "unit": "green",
+          "preparation": "diced"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "chicken stock",
+          "amount": 6,
+          "unit": "cups"
+        },
+        {
+          "name": "Creole seasoning",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "Salt, pepper and hot sauce to taste"
+        },
+        {
+          "name": "Cooked white rice for serving"
+        }
+      ],
+      "instructions": [
+        "Make a dark roux by whisking the flour into the hot oil over medium heat, stirring constantly for 20-25 minutes until it reaches a deep chocolate brown colour.",
+        "Add the diced onion, celery and bell pepper to the roux and cook for 5 minutes until softened.",
+        "Stir in the sliced andouille sausage and cook for 3 minutes.",
+        "Gradually add the chicken stock, stirring to combine, and bring to a simmer.",
+        "Add the cubed chicken and Creole seasoning, then simmer for 45 minutes.",
+        "Add the okra and cook for 15 minutes more, then add the shrimp and cook until pink, about 5 minutes.",
+        "Season with salt, pepper and hot sauce, then serve ladled over steamed white rice."
+      ]
+    },
+    {
+      "id": "magical-realism-003",
+      "title": "Tiana's Beignets",
+      "description": "Light, fluffy squares of fried yeast dough showered with a blizzard of powdered sugar. These pillowy New Orleans beignets are the sweet treats that helped Tiana finance her dream restaurant and later became its signature offering.",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "dessert",
+        "New Orleans",
+        "Disney"
+      ],
+      "source": "Inspired by Disney's The Princess and the Frog",
+      "story": "Tiana sells these sweet treats to finance her dream and later serves them at her own eatery. The beignets are described as light, fluffy squares showered with powdered sugar, representing her determination and talent.",
+      "ingredients": [
+        {
+          "name": "active dry yeast",
+          "amount": 2.25,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "warm milk",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "egg, beaten",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "melted"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Vegetable oil for deep frying"
+        },
+        {
+          "name": "powdered sugar for dusting",
+          "amount": 1,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "Dissolve the yeast in the warm milk with a pinch of sugar and let stand for 10 minutes until frothy.",
+        "Mix in the egg, melted butter and sugar, then gradually stir in the flour and salt to form a soft dough.",
+        "Knead the dough lightly on a floured surface until smooth, then cover and let rise for 1 hour.",
+        "Roll the dough out to about 1/4-inch thickness and cut into 2-inch squares.",
+        "Heat the oil to 370°F (190°C) and fry the squares in batches for 2-3 minutes, turning once, until puffed and golden.",
+        "Drain on paper towels and dust very generously with powdered sugar while still hot.",
+        "Serve immediately for the best texture."
+      ]
+    },
+    {
+      "id": "magical-realism-004",
+      "title": "Quail in Rose Petal Sauce",
+      "description": "Delicate pan-seared quail bathed in a lush, fragrant sauce of rose petals, almonds and warm spices. This sensual dish channels the forbidden passion of Tita's kitchen, where every emotion is cooked right into the food.",
+      "prepTime": "25 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 4",
+      "difficulty": "hard",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "main dish",
+        "Mexican",
+        "magical realism"
+      ],
+      "source": "Inspired by Like Water for Chocolate by Laura Esquivel",
+      "story": "In Laura Esquivel's magical realist novel Like Water for Chocolate, Tita's quail in rose petal sauce transmits her forbidden passion to diners. LitCharts notes that the dish makes Gertrudis so aroused she runs away with a soldier and symbolises rebellion against societal constraints. The sensual meal channels Tita's emotions and disrupts the family's rigid traditions.",
+      "ingredients": [
+        {
+          "name": "whole quail, cleaned and patted dry",
+          "amount": 4
+        },
+        {
+          "name": "organic dried rose petals",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "rose water",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "blanched almonds",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "walnuts",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "chopped"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "chicken broth",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        }
+      ],
+      "instructions": [
+        "Season the quail with salt and pepper, then sear in butter over medium-high heat until golden on all sides, about 3 minutes per side. Remove and set aside.",
+        "In the same pan, sauté the onion and garlic until softened, about 4 minutes.",
+        "Add the rose petals, almonds, walnuts and sugar to the pan with the chicken broth and simmer for 10 minutes.",
+        "Transfer the sauce mixture to a blender with the rose water and blend until smooth.",
+        "Return the sauce to the pan and nestle the quail back in. Cover and simmer gently for 15-20 minutes until the quail is cooked through.",
+        "Adjust seasoning with salt and pepper and serve the quail draped in the rose-scented sauce."
+      ]
+    },
+    {
+      "id": "magical-realism-005",
+      "title": "Chai Tea",
+      "description": "A fragrant, warming cup of sweet milky chai simmered with freshly crushed cardamom, ginger and black tea leaves. This is the everyday ritual of hospitality that threads through Arundhati Roy's Kerala, where every cup carries a world of meaning.",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "beverage",
+        "Indian",
+        "literary fiction"
+      ],
+      "source": "Inspired by The God of Small Things by Arundhati Roy",
+      "story": "In Arundhati Roy's The God of Small Things, characters drink sweet, milky chai. Chai represents hospitality and everyday life in Indian literature.",
+      "ingredients": [
+        {
+          "name": "water",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "whole milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "loose black tea leaves",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "Assam or CTC"
+        },
+        {
+          "name": "cardamom pods, lightly crushed",
+          "amount": 4,
+          "unit": "green"
+        },
+        {
+          "name": "-inch piece fresh ginger",
+          "amount": 1,
+          "preparation": "sliced"
+        },
+        {
+          "name": "sugar, or to taste",
+          "amount": 2,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "Bring the water to a boil in a small saucepan with the crushed cardamom pods and sliced ginger.",
+        "Add the tea leaves, reduce heat to medium and simmer for 3 minutes until the water darkens.",
+        "Pour in the milk and bring back to a gentle boil, watching carefully so it does not boil over.",
+        "Add sugar and stir to dissolve.",
+        "Simmer for 2 more minutes to let the flavours meld.",
+        "Strain through a fine mesh sieve into cups and serve hot."
+      ]
+    },
+    {
+      "id": "magical-realism-006",
+      "title": "Matcha Mochi",
+      "description": "Soft, chewy rice cakes tinted a beautiful green with matcha powder, dusted in cornstarch and shaped by hand. These delicate mochi evoke the nostalgia and seasonal rituals that weave through Murakami's dreamlike fiction.",
+      "prepTime": "15 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "dessert",
+        "Japanese",
+        "literary fiction"
+      ],
+      "source": "Inspired by the fiction of Haruki Murakami",
+      "story": "Japanese authors like Haruki Murakami mention mochi in stories. Mochi evokes nostalgia and seasonal rituals in Japanese fiction.",
+      "ingredients": [
+        {
+          "name": "glutinous rice flour",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "mochiko"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "matcha powder",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "water",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "Cornstarch for dusting"
+        }
+      ],
+      "instructions": [
+        "Whisk together the glutinous rice flour, sugar and matcha powder in a microwave-safe bowl.",
+        "Gradually stir in the water until a smooth batter forms with no lumps.",
+        "Cover the bowl loosely with plastic wrap and microwave on high for 2 minutes.",
+        "Stir the mixture vigorously with a wet spatula, then microwave for another 1-2 minutes until the dough is translucent and very sticky.",
+        "Dust a work surface generously with cornstarch and turn the hot mochi dough out onto it.",
+        "Dust the top with more cornstarch, then pinch or cut into 8 small pieces and roll into smooth balls.",
+        "Serve at room temperature. Mochi is best eaten the day it is made."
+      ]
+    },
+    {
+      "id": "magical-realism-007",
+      "title": "Moana's Polynesian Pork",
+      "description": "Tender, slow-cooked pork shoulder braised in a luscious blend of pineapple juice, coconut milk, soy and fresh ginger. This island-style feast dish honours the Polynesian traditions of community and storytelling celebrated in Disney's Moana.",
+      "prepTime": "15 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "main dish",
+        "Polynesian",
+        "Disney"
+      ],
+      "source": "Inspired by Disney's Moana",
+      "story": "Disney's Moana draws on Polynesian mythology and features feasts. The dish honours Pacific Island storytelling and community.",
+      "ingredients": [
+        {
+          "name": "pork shoulder",
+          "amount": 3,
+          "unit": "lb",
+          "preparation": "cut into large chunks"
+        },
+        {
+          "name": "pineapple juice",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "(14 oz) coconut milk",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "soy sauce",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "-inch piece fresh ginger",
+          "amount": 2,
+          "preparation": "grated"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "Steamed rice or taro for serving"
+        }
+      ],
+      "instructions": [
+        "Season the pork generously with salt and pepper, then sear in a heavy pot over high heat until browned on all sides.",
+        "Combine the pineapple juice, soy sauce, grated ginger, minced garlic and brown sugar in a bowl.",
+        "Pour the marinade mixture over the seared pork in the pot.",
+        "Add the coconut milk and bring to a gentle simmer.",
+        "Cover and cook on low heat for 2.5 to 3 hours, turning the pork occasionally, until it is fork-tender and falling apart.",
+        "Shred the pork with two forks and stir it back into the rich sauce.",
+        "Serve over steamed rice or taro with the braising liquid spooned over the top."
+      ]
+    },
+    {
+      "id": "magical-realism-008",
+      "title": "Curry Puffs",
+      "description": "Crispy golden pastry parcels filled with a warmly spiced mixture of potatoes, peas, cumin and turmeric. These fragrant street-food snacks capture the vibrant cultural diversity of Salman Rushdie's Bombay.",
+      "prepTime": "30 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "snack",
+        "Indian",
+        "literary fiction"
+      ],
+      "source": "Inspired by Midnight's Children by Salman Rushdie",
+      "story": "Salman Rushdie's Midnight's Children is rich with street-food imagery. Street snacks reflect the novel's cultural diversity.",
+      "ingredients": [
+        {
+          "name": "puff pastry, thawed",
+          "amount": 1,
+          "unit": "sheet"
+        },
+        {
+          "name": "potatoes",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "peeled, boiled and diced"
+        },
+        {
+          "name": "green peas",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "small"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "curry powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "turmeric",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cumin",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "egg, beaten, for egg wash",
+          "amount": 1
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 400°F (200°C) and line a baking sheet with parchment paper.",
+        "Sauté the onion and garlic in oil until softened, then add the curry powder, turmeric and cumin, stirring for 1 minute until fragrant.",
+        "Add the diced potatoes and peas, season with salt and pepper, and mix well. Let the filling cool slightly.",
+        "Roll out the puff pastry and cut into 6 squares.",
+        "Place a generous spoonful of filling in the centre of each square, fold corner to corner into a triangle and press the edges firmly with a fork to seal.",
+        "Brush the tops with beaten egg and place on the prepared baking sheet.",
+        "Bake for 20-25 minutes until puffed and deeply golden."
+      ]
+    },
+    {
+      "id": "magical-realism-009",
+      "title": "Kugelhopf",
+      "description": "A tall, elegant yeasted cake studded with plump raisins and toasted almonds, baked in a traditional fluted bundt mould. This Austrian classic transports you straight to the Alpine meadows and cosy kitchens of Salzburg.",
+      "prepTime": "25 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "dessert",
+        "Austrian",
+        "film"
+      ],
+      "source": "Inspired by The Sound of Music",
+      "story": "In The Sound of Music film, the von Trapp children sing about their favourite things including cream-coloured ponies and crisp apple strudels. An Austrian kugelhopf -- a yeasted cake with raisins and almonds -- evokes Alpine desserts. The cake transports diners to the hills of Salzburg.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "packet  active dry yeast",
+          "amount": 1,
+          "preparation": "2 1/4 teaspoons"
+        },
+        {
+          "name": "warm milk",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "softened"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "eggs",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "raisins, soaked in warm water and drained",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sliced almonds",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Powdered sugar for dusting"
+        }
+      ],
+      "instructions": [
+        "Dissolve the yeast in the warm milk with a pinch of sugar and let stand for 10 minutes.",
+        "In a large bowl, cream the butter and sugar, then beat in the eggs one at a time.",
+        "Add the yeast mixture and gradually mix in the flour and salt to form a soft, enriched dough.",
+        "Fold in the raisins and half the almonds, then knead gently until smooth.",
+        "Butter a bundt or kugelhopf mould and press the remaining almonds into the bottom.",
+        "Place the dough into the mould, cover and let rise in a warm place for 1 hour until doubled.",
+        "Bake at 350°F (175°C) for 40-45 minutes until golden and a skewer comes out clean. Cool in the mould, then invert and dust with powdered sugar."
+      ]
+    },
+    {
+      "id": "magical-realism-010",
+      "title": "Jollof Rice",
+      "description": "A bold, tomato-red one-pot rice dish fragrant with scotch bonnet peppers, thyme and bay leaves. This West African celebration staple captures the warmth, community and cultural pride that pulses through Chimamanda Ngozi Adichie's fiction.",
+      "prepTime": "20 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "main dish",
+        "Nigerian",
+        "literary fiction"
+      ],
+      "source": "Inspired by Americanah by Chimamanda Ngozi Adichie",
+      "story": "In Chimamanda Ngozi Adichie's Americanah, food is a powerful thread connecting the protagonist to her Nigerian identity. Jollof rice appears at parties and family gatherings throughout the novel, a dish that tastes like home no matter where in the world you eat it.",
+      "ingredients": [
+        {
+          "name": "long-grain rice, rinsed",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "(14 oz) crushed tomatoes",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "red bell peppers, roughly chopped",
+          "amount": 2
+        },
+        {
+          "name": "scotch bonnet pepper , seeded",
+          "amount": 1,
+          "preparation": "or habanero"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "chicken or vegetable stock",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "dried thyme",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "Salt and white pepper to taste"
+        }
+      ],
+      "instructions": [
+        "Blend the crushed tomatoes, red bell peppers and scotch bonnet into a smooth puree.",
+        "Heat the oil in a heavy-bottomed pot and sauté the diced onion until golden, about 8 minutes.",
+        "Add the garlic and tomato paste, stirring for 2 minutes until darkened and fragrant.",
+        "Pour in the tomato-pepper puree and cook over medium heat for 15 minutes, stirring often, until the mixture reduces and the raw tomato taste cooks out.",
+        "Stir in the stock, thyme, bay leaves, salt and white pepper and bring to a boil.",
+        "Add the rinsed rice, stir once, then cover tightly and reduce heat to the lowest setting.",
+        "Cook for 25-30 minutes without lifting the lid, then fluff with a fork and serve."
+      ]
+    },
+    {
+      "id": "magical-realism-011",
+      "title": "Empanadas",
+      "description": "Golden, crescent-shaped pastries filled with a savoury mixture of spiced beef, onions, olives and hard-boiled egg. These Chilean empanadas carry the spirit of Isabel Allende's multigenerational saga, where food and memory are inseparable.",
+      "prepTime": "40 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "snack",
+        "Chilean",
+        "magical realism"
+      ],
+      "source": "Inspired by The House of the Spirits by Isabel Allende",
+      "story": "In Isabel Allende's The House of the Spirits, food weaves through every generation of the Trueba family. Empanadas appear at celebrations and gatherings, connecting the family to their Chilean roots and to each other across the decades of political upheaval and magical happenings.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2.5,
+          "unit": "cups"
+        },
+        {
+          "name": "cold butter, cubed",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "egg",
+          "amount": 1
+        },
+        {
+          "name": "cold water",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "cumin",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "pitted black olives, halved",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "hard-boiled eggs",
+          "amount": 2,
+          "preparation": "chopped"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "egg, beaten, for egg wash",
+          "amount": 1
+        }
+      ],
+      "instructions": [
+        "Make the dough by cutting the butter into the flour until it resembles coarse crumbs, then mix in the egg and enough cold water to form a smooth dough. Wrap and chill for 30 minutes.",
+        "Brown the ground beef with the diced onion, cumin, paprika, salt and pepper until cooked through, then let cool.",
+        "Fold in the olives and chopped hard-boiled eggs into the cooled filling.",
+        "Roll out the dough and cut into 6-inch rounds.",
+        "Place a generous spoonful of filling on each round, fold in half and crimp the edges with a fork.",
+        "Brush the tops with beaten egg and bake at 400°F (200°C) for 20-25 minutes until deeply golden.",
+        "Let cool for a few minutes before serving."
+      ]
+    },
+    {
+      "id": "magical-realism-012",
+      "title": "Bibimbap",
+      "description": "A beautiful, colourful bowl of steamed rice topped with an array of seasoned vegetables, a fried egg and spicy gochujang sauce, all mixed together at the table. This Korean staple embodies the themes of identity, tradition and belonging in Min Jin Lee's sweeping family epic.",
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "main dish",
+        "Korean",
+        "literary fiction"
+      ],
+      "source": "Inspired by Pachinko by Min Jin Lee",
+      "story": "In Min Jin Lee's Pachinko, food is a constant thread binding four generations of a Korean family as they navigate life in Japan. Rice dishes like bibimbap represent both the comfort of home and the persistence of Korean identity in a foreign land.",
+      "ingredients": [
+        {
+          "name": "cooked short-grain rice",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "spinach, blanched and seasoned with sesame oil",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "carrot, julienned and sautéed",
+          "amount": 1
+        },
+        {
+          "name": "zucchini, julienned and sautéed",
+          "amount": 1
+        },
+        {
+          "name": "bean sprouts, blanched",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "shiitake mushrooms",
+          "amount": 4,
+          "preparation": "sliced and sautéed"
+        },
+        {
+          "name": "eggs",
+          "amount": 4,
+          "unit": "large"
+        },
+        {
+          "name": "gochujang",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "Korean chili paste"
+        },
+        {
+          "name": "sesame oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "soy sauce",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Toasted sesame seeds for garnish"
+        }
+      ],
+      "instructions": [
+        "Prepare each vegetable topping separately: blanch the spinach and bean sprouts, and sauté the carrot, zucchini and mushrooms individually with a drizzle of sesame oil and a pinch of salt.",
+        "Divide the hot rice among four bowls.",
+        "Arrange the prepared vegetables in neat sections on top of the rice, leaving the centre open.",
+        "Fry the eggs sunny-side up in a lightly oiled pan.",
+        "Place a fried egg in the centre of each bowl.",
+        "Serve with gochujang and sesame oil on the side, then mix everything together vigorously at the table before eating.",
+        "Garnish with toasted sesame seeds."
+      ]
+    },
+    {
+      "id": "magical-realism-013",
+      "title": "Pho",
+      "description": "A deeply aromatic Vietnamese beef broth simmered for hours with charred onion, ginger, star anise and cinnamon, ladled over silky rice noodles and paper-thin slices of beef. This restorative soup carries the complex flavours and memories that haunt Viet Thanh Nguyen's displaced narrator.",
+      "prepTime": "20 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "soup",
+        "Vietnamese",
+        "literary fiction"
+      ],
+      "source": "Inspired by The Sympathizer by Viet Thanh Nguyen",
+      "story": "In Viet Thanh Nguyen's The Sympathizer, the narrator -- a man of two minds and two countries -- frequently invokes the tastes and smells of Vietnam. Pho represents both the homeland left behind and the ache of cultural identity, a bowl that is simple on the surface but endlessly complex underneath.",
+      "ingredients": [
+        {
+          "name": "beef bones",
+          "amount": 2,
+          "unit": "lb"
+        },
+        {
+          "name": "onion, halved and charred",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "-inch piece fresh ginger, halved and charred",
+          "amount": 3
+        },
+        {
+          "name": "star anise pods",
+          "amount": 3
+        },
+        {
+          "name": "cinnamon stick",
+          "amount": 1
+        },
+        {
+          "name": "whole cloves",
+          "amount": 3
+        },
+        {
+          "name": "fish sauce",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "dried rice noodles",
+          "amount": 8,
+          "unit": "oz",
+          "preparation": "banh pho"
+        },
+        {
+          "name": "beef sirloin",
+          "amount": 0.5,
+          "unit": "lb",
+          "preparation": "sliced paper-thin"
+        },
+        {
+          "name": "Fresh herbs: Thai basil, cilantro, bean sprouts, lime wedges, sliced jalapeño"
+        }
+      ],
+      "instructions": [
+        "Blanch the beef bones in boiling water for 5 minutes, then drain and rinse to remove impurities.",
+        "Char the halved onion and ginger under a broiler or over an open flame until blackened in spots.",
+        "Place the cleaned bones, charred onion and ginger in a large pot with 10 cups of water. Bring to a boil, then reduce to a gentle simmer.",
+        "Toast the star anise, cinnamon and cloves in a dry pan for 1 minute, then add to the broth. Simmer for at least 1.5 hours, skimming occasionally.",
+        "Strain the broth and season with fish sauce and sugar. Keep hot.",
+        "Cook the rice noodles according to package directions and divide among bowls.",
+        "Top with thin slices of raw beef, ladle the hot broth over (it will cook the beef), and serve with fresh herbs, bean sprouts, lime wedges and jalapeño."
+      ]
+    },
+    {
+      "id": "magical-realism-014",
+      "title": "Tres Leches Cake",
+      "description": "A supremely moist sponge cake soaked in a trio of milks -- evaporated, condensed and heavy cream -- then topped with a cloud of whipped cream. This beloved Latin American celebration cake captures the lush, dreamlike abundance of García Márquez's Macondo.",
+      "prepTime": "25 minutes",
+      "cookTime": "30 minutes",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "dessert",
+        "Colombian",
+        "magical realism"
+      ],
+      "source": "Inspired by the world of Gabriel García Márquez",
+      "story": "Gabriel García Márquez's novels overflow with the sights, sounds and flavours of Colombia and the Caribbean coast. Tres leches cake, with its almost impossibly moist crumb and layers of sweetened milk, embodies the kind of magical excess found in One Hundred Years of Solitude -- a dessert that should not work but is utterly transcendent.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "eggs",
+          "amount": 5,
+          "unit": "large"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "whole milk",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "(14 oz) sweetened condensed milk",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "(12 oz) evaporated milk",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "heavy whipping cream for topping",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Ground cinnamon for garnish"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 350°F (175°C) and grease a 9x13-inch baking pan.",
+        "Beat the eggs and sugar together until thick and pale, about 5 minutes, then fold in the flour, baking powder, milk and vanilla.",
+        "Pour into the prepared pan and bake for 25-30 minutes until a toothpick comes out clean. Let cool completely.",
+        "Whisk together the condensed milk, evaporated milk and 1 cup heavy cream to make the three-milk mixture.",
+        "Poke the cooled cake all over with a fork, then slowly pour the three-milk mixture over the top, letting it soak in gradually. Refrigerate for at least 4 hours or overnight.",
+        "Whip the 2 cups of heavy cream with the powdered sugar until stiff peaks form and spread over the soaked cake.",
+        "Dust with ground cinnamon and serve chilled."
+      ]
+    }
+  ]
+}

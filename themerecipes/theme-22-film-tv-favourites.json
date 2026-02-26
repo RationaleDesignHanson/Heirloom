@@ -1,0 +1,1080 @@
+{
+  "themeId": "film-tv-favourites",
+  "themeName": "Film & Television Favourites",
+  "recipes": [
+    {
+      "id": "film-tv-favourites-001",
+      "title": "Chocolate Cake & Milk",
+      "description": "A towering, generously frosted chocolate layer cake served with an ice-cold glass of milk. Inspired by Bruce Bogtrotter's legendary feat in Matilda, this cake is gloriously rich, deeply chocolatey, and meant to be eaten with gusto. No Trunchbull required.",
+      "prepTime": "25 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cake",
+        "chocolate",
+        "baking"
+      ],
+      "source": "Inspired by Roald Dahl's Matilda",
+      "story": "In the film Matilda, Bruce Bogtrotter is forced to eat an enormous chocolate cake under the Trunchbull's watch. Bruce's triumph becomes an act of resistance as his classmates cheer him on.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "unsweetened cocoa powder",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "baking soda",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "hot coffee",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "softened (for frosting)"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": "for frosting"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "for frosting"
+        },
+        {
+          "name": "milk",
+          "amount": 0.333,
+          "unit": "cup",
+          "preparation": "for frosting"
+        },
+        {
+          "name": "Cold milk for serving"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350 degrees F and grease and flour two 9-inch round cake pans.",
+        "Whisk together the flour, sugar, cocoa powder, baking soda, and salt in a large bowl.",
+        "Add the eggs, buttermilk, oil, and vanilla and beat on medium speed for 2 minutes.",
+        "Stir in the hot coffee until the batter is smooth (it will be thin).",
+        "Divide the batter between the prepared pans and bake for 30-35 minutes until a toothpick comes out clean.",
+        "Cool in pans for 10 minutes, then turn out onto wire racks to cool completely.",
+        "For the frosting, beat the butter until creamy, then add the powdered sugar, cocoa, and milk and beat until thick and spreadable.",
+        "Frost between the layers, then over the top and sides. Slice thick and serve with a tall glass of cold milk."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-002",
+      "title": "Liver with Fava Beans & Chianti",
+      "description": "Pan-seared calf's liver served alongside tender sauteed fava beans and paired with a glass of Chianti. Hannibal Lecter's chilling dinner menu is recreated here as a genuinely refined dish. The flavours are elegant and the preparation is straightforward, even if the reference is unsettling.",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 2",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "main dish",
+        "Italian",
+        "offal"
+      ],
+      "source": "Inspired by The Silence of the Lambs",
+      "story": "Hannibal Lecter boasts in The Silence of the Lambs that he ate a census taker's liver 'with some fava beans and a nice Chianti.' The chilling menu item epitomises Lecter's refined brutality.",
+      "ingredients": [
+        {
+          "name": "calf's liver (about 6 oz each)",
+          "amount": 2,
+          "unit": "slices"
+        },
+        {
+          "name": "shelled fava beans",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "fresh or frozen"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic, thinly sliced",
+          "amount": 2,
+          "unit": "cloves"
+        },
+        {
+          "name": "Chianti or dry red wine",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        },
+        {
+          "name": "Fresh parsley for garnish"
+        },
+        {
+          "name": "Chianti for serving"
+        }
+      ],
+      "instructions": [
+        "Blanch the fava beans in boiling salted water for 2 minutes, then shock in ice water and slip off the outer skins.",
+        "Season the liver slices with salt and pepper on both sides.",
+        "Heat 1 tablespoon of olive oil in a skillet over high heat and sear the liver for 2-3 minutes per side for medium-rare. Remove and rest.",
+        "In the same skillet, add the remaining olive oil and garlic, cooking for 30 seconds.",
+        "Add the fava beans and saute for 2 minutes until warmed through.",
+        "Deglaze the pan with the Chianti, scraping up any fond, and stir in the butter.",
+        "Plate the liver alongside the fava beans, spoon the pan sauce over, and garnish with parsley. Serve with a glass of Chianti."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-003",
+      "title": "Tandoori Chicken",
+      "description": "Vibrant, deeply spiced chicken pieces marinated in a garam masala and yogurt bath, then grilled until beautifully charred. This Punjabi classic features in the family meals of Bend It Like Beckham and brings together tradition, culture, and irresistible flavour in every bite.",
+      "prepTime": "20 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "main dish",
+        "Indian",
+        "grilled"
+      ],
+      "source": "Inspired by Bend It Like Beckham",
+      "story": "In Bend It Like Beckham, family meals feature Punjabi dishes like tandoori chicken. Food in the film highlights cultural expectations and the protagonist's balancing of tradition and ambition.",
+      "ingredients": [
+        {
+          "name": "chicken pieces",
+          "amount": 2,
+          "unit": "lbs",
+          "preparation": "thighs and drumsticks"
+        },
+        {
+          "name": "plain yogurt",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "lemon juice",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "fresh ginger",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "grated"
+        },
+        {
+          "name": "garam masala",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "ground cumin",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "turmeric",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt to taste"
+        },
+        {
+          "name": "Lemon wedges and fresh cilantro for serving"
+        }
+      ],
+      "instructions": [
+        "Make deep slashes in the chicken pieces to help the marinade penetrate.",
+        "In a large bowl, combine the yogurt, lemon juice, garlic, ginger, garam masala, cumin, paprika, turmeric, cayenne, and salt.",
+        "Coat the chicken thoroughly in the marinade, cover, and refrigerate for at least 2 hours or overnight.",
+        "Preheat a grill or oven to 425 degrees F.",
+        "Grill or roast the chicken for 20-25 minutes, turning once, until charred in spots and cooked through (165 degrees F internal).",
+        "Let rest for 5 minutes, then serve with lemon wedges and fresh cilantro."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-004",
+      "title": "Shawarma",
+      "description": "Succulent, spice-rubbed roasted lamb carved into thin slices and tucked into warm pita with fresh vegetables and creamy tahini sauce. After the Battle of New York, the Avengers earned this meal, and so do you. The flavours are bold, bright, and deeply satisfying.",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "main dish",
+        "Middle Eastern",
+        "sandwich"
+      ],
+      "source": "Inspired by The Avengers (2012)",
+      "story": "After the Battle of New York in The Avengers, Tony Stark suggests shawarma. The post-credits scene renewed interest in Middle Eastern street food.",
+      "ingredients": [
+        {
+          "name": "boneless lamb leg or shoulder",
+          "amount": 2,
+          "unit": "lbs"
+        },
+        {
+          "name": "ground cumin",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "ground coriander",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "turmeric",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "olive oil",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "pita breads",
+          "amount": 6
+        },
+        {
+          "name": "tahini sauce",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "Sliced tomatoes, cucumber, and parsley for serving"
+        }
+      ],
+      "instructions": [
+        "Combine the cumin, coriander, turmeric, paprika, cinnamon, garlic, olive oil, salt, and pepper in a bowl.",
+        "Rub the spice mixture all over the lamb and marinate for at least 1 hour, or overnight in the refrigerator.",
+        "Preheat oven to 375 degrees F.",
+        "Place the lamb on a rack in a roasting pan and roast for 1 hour 15 minutes to 1 hour 30 minutes until tender and deeply browned.",
+        "Let the lamb rest for 15 minutes, then slice very thinly against the grain.",
+        "Warm the pita breads and fill with sliced lamb, tomatoes, cucumber, parsley, and a generous drizzle of tahini sauce.",
+        "Wrap tightly and serve immediately."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-005",
+      "title": "Blancmange",
+      "description": "A delicate, creamy almond-scented pudding set in a mould and turned out onto a plate, topped with fresh berries. This classic English dessert anchors one of Monty Python's most surreal sketches. The texture is silky, the flavour gently sweet, and the presentation is elegantly absurd.",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "dessert",
+        "British",
+        "pudding"
+      ],
+      "source": "Inspired by Monty Python's Flying Circus",
+      "story": "Monty Python's surreal sketch depicts aliens turning into blancmanges to win Wimbledon. The absurd dessert anchors a classic comedic sketch.",
+      "ingredients": [
+        {
+          "name": "whole milk",
+          "amount": 2.5,
+          "unit": "cups"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "cornstarch",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "almond extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "packet (1/4 oz) unflavoured gelatin",
+          "amount": 1
+        },
+        {
+          "name": "cold water",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Fresh berries for topping"
+        },
+        {
+          "name": "Mint leaves for garnish"
+        }
+      ],
+      "instructions": [
+        "Sprinkle the gelatin over the cold water and let it bloom for 5 minutes.",
+        "In a medium saucepan, whisk together the milk, sugar, and cornstarch.",
+        "Cook over medium heat, stirring constantly, until the mixture thickens and just begins to bubble, about 6-8 minutes.",
+        "Remove from heat and stir in the bloomed gelatin until fully dissolved.",
+        "Stir in the almond extract.",
+        "Pour into a lightly oiled mould or individual ramekins.",
+        "Refrigerate for at least 4 hours or overnight until firmly set.",
+        "Unmould onto a serving plate and top with fresh berries and mint leaves."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-006",
+      "title": "Krabby Patty",
+      "description": "A golden, crispy crab cake burger served on a toasted bun with tartar sauce, crisp lettuce, and ripe tomato. The pride of the Krusty Krab comes to life as a delicious pan-fried patty with real crab flavour. The secret formula remains classified.",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "main dish",
+        "seafood",
+        "burger"
+      ],
+      "source": "Inspired by SpongeBob SquarePants",
+      "story": "In SpongeBob SquarePants, the secret Krabby Patty is the pride of the Krusty Krab. The burger's secret formula is a running gag; fans make crustacean-free versions at home.",
+      "ingredients": [
+        {
+          "name": "lump crab meat (or imitation crab",
+          "amount": 1,
+          "unit": "lb",
+          "preparation": "chopped)"
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "egg, beaten",
+          "amount": 1
+        },
+        {
+          "name": "mayonnaise",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Dijon mustard",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Old Bay seasoning",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "butter for frying",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "hamburger buns, toasted",
+          "amount": 4
+        },
+        {
+          "name": "Lettuce, tomato slices, and tartar sauce for serving"
+        }
+      ],
+      "instructions": [
+        "In a bowl, gently combine the crab meat, breadcrumbs, egg, mayonnaise, mustard, and Old Bay seasoning, being careful not to break up the crab too much.",
+        "Form the mixture into 4 patties, about 3/4-inch thick.",
+        "Refrigerate the patties for 15 minutes to help them hold together.",
+        "Melt the butter in a large skillet over medium heat.",
+        "Cook the patties for 3-4 minutes per side until golden brown and heated through.",
+        "Place each patty on a toasted bun and top with lettuce, tomato, and tartar sauce.",
+        "Serve immediately, preferably under the sea."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-007",
+      "title": "Fried Green Tomatoes",
+      "description": "Thick slices of firm green tomatoes dipped in buttermilk, dredged in seasoned cornmeal, and fried to a shatteringly crisp golden crust. This Southern classic from Fannie Flagg's beloved novel and film symbolises community and resilience. Best eaten hot, straight from the pan.",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "side dish",
+        "Southern",
+        "fried"
+      ],
+      "source": "Inspired by Fannie Flagg's Fried Green Tomatoes at the Whistle Stop Cafe",
+      "story": "Fannie Flagg's novel and its film adaptation introduced many Americans to fried green tomatoes. Smithsonian Magazine notes that the dish, although associated with the South, likely originated in the Midwest and later became a Southern staple. In the story, the cafe's signature dish symbolises community and resilience.",
+      "ingredients": [
+        {
+          "name": "firm green tomatoes",
+          "amount": 4,
+          "preparation": "sliced 1/4-inch thick"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "cornmeal",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Vegetable oil for frying (about 1/2 inch in pan)"
+        }
+      ],
+      "instructions": [
+        "Soak the green tomato slices in buttermilk for at least 10 minutes.",
+        "In a shallow dish, combine the cornmeal, flour, salt, black pepper, and cayenne.",
+        "Heat about 1/2 inch of vegetable oil in a large cast-iron skillet over medium-high heat to 350 degrees F.",
+        "Remove each tomato slice from the buttermilk, letting excess drip off, and dredge thoroughly in the cornmeal mixture.",
+        "Fry the tomatoes in batches, about 2-3 minutes per side, until golden brown and crisp.",
+        "Drain on a wire rack set over paper towels.",
+        "Serve hot with a sprinkle of flaky salt."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-008",
+      "title": "Mrs. Doubtfire's Flambéed Bananas Foster",
+      "description": "Caramelised banana slices flambeed in rum and served over vanilla ice cream. This showstopping dessert channels the chaotic kitchen energy of Mrs. Doubtfire, who memorably set her blouse on fire while cooking. The flames here are intentional, dramatic, and completely delicious.",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "dessert",
+        "flambe",
+        "banana"
+      ],
+      "source": "Inspired by Mrs. Doubtfire (1993)",
+      "story": "In Mrs. Doubtfire, Robin Williams' character famously catches fire while improvising in the kitchen during a dinner party. This flambe dessert pays tribute to that fiery scene with a classic New Orleans preparation that is equal parts spectacle and indulgence.",
+      "ingredients": [
+        {
+          "name": "ripe bananas",
+          "amount": 4,
+          "preparation": "peeled and sliced lengthwise"
+        },
+        {
+          "name": "butter",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dark rum",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "banana liqueur",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "optional"
+        },
+        {
+          "name": "Vanilla ice cream for serving"
+        }
+      ],
+      "instructions": [
+        "Melt the butter in a large skillet over medium heat.",
+        "Add the brown sugar and cinnamon and stir until the sugar dissolves and the mixture bubbles.",
+        "Place the banana slices in the pan and cook for 1-2 minutes per side until softened and golden.",
+        "Remove the pan from the heat, add the rum and banana liqueur, then carefully ignite with a long match or lighter.",
+        "Let the flames die down naturally while gently spooning the sauce over the bananas.",
+        "Scoop vanilla ice cream into bowls and spoon the flambéed bananas and sauce over the top.",
+        "Serve immediately while still warm."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-009",
+      "title": "Remy's Omelette",
+      "description": "A classic French omelette with fine herbs, made with the care and precision that Remy the rat brings to everything he cooks. Soft, buttery, and barely golden on the outside with a custardy interior, this is the kind of simple perfection that separates a cook from a chef.",
+      "prepTime": "5 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "breakfast",
+        "French",
+        "eggs"
+      ],
+      "source": "Inspired by Ratatouille (2007)",
+      "story": "In Ratatouille, Remy proves his talent by transforming humble ingredients into extraordinary dishes. While the film's climactic dish is ratatouille, Remy's earliest kitchen triumph is an omelette that demonstrates his instinctive mastery of French technique.",
+      "ingredients": [
+        {
+          "name": "eggs",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "fresh chives, finely chopped",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "fresh parsley, finely chopped",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "fresh tarragon, finely chopped",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt and white pepper to taste"
+        },
+        {
+          "name": "Gruyere cheese, finely grated",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "optional"
+        }
+      ],
+      "instructions": [
+        "Crack the eggs into a bowl, season with salt and white pepper, and beat with a fork until just combined (do not over-beat).",
+        "Heat a non-stick 8-inch skillet over medium-high heat and add the butter.",
+        "When the butter foams and the foam subsides, pour in the eggs.",
+        "Using a spatula, stir the eggs gently while shaking the pan, creating small, soft curds.",
+        "When the eggs are mostly set but still slightly wet on top, sprinkle the herbs and cheese down the centre.",
+        "Tilt the pan and fold the omelette in thirds onto a warmed plate.",
+        "Rub a small piece of butter over the top for shine and serve immediately."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-010",
+      "title": "The Simpsons' Pink Doughnuts",
+      "description": "Fluffy, yeasted doughnuts dipped in a bright pink glaze and finished with rainbow sprinkles. Homer Simpson's obsession with these iconic treats has made the pink doughnut one of the most recognisable foods in television history. Soft, sweet, and impossibly fun.",
+      "prepTime": "30 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 12 doughnuts",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "dessert",
+        "doughnut",
+        "baking"
+      ],
+      "source": "Inspired by The Simpsons",
+      "story": "Homer Simpson's love of pink-frosted doughnuts is one of television's most enduring food obsessions. The treats, inspired by the real doughnuts at the Voodoo Doughnut chain and The Simpsons' longtime sponsor, have become a pop culture icon in their own right.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 3.5,
+          "unit": "cups"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "packet  active dry yeast",
+          "amount": 1,
+          "preparation": "2 1/4 teaspoons"
+        },
+        {
+          "name": "warm milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "melted"
+        },
+        {
+          "name": "egg yolks",
+          "amount": 2
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Vegetable oil for frying"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "for glaze"
+        },
+        {
+          "name": "milk",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "for glaze"
+        },
+        {
+          "name": "Pink food colouring (for glaze)"
+        },
+        {
+          "name": "Rainbow sprinkles"
+        }
+      ],
+      "instructions": [
+        "Dissolve the yeast and a pinch of sugar in the warm milk and let stand for 5 minutes until foamy.",
+        "In a large bowl, combine the flour, sugar, and salt. Add the yeast mixture, melted butter, egg yolks, and vanilla. Mix until a soft dough forms.",
+        "Knead the dough for 5 minutes on a floured surface until smooth and elastic. Place in a greased bowl, cover, and let rise for 1 hour.",
+        "Roll the dough to 1/2-inch thickness and cut with a doughnut cutter. Place on parchment-lined trays and let rise for 30 minutes.",
+        "Heat oil to 350 degrees F in a deep pot. Fry the doughnuts for 1-2 minutes per side until golden brown. Drain on paper towels.",
+        "Whisk together the powdered sugar, milk, and pink food colouring to make a thick glaze.",
+        "Dip the top of each cooled doughnut into the pink glaze and immediately top with rainbow sprinkles.",
+        "Let the glaze set for 10 minutes before serving."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-011",
+      "title": "Seinfeld's Marble Rye",
+      "description": "A beautiful swirled marble rye bread with alternating ribbons of light and dark dough. In one of Seinfeld's most iconic episodes, Jerry goes to absurd lengths to steal back a marble rye from an elderly woman. This homemade version is worth every bit of effort, no fishing pole required.",
+      "prepTime": "30 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Makes 1 loaf",
+      "difficulty": "hard",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "bread",
+        "baking",
+        "rye"
+      ],
+      "source": "Inspired by Seinfeld",
+      "story": "In the classic Seinfeld episode 'The Rye,' Jerry steals a marble rye bread from an elderly woman on the street and later uses a fishing pole to deliver it through a window. The marble rye became one of the show's most memorable food moments.",
+      "ingredients": [
+        {
+          "name": "bread flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "dark rye flour",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "packet  active dry yeast",
+          "amount": 1,
+          "preparation": "2 1/4 teaspoons"
+        },
+        {
+          "name": "warm water",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "molasses",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "softened"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "caraway seeds",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "unsweetened cocoa powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "egg white, beaten",
+          "amount": 1,
+          "preparation": "for egg wash"
+        }
+      ],
+      "instructions": [
+        "Dissolve the yeast in warm water with a pinch of sugar and let stand for 5 minutes.",
+        "Divide the yeast mixture into two bowls. To one, add 1 cup bread flour, 1/2 teaspoon salt, and 1 tablespoon butter to make the light dough. To the other, add the rye flour, molasses, cocoa powder, 1 teaspoon salt, 1 tablespoon butter, and caraway seeds to make the dark dough.",
+        "Knead each dough separately for 5 minutes until smooth, adding remaining bread flour as needed. Let both rise in covered bowls for 1 hour.",
+        "Punch down both doughs. Roll each into a rectangle of the same size.",
+        "Stack the light dough on top of the dark, then roll them up tightly together into a log, creating the marbled swirl.",
+        "Place seam-side down in a greased 9x5-inch loaf pan. Cover and let rise for 45 minutes.",
+        "Preheat oven to 375 degrees F. Brush the top with beaten egg white.",
+        "Bake for 30-35 minutes until the loaf sounds hollow when tapped. Cool on a wire rack before slicing."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-012",
+      "title": "Kevin's Famous Chili",
+      "description": "A rich, hearty chili made with toasted dried chilis, ground beef, and beans, slow-simmered until the flavours meld into something truly special. Kevin Malone's legendary chili is the one thing he gets exactly right. Just be careful carrying it to the office.",
+      "prepTime": "20 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "main dish",
+        "chili",
+        "comfort food"
+      ],
+      "source": "Inspired by The Office",
+      "story": "In one of The Office's most beloved cold opens, Kevin Malone proudly carries an enormous pot of his famous chili into the office, only to spill it all over the floor. His secret is to undercook the onions so everyone gets to know each other in the pot.",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 2,
+          "unit": "lbs"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced (undercooked, of course)"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "(15 oz each) kidney beans, drained",
+          "amount": 2,
+          "unit": "cans"
+        },
+        {
+          "name": "(28 oz) crushed tomatoes",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "(6 oz) tomato paste",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "dried ancho chilis, stemmed and seeded",
+          "amount": 3
+        },
+        {
+          "name": "chili powder",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "cumin",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "oregano",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "Sour cream, shredded cheese, and scallions for topping"
+        }
+      ],
+      "instructions": [
+        "Toast the dried ancho chilis in a dry skillet for 1-2 minutes per side, then soak in hot water for 15 minutes. Blend into a paste.",
+        "Brown the ground beef in a large, heavy pot over medium-high heat. Drain excess fat.",
+        "Add the diced onion (undercook it so everyone gets to know each other in the pot) and garlic and cook for 3 minutes.",
+        "Stir in the chili paste, chili powder, cumin, and oregano.",
+        "Add the crushed tomatoes, tomato paste, and kidney beans. Stir to combine.",
+        "Bring to a boil, then reduce heat and simmer uncovered for at least 2 hours, stirring occasionally.",
+        "Season with salt and pepper to taste.",
+        "Ladle into bowls and top with sour cream, shredded cheese, and scallions. Transport carefully."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-013",
+      "title": "Rachel's Trifle",
+      "description": "The infamous Thanksgiving trifle from Friends that accidentally combines an English custard trifle with a shepherd's pie. Layers of ladyfingers, jam, custard, and whipped cream share space with sauted beef and peas. It tastes like feet, according to Ross, but it is an unforgettable experience.",
+      "prepTime": "30 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "dessert",
+        "British",
+        "comedy"
+      ],
+      "source": "Inspired by Friends",
+      "story": "In the classic Friends Thanksgiving episode, Rachel accidentally combines two recipes: an English trifle and a shepherd's pie. The result features ladyfingers, jam, custard, beef, peas, and whipped cream. Joey declares it delicious; everyone else disagrees.",
+      "ingredients": [
+        {
+          "name": "biscuits",
+          "amount": 24,
+          "unit": "ladyfinger"
+        },
+        {
+          "name": "raspberry jam",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "prepared vanilla custard",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "ground beef, browned and seasoned with salt and pepper",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "frozen peas, cooked",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "diced and sauteed"
+        },
+        {
+          "name": "heavy cream, whipped with 2 tablespoons sugar",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "sliced bananas",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "Fresh raspberries for topping"
+        }
+      ],
+      "instructions": [
+        "Arrange a layer of ladyfingers in the bottom of a large glass trifle dish.",
+        "Spread the raspberry jam evenly over the ladyfingers.",
+        "Add a layer of sliced bananas over the jam.",
+        "Pour half the vanilla custard over the banana layer.",
+        "Here is where it goes wrong: add the seasoned ground beef, sauteed onions, and peas in an even layer.",
+        "Add another layer of ladyfingers, then pour the remaining custard over the top.",
+        "Top with a generous layer of whipped cream and garnish with fresh raspberries.",
+        "Refrigerate for at least 1 hour to set. Serve with a straight face."
+      ]
+    },
+    {
+      "id": "film-tv-favourites-014",
+      "title": "Willy Wonka's Chocolate Truffles",
+      "description": "Luxurious, melt-in-your-mouth chocolate truffles hand-rolled and dusted in cocoa powder. Inspired by the magical confections of Willy Wonka's factory, these rich ganache centres are pure chocolate indulgence. Each one is a golden ticket for your taste buds.",
+      "prepTime": "25 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Makes 24 truffles",
+      "difficulty": "easy",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "dessert",
+        "chocolate",
+        "candy"
+      ],
+      "source": "Inspired by Roald Dahl's Charlie and the Chocolate Factory",
+      "story": "Willy Wonka's chocolate factory is literature and film's most fantastical confectionery. From everlasting gobstoppers to edible wallpaper, Wonka's inventions delight and terrify in equal measure. These classic truffles capture the pure, joyful essence of his chocolate empire.",
+      "ingredients": [
+        {
+          "name": "dark chocolate , finely chopped",
+          "amount": 8,
+          "unit": "oz",
+          "preparation": "70% cocoa"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter, at room temperature",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of sea salt"
+        },
+        {
+          "name": "Unsweetened cocoa powder for rolling"
+        },
+        {
+          "name": "Chopped pistachios for rolling (optional)"
+        },
+        {
+          "name": "Powdered sugar for rolling (optional)"
+        }
+      ],
+      "instructions": [
+        "Place the finely chopped chocolate in a heatproof bowl.",
+        "Heat the heavy cream in a small saucepan until it just begins to simmer (do not boil).",
+        "Pour the hot cream over the chocolate and let it sit for 1 minute, then stir gently until completely smooth.",
+        "Stir in the butter, vanilla extract, and sea salt until the ganache is glossy.",
+        "Cover and refrigerate for at least 2 hours until the ganache is firm enough to scoop.",
+        "Using a small spoon or melon baller, scoop portions of ganache and roll into balls with your hands.",
+        "Roll each truffle in cocoa powder, chopped pistachios, or powdered sugar.",
+        "Store in an airtight container in the refrigerator. Bring to room temperature for 10 minutes before serving."
+      ]
+    }
+  ]
+}

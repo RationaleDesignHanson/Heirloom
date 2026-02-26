@@ -103,16 +103,16 @@ enum ThemeCategory: String, Codable, CaseIterable {
     case cuisine = "cuisine"
     case era = "era"
     case source = "source"
+    case media = "media"
     case difficulty = "difficulty"
-    case dietary = "dietary"
 
     var displayName: String {
         switch self {
         case .cuisine: return "World Cuisines"
         case .era: return "Eras & Nostalgia"
         case .source: return "Hidden Treasures"
+        case .media: return "Books & Film"
         case .difficulty: return "By Effort"
-        case .dietary: return "Dietary"
         }
     }
 
@@ -121,19 +121,19 @@ enum ThemeCategory: String, Codable, CaseIterable {
         case .cuisine: return "globe"
         case .era: return "clock.arrow.circlepath"
         case .source: return "archivebox"
+        case .media: return "book.and.page"
         case .difficulty: return "timer"
-        case .dietary: return "leaf"
         }
     }
 
     /// Sort order for display
     var sortOrder: Int {
         switch self {
-        case .source: return 0      // Hidden Treasures first (most unique)
-        case .era: return 1
-        case .cuisine: return 2
-        case .difficulty: return 3
-        case .dietary: return 4
+        case .era: return 0         // Eras & Nostalgia first
+        case .media: return 1       // Books & Film
+        case .cuisine: return 2     // World Cuisines
+        case .source: return 3      // Hidden Treasures
+        case .difficulty: return 4  // By Effort
         }
     }
 }

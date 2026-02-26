@@ -1,0 +1,827 @@
+{
+  "themeId": "cocktails-confections",
+  "themeName": "Iconic Cocktails & Confections",
+  "recipes": [
+    {
+      "id": "cocktails-confections-001",
+      "title": "White Russian",
+      "description": "A velvety, indulgent cocktail of vodka, coffee liqueur, and heavy cream that became a pop culture icon thanks to The Dude. This creamy, caffeinated drink is as laid-back as Jeff Bridges himself, and it goes down dangerously easy.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "cocktail",
+        "vodka",
+        "Big Lebowski",
+        "classic"
+      ],
+      "source": "Inspired by The Big Lebowski (1998)",
+      "story": "The White Russian nearly fell out of favour until The Big Lebowski (1998) revived it as Jeff Bridges' character \"The Dude's\" signature drink. The film gave the cocktail cult status. The Dude abides, and so does his drink of choice.",
+      "ingredients": [
+        {
+          "name": "vodka",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "coffee liqueur",
+          "amount": 1,
+          "unit": "oz",
+          "preparation": "such as Kahlua"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "Ice"
+        }
+      ],
+      "instructions": [
+        "Fill an old-fashioned glass with ice cubes.",
+        "Pour the vodka over the ice.",
+        "Add the coffee liqueur and stir gently to combine.",
+        "Float the heavy cream on top by pouring it slowly over the back of a spoon.",
+        "Stir just before drinking, or sip through the cream layer for a layered experience."
+      ]
+    },
+    {
+      "id": "cocktails-confections-002",
+      "title": "Nick & Nora Dry Martini",
+      "description": "A perfectly balanced dry martini shaken to waltz time, as instructed by the debonair detective Nick Charles. This crystal-clear cocktail in a delicate coupe glass embodies the effortless wit and glamour of 1930s high society.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "cocktail",
+        "gin",
+        "Thin Man",
+        "classic"
+      ],
+      "source": "Inspired by The Thin Man (1934)",
+      "story": "The 1934 detective film The Thin Man features Nick and Nora Charles, witty socialites who enjoy cocktails at all hours. Nick's advice to shake a dry martini to waltz time became legendary. Nick and Nora's martini epitomises 1930s elegance and repartee.",
+      "ingredients": [
+        {
+          "name": "London dry gin",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "dry vermouth",
+          "amount": 0.75,
+          "unit": "oz"
+        },
+        {
+          "name": "Ice"
+        },
+        {
+          "name": "Lemon twist or green olives for garnish"
+        }
+      ],
+      "instructions": [
+        "Chill a coupe glass or Nick & Nora glass in the freezer for at least 5 minutes.",
+        "Fill a cocktail shaker with ice. Add the gin and dry vermouth.",
+        "Shake gently to waltz time (about 15 seconds), or stir for a classic variation.",
+        "Strain into the chilled glass.",
+        "Garnish with a lemon twist or a skewer of olives and serve immediately."
+      ]
+    },
+    {
+      "id": "cocktails-confections-003",
+      "title": "French 75",
+      "description": "A sparkling, citrus-bright cocktail of gin, lemon, and Champagne that captures the smoky romance of Rick's Cafe Americain in wartime Casablanca. This effervescent classic hits with the kick of its World War I artillery namesake.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "cocktail",
+        "gin",
+        "Champagne",
+        "Casablanca"
+      ],
+      "source": "Inspired by Casablanca (1942)",
+      "story": "In Casablanca, Rick's ex-girlfriend Yvonne orders a French 75 when she returns to Rick's Cafe with a new companion. The cocktail's name comes from a World War I artillery piece, and it lends glamour to Rick's Cafe. Film essays note that the drink underscores the smoky romance of the bar.",
+      "ingredients": [
+        {
+          "name": "London dry gin",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "simple syrup",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "chilled Champagne or sparkling wine",
+          "amount": 3,
+          "unit": "oz"
+        },
+        {
+          "name": "Ice"
+        },
+        {
+          "name": "Lemon twist for garnish"
+        }
+      ],
+      "instructions": [
+        "Add the gin, lemon juice, and simple syrup to a cocktail shaker filled with ice.",
+        "Shake vigorously for about 10 seconds until well chilled.",
+        "Strain into a Champagne flute.",
+        "Top with chilled Champagne or sparkling wine.",
+        "Garnish with a lemon twist draped over the rim and serve immediately."
+      ]
+    },
+    {
+      "id": "cocktails-confections-004",
+      "title": "Drink Me Potion",
+      "description": "A whimsical, non-alcoholic concoction blending cherry, pineapple, vanilla custard, and toffee into a fizzy, fantastical drink. Inspired by the curious bottle Alice finds in Wonderland, this magical potion tastes like an impossible blend of cherry tart, custard, and hot buttered toast.",
+      "prepTime": "10 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "beverage",
+        "non-alcoholic",
+        "Alice in Wonderland",
+        "whimsical"
+      ],
+      "source": "Inspired by Alice's Adventures in Wonderland by Lewis Carroll",
+      "story": "In Lewis Carroll's Alice's Adventures in Wonderland, Alice finds a bottle labelled \"DRINK ME.\" She tastes the potion, described as a mix of cherry tart, custard, pineapple, roast turkey, toffee, and hot buttered toast, and shrinks to ten inches tall. This non-alcoholic punch captures Alice's magical shrinking experience and its curious flavour medley.",
+      "ingredients": [
+        {
+          "name": "cherry juice",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "pineapple juice",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "scoop vanilla ice cream or custard",
+          "amount": 1
+        },
+        {
+          "name": "toffee syrup",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "sparkling water",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Buttered toast crumbs for garnish"
+        },
+        {
+          "name": "Maraschino cherry for garnish"
+        }
+      ],
+      "instructions": [
+        "In a tall glass or pitcher, combine the cherry juice and pineapple juice.",
+        "Add a scoop of vanilla ice cream or custard and stir gently to combine.",
+        "Drizzle in the toffee syrup and stir once more.",
+        "Top with sparkling water and stir very gently to mix without losing all the fizz.",
+        "Garnish with a sprinkle of buttered toast crumbs and a maraschino cherry.",
+        "Serve immediately with a whimsical label reading \"DRINK ME\" if desired."
+      ]
+    },
+    {
+      "id": "cocktails-confections-005",
+      "title": "Treacle Tart",
+      "description": "A gloriously sticky and golden British dessert of golden syrup, breadcrumbs, and lemon baked in a buttery shortcrust shell. This is Harry Potter's absolute favorite sweet, and one bite of its warm, caramelized filling will show you exactly why.",
+      "prepTime": "25 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "dessert",
+        "British",
+        "Harry Potter",
+        "baking"
+      ],
+      "source": "Inspired by J.K. Rowling's Harry Potter series",
+      "story": "At Hogwarts feasts in J.K. Rowling's Harry Potter series, Harry helps himself to treacle tart, his favourite dessert. The sticky tart evokes British comfort food and is Harry's chosen sweet treat. It appears at nearly every feast described in the books.",
+      "ingredients": [
+        {
+          "name": "shortcrust pastry",
+          "amount": 1,
+          "unit": "sheet",
+          "preparation": "or homemade sweet pastry"
+        },
+        {
+          "name": "golden syrup",
+          "amount": 1.25,
+          "unit": "cups",
+          "preparation": "such as Lyle's"
+        },
+        {
+          "name": "fresh white breadcrumbs",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Zest and juice of 1 lemon"
+        },
+        {
+          "name": "egg, beaten",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Pinch of salt"
+        },
+        {
+          "name": "Clotted cream or vanilla ice cream for serving"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 375°F (190°C). Roll out the pastry and line a 9-inch tart tin. Prick the base with a fork and chill for 15 minutes.",
+        "Gently warm the golden syrup in a saucepan until it becomes pourable.",
+        "Remove from heat and stir in the breadcrumbs, lemon zest, lemon juice, beaten egg, cream, and salt. Mix until well combined.",
+        "Pour the filling into the chilled pastry case and spread evenly.",
+        "Bake for 30 to 35 minutes until the filling is set and golden, and the pastry is crisp.",
+        "Allow to cool for at least 15 minutes. The filling will firm up as it cools.",
+        "Serve warm with a generous dollop of clotted cream or a scoop of vanilla ice cream."
+      ]
+    },
+    {
+      "id": "cocktails-confections-006",
+      "title": "Cosmopolitan",
+      "description": "A sleek, rose-hued cocktail of citrus vodka, cranberry, and lime that became the unofficial drink of modern Manhattan. Made famous by Carrie Bradshaw and her friends, the Cosmo is as stylish and sharp as the women who drink it.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "cocktail",
+        "vodka",
+        "Sex and the City",
+        "classic"
+      ],
+      "source": "Inspired by Sex and the City",
+      "story": "The Cosmopolitan became an international phenomenon thanks to Sex and the City, where Carrie Bradshaw and her friends ordered them at every Manhattan hotspot. The pink cocktail, popularized by bartender Dale DeGroff in the 1990s, came to symbolize modern urban sophistication and female friendship.",
+      "ingredients": [
+        {
+          "name": "citrus vodka",
+          "amount": 1.5,
+          "unit": "oz"
+        },
+        {
+          "name": "Cointreau or triple sec",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "fresh lime juice",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "cranberry juice",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "Ice"
+        },
+        {
+          "name": "Orange peel or lime wheel for garnish"
+        }
+      ],
+      "instructions": [
+        "Chill a martini glass in the freezer for at least 5 minutes.",
+        "Combine the citrus vodka, Cointreau, lime juice, and cranberry juice in a cocktail shaker filled with ice.",
+        "Shake vigorously for 15 seconds until very cold.",
+        "Strain into the chilled martini glass.",
+        "Garnish with a flamed orange peel or a lime wheel on the rim.",
+        "Serve immediately."
+      ]
+    },
+    {
+      "id": "cocktails-confections-007",
+      "title": "Butterbeer Float",
+      "description": "A decadent frozen twist on the wizarding world's favorite beverage, combining butterscotch cream soda with scoops of rich vanilla ice cream. This indulgent float version is topped with whipped cream and butterscotch drizzle for a Hogsmeade-worthy treat.",
+      "prepTime": "10 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "dessert",
+        "beverage",
+        "Harry Potter",
+        "ice cream"
+      ],
+      "source": "Inspired by J.K. Rowling's Harry Potter series",
+      "story": "Butterbeer is the drink of choice at the Three Broomsticks and Hog's Head pubs in Hogsmeade village. Harry, Ron, and Hermione enjoy frothy mugs of it on their village visits. This ice cream float version transforms the beloved drink into a frozen dessert experience, perfect for warm-weather wizarding.",
+      "ingredients": [
+        {
+          "name": "cream soda",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "butterscotch sauce, plus more for drizzling",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "scoops vanilla ice cream",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "Whipped cream for topping"
+        },
+        {
+          "name": "Pinch of sea salt"
+        }
+      ],
+      "instructions": [
+        "In a small saucepan, warm the butter and 2 tablespoons butterscotch sauce together over low heat until melted and smooth. Stir in the pinch of sea salt. Let cool slightly.",
+        "Drizzle the butterscotch mixture into the bottom of two tall glasses.",
+        "Place one large scoop of vanilla ice cream into each glass.",
+        "Slowly pour the cream soda over the ice cream, letting it foam up.",
+        "Top each float with a generous swirl of whipped cream and an extra drizzle of butterscotch sauce.",
+        "Serve immediately with a straw and a long spoon."
+      ]
+    },
+    {
+      "id": "cocktails-confections-008",
+      "title": "Mojito",
+      "description": "A bright, refreshing Cuban cocktail of white rum, lime, mint, and soda water that captures the sultry atmosphere of Havana. Graham Greene's characters might have sipped these while navigating the intrigue and heat of Cold War Cuba.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "cocktail",
+        "rum",
+        "Cuban",
+        "Graham Greene"
+      ],
+      "source": "Inspired by Our Man in Havana by Graham Greene",
+      "story": "Graham Greene set his darkly comic spy novel Our Man in Havana in 1950s Cuba, where the mojito reigns supreme. The cocktail has deep roots in Cuban culture, with legends tracing it back to 16th-century sailors who used aguardiente, lime, and mint as medicine. Hemingway famously drank his at La Bodeguita del Medio, but Greene's hapless vacuum cleaner salesman-turned-spy would have found one at any Havana bar.",
+      "ingredients": [
+        {
+          "name": "white rum",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "fresh lime juice",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "to 8 fresh mint leaves",
+          "amount": 6
+        },
+        {
+          "name": "Soda water"
+        },
+        {
+          "name": "Crushed ice"
+        },
+        {
+          "name": "Mint sprig and lime wheel for garnish"
+        }
+      ],
+      "instructions": [
+        "Place the mint leaves and sugar in the bottom of a tall glass.",
+        "Muddle gently to release the mint oils without tearing the leaves to shreds.",
+        "Add the fresh lime juice and stir to dissolve the sugar.",
+        "Fill the glass with crushed ice.",
+        "Pour the white rum over the ice and stir to combine.",
+        "Top with soda water and stir gently once more.",
+        "Garnish with a sprig of fresh mint and a lime wheel."
+      ]
+    },
+    {
+      "id": "cocktails-confections-009",
+      "title": "Willy Wonka's Chocolate River Fondue",
+      "description": "A luxuriously smooth chocolate fondue inspired by the magnificent chocolate river flowing through Willy Wonka's factory. Rich dark and milk chocolates are melted with cream into a glossy, dippable river of pure chocolate bliss, served with an array of fruits and treats.",
+      "prepTime": "10 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "dessert",
+        "chocolate",
+        "Willy Wonka",
+        "fondue"
+      ],
+      "source": "Inspired by Charlie and the Chocolate Factory by Roald Dahl",
+      "story": "In Roald Dahl's Charlie and the Chocolate Factory, the children enter a room where an entire river is made of flowing chocolate, and everything around it is edible. Augustus Gloop falls in, of course. This fondue captures the irresistible allure of Wonka's chocolate river in a form you can share without the risk of being sucked up a pipe.",
+      "ingredients": [
+        {
+          "name": "dark chocolate (70% cocoa)",
+          "amount": 8,
+          "unit": "oz",
+          "preparation": "chopped"
+        },
+        {
+          "name": "milk chocolate",
+          "amount": 4,
+          "unit": "oz",
+          "preparation": "chopped"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of sea salt"
+        },
+        {
+          "name": "Strawberries, banana slices, marshmallows, pretzels, and pound cake cubes for dipping"
+        }
+      ],
+      "instructions": [
+        "Place both chocolates in a heatproof bowl.",
+        "Heat the heavy cream in a small saucepan until it just begins to simmer. Do not boil.",
+        "Pour the hot cream over the chopped chocolate and let sit for 2 minutes undisturbed.",
+        "Stir gently from the center outward until the chocolate is completely melted and the mixture is glossy and smooth. Stir in the butter, vanilla, and sea salt.",
+        "Transfer the fondue to a fondue pot with a low flame to keep it warm, or serve directly from the bowl.",
+        "Arrange the strawberries, banana slices, marshmallows, pretzels, and pound cake cubes on a platter around the fondue for dipping."
+      ]
+    },
+    {
+      "id": "cocktails-confections-010",
+      "title": "Narnia's Hot Chocolate",
+      "description": "A deeply rich and warming hot chocolate laced with a hint of Turkish delight flavoring, inspired by the enchanted world of Narnia. This velvety cup of cocoa is exactly the kind of comforting drink Mr. Tumnus might serve Lucy by his cozy hearth.",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "beverage",
+        "hot chocolate",
+        "Narnia",
+        "C.S. Lewis"
+      ],
+      "source": "Inspired by The Chronicles of Narnia by C.S. Lewis",
+      "story": "In The Lion, the Witch and the Wardrobe, the White Witch tempts Edmund with enchanted Turkish delight, while the faun Mr. Tumnus serves Lucy tea and toast by his warm fire. This hot chocolate draws from both moments, blending rich cocoa with a whisper of rosewater to evoke the magical warmth found beyond the wardrobe door.",
+      "ingredients": [
+        {
+          "name": "whole milk",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "dark chocolate, finely chopped",
+          "amount": 3,
+          "unit": "oz"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "rosewater",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of cinnamon"
+        },
+        {
+          "name": "Whipped cream for topping"
+        },
+        {
+          "name": "Crushed Turkish delight for garnish (optional)"
+        }
+      ],
+      "instructions": [
+        "Heat the milk in a saucepan over medium heat until it begins to steam but is not yet simmering.",
+        "Whisk in the cocoa powder and sugar until fully dissolved.",
+        "Add the chopped dark chocolate and stir continuously until completely melted and smooth.",
+        "Stir in the rosewater and cinnamon. Heat for another minute, whisking until frothy.",
+        "Pour into two warmed mugs.",
+        "Top with a generous swirl of whipped cream and a few pieces of crushed Turkish delight if desired.",
+        "Serve immediately by the warmest fire you can find."
+      ]
+    },
+    {
+      "id": "cocktails-confections-011",
+      "title": "Moscow Mule",
+      "description": "A crisp, effervescent cocktail of vodka, spicy ginger beer, and fresh lime, traditionally served in a frosty copper mug. This refreshing classic has ties to Cold War-era intrigue and the glamour of mid-century cocktail culture.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "cocktail",
+        "vodka",
+        "ginger beer",
+        "Cold War"
+      ],
+      "source": "Inspired by Cold War-era spy fiction",
+      "story": "The Moscow Mule was born in 1940s America when a vodka distributor, a ginger beer maker, and a copper mug manufacturer joined forces. Its name, evoking the Soviet Union, gave it an air of Cold War mystery. The copper mug became iconic, and the drink became a fixture in the spy thrillers and cocktail bars of the era.",
+      "ingredients": [
+        {
+          "name": "vodka",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "fresh lime juice",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "spicy ginger beer",
+          "amount": 4,
+          "unit": "oz"
+        },
+        {
+          "name": "Ice"
+        },
+        {
+          "name": "Lime wedge for garnish"
+        },
+        {
+          "name": "Fresh mint sprig for garnish (optional)"
+        }
+      ],
+      "instructions": [
+        "Fill a copper mug (or tall glass) with ice.",
+        "Pour the vodka over the ice.",
+        "Add the fresh lime juice and stir briefly.",
+        "Top with the ginger beer and stir gently to combine without losing the fizz.",
+        "Garnish with a lime wedge and a sprig of fresh mint if desired.",
+        "Serve immediately while ice cold."
+      ]
+    },
+    {
+      "id": "cocktails-confections-012",
+      "title": "Absinthe Frappe",
+      "description": "A chilled, anise-scented cocktail that evokes the hazy literary salons of 1920s Paris, where Hemingway and the Lost Generation gathered. This frappe tames absinthe's intensity with crushed ice and a touch of simple syrup, creating a refreshing and aromatic sipper.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "cocktail",
+        "absinthe",
+        "Hemingway",
+        "Lost Generation"
+      ],
+      "source": "Inspired by Hemingway and the Lost Generation writers",
+      "story": "Absinthe was the legendary drink of artists and writers, from Van Gogh to Oscar Wilde. Ernest Hemingway drank it throughout his years in Paris, and it appears in several of his novels, including For Whom the Bell Tolls and The Sun Also Rises. The absinthe frappe, a New Orleans invention, offered a refreshing way to enjoy the spirit in warmer weather.",
+      "ingredients": [
+        {
+          "name": "absinthe",
+          "amount": 1.5,
+          "unit": "oz"
+        },
+        {
+          "name": "simple syrup",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "cold water",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "Crushed ice"
+        },
+        {
+          "name": "Fresh mint sprig for garnish"
+        }
+      ],
+      "instructions": [
+        "Pack a rocks glass or frappe glass with crushed ice.",
+        "Pour the absinthe over the crushed ice.",
+        "Add the simple syrup and cold water.",
+        "Stir briskly with a bar spoon for 15 to 20 seconds until the glass is frosty and the drink is well chilled.",
+        "Add more crushed ice to mound above the rim if desired.",
+        "Garnish with a fresh mint sprig and serve with a short straw."
+      ]
+    },
+    {
+      "id": "cocktails-confections-013",
+      "title": "Lemon Cakes",
+      "description": "Delicate, tender little cakes with a bright lemon glaze, inspired by Sansa Stark's favorite confection. These petite treats are the perfect balance of sweet and tart, with a fine crumb that melts on the tongue just as a highborn lady of Winterfell would expect.",
+      "prepTime": "20 minutes",
+      "cookTime": "18 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "dessert",
+        "baking",
+        "Game of Thrones",
+        "lemon"
+      ],
+      "source": "Inspired by A Song of Ice and Fire by George R.R. Martin",
+      "story": "Lemon cakes are Sansa Stark's favorite treat in A Song of Ice and Fire. She requests them at every opportunity, and they become a recurring symbol of her longing for comfort and home amid the political horrors of King's Landing. George R.R. Martin describes them as small, delicate cakes with a sweet lemon glaze.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "softened"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "Zest of 2 lemons"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "for glaze"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "for glaze"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350°F (175°C). Grease and flour a 12-cup muffin tin or line with paper liners.",
+        "Cream the butter and sugar together until light and fluffy. Beat in the eggs one at a time, then add the lemon zest and 3 tablespoons lemon juice.",
+        "In a separate bowl, whisk together the flour, baking powder, and salt.",
+        "Alternate adding the dry ingredients and buttermilk to the butter mixture, beginning and ending with the dry ingredients. Mix until just combined.",
+        "Divide the batter evenly among the muffin cups, filling each about two-thirds full.",
+        "Bake for 16 to 18 minutes until a toothpick inserted in the center comes out clean. Cool in the pan for 5 minutes, then transfer to a wire rack.",
+        "Whisk together the powdered sugar and 2 tablespoons lemon juice to make a smooth glaze. Spoon over the cooled cakes and let set before serving."
+      ]
+    },
+    {
+      "id": "cocktails-confections-014",
+      "title": "Amortentia Love Potion Punch",
+      "description": "A beguiling, rose-tinted punch inspired by the most powerful love potion in the wizarding world. Infused with rose, vanilla, and dark chocolate shavings, this enchanting non-alcoholic punch is said to smell differently to each person who encounters it.",
+      "prepTime": "15 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 8",
+      "difficulty": "easy",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "beverage",
+        "non-alcoholic",
+        "Harry Potter",
+        "punch"
+      ],
+      "source": "Inspired by J.K. Rowling's Harry Potter series",
+      "story": "Amortentia is described in Harry Potter and the Half-Blood Prince as the most powerful love potion in existence. It has a distinctive mother-of-pearl sheen and spiraling steam, and it smells differently to each person according to what attracts them. Harry smells treacle tart, broomstick handle, and something flowery from the Burrow. This punch captures its rose and chocolate essence.",
+      "ingredients": [
+        {
+          "name": "white cranberry juice",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "sparkling rose lemonade or sparkling water",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "pomegranate juice",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "rosewater",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Dark chocolate shavings for garnish"
+        },
+        {
+          "name": "Fresh rose petals for garnish (food-safe)"
+        },
+        {
+          "name": "Ice"
+        }
+      ],
+      "instructions": [
+        "In a small saucepan, warm the honey with 1/4 cup of the cranberry juice until dissolved. Let cool.",
+        "In a large punch bowl or pitcher, combine the remaining cranberry juice, pomegranate juice, rosewater, vanilla extract, and the honey mixture. Stir well.",
+        "Refrigerate for at least 30 minutes to allow the flavors to meld.",
+        "Just before serving, add ice to the punch bowl and pour in the sparkling rose lemonade or sparkling water.",
+        "Stir gently to combine.",
+        "Ladle into glasses and garnish each with dark chocolate shavings and a food-safe rose petal floating on top."
+      ]
+    }
+  ]
+}

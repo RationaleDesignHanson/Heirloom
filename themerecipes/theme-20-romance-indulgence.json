@@ -1,0 +1,853 @@
+{
+  "themeId": "romance-indulgence",
+  "themeName": "Romance & Indulgence",
+  "recipes": [
+    {
+      "id": "romance-indulgence-001",
+      "title": "Red Wine Risotto",
+      "description": "A luxurious risotto stained a deep, passionate burgundy by slow additions of red wine and rich beef stock. Each creamy spoonful captures the enduring devotion and longing that runs through García Márquez's greatest love story.",
+      "prepTime": "10 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "Italian",
+        "romantic"
+      ],
+      "source": "Inspired by Love in the Time of Cholera by Gabriel García Márquez",
+      "story": "In Gabriel García Márquez's Love in the Time of Cholera, lavish meals and wine symbolise enduring passion. The dish's deep colour and flavour evoke love and longing.",
+      "ingredients": [
+        {
+          "name": "Arborio rice",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "dry red wine",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "warm beef stock",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "medium"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "freshly grated Parmesan cheese",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        }
+      ],
+      "instructions": [
+        "Heat the olive oil and 1 tablespoon of butter in a heavy-bottomed pan over medium heat. Sauté the onion and garlic until soft and translucent, about 5 minutes.",
+        "Add the Arborio rice and stir for 2 minutes until the grains are lightly toasted and coated in oil.",
+        "Pour in 1 cup of red wine and stir gently until it is fully absorbed.",
+        "Begin adding the warm beef stock one ladleful at a time, stirring frequently and waiting for each addition to be absorbed before adding the next.",
+        "After about 15 minutes, add the remaining cup of red wine and continue stirring until the rice is al dente and the risotto is creamy, about 5-8 more minutes.",
+        "Remove from heat and stir in the remaining butter and Parmesan cheese. Season with salt and pepper.",
+        "Serve immediately in warm bowls."
+      ]
+    },
+    {
+      "id": "romance-indulgence-002",
+      "title": "Chocolate Pudding",
+      "description": "A velvety, deeply chocolatey pudding finished with butter and vanilla, chilled until silky and served with billows of whipped cream. This is a dessert that represents sweet victory over tyrants -- comfort and indulgence in every spoonful.",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "dessert",
+        "chocolate",
+        "comfort food"
+      ],
+      "source": "Inspired by Matilda by Roald Dahl and Amélie",
+      "story": "Rich chocolate desserts often feature in stories of empowerment. In Roald Dahl's Matilda, Bruce Bogtrotter devours a giant chocolate cake. The silky dessert represents sweet victory over tyrants.",
+      "ingredients": [
+        {
+          "name": "unsweetened cocoa powder",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "whole milk",
+          "amount": 2.5,
+          "unit": "cups"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.667,
+          "unit": "cup"
+        },
+        {
+          "name": "cornstarch",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "egg yolks",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of salt"
+        },
+        {
+          "name": "Whipped cream for serving"
+        }
+      ],
+      "instructions": [
+        "Whisk together the cocoa powder, sugar, cornstarch and salt in a medium saucepan.",
+        "Gradually whisk in the milk until smooth, then place over medium heat.",
+        "Cook, stirring constantly, until the mixture thickens and begins to bubble, about 8-10 minutes.",
+        "Temper the egg yolks by whisking a small amount of the hot mixture into them, then pour the yolks back into the saucepan.",
+        "Continue cooking and stirring for 2 more minutes until the pudding is thick and glossy.",
+        "Remove from heat and stir in the butter and vanilla extract until melted and smooth.",
+        "Pour into individual serving dishes, press plastic wrap directly onto the surface to prevent a skin from forming, and chill for at least 2 hours. Serve topped with whipped cream."
+      ]
+    },
+    {
+      "id": "romance-indulgence-003",
+      "title": "Crème Brûlée",
+      "description": "A perfectly smooth vanilla custard hiding beneath a thin, glassy layer of caramelised sugar that shatters at the tap of a spoon. Cracking through that golden shell is one of life's simplest and most satisfying pleasures.",
+      "prepTime": "15 minutes",
+      "cookTime": "50 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "dessert",
+        "French",
+        "classic"
+      ],
+      "source": "Inspired by Amélie (2001 film)",
+      "story": "In Jean-Pierre Jeunet's film Amélie, the heroine takes delight in cracking the caramelised sugar crust on a crème brûlée. Cracking the shell is one of Amélie's simple pleasures, symbolising the joy found in small acts.",
+      "ingredients": [
+        {
+          "name": "heavy cream",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "vanilla bean, split and scraped",
+          "amount": 1,
+          "preparation": "or 1 teaspoon vanilla extract"
+        },
+        {
+          "name": "egg yolks",
+          "amount": 5,
+          "unit": "large"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "turbinado sugar for brûlée topping",
+          "amount": 4,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 325°F (165°C) and place four ramekins in a deep baking dish.",
+        "Heat the cream with the vanilla bean (seeds and pod) in a saucepan until it just begins to simmer, then remove from heat and let steep for 10 minutes. Remove the pod.",
+        "Whisk the egg yolks and granulated sugar together until pale and thick.",
+        "Slowly pour the warm cream into the egg mixture, whisking constantly to avoid curdling.",
+        "Strain the custard through a fine sieve and divide among the ramekins. Pour hot water into the baking dish until it reaches halfway up the sides of the ramekins.",
+        "Bake for 40-45 minutes until the custards are set around the edges but still slightly jiggly in the centre. Remove from the water bath and chill for at least 4 hours.",
+        "Just before serving, sprinkle each custard with a tablespoon of turbinado sugar and caramelise with a kitchen torch until golden and crackling."
+      ]
+    },
+    {
+      "id": "romance-indulgence-004",
+      "title": "Tiramisu",
+      "description": "Layer upon layer of espresso-soaked ladyfingers and pillowy mascarpone cream, dusted with a dark veil of cocoa. This classic Italian 'pick me up' is the dessert of flirtation and indulgence -- light enough to share, rich enough to remember.",
+      "prepTime": "30 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "dessert",
+        "Italian",
+        "no-bake"
+      ],
+      "source": "Inspired by Italian romantic tradition",
+      "story": "This classic Italian dessert appears in many romantic films; its name means 'pick me up.' The light yet rich layers of tiramisu evoke flirtation and indulgence.",
+      "ingredients": [
+        {
+          "name": "egg yolks",
+          "amount": 6,
+          "unit": "large"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "mascarpone cheese",
+          "amount": 1.25,
+          "unit": "cups"
+        },
+        {
+          "name": "strong espresso, cooled",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "coffee liqueur",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "optional"
+        },
+        {
+          "name": "biscuits",
+          "amount": 24,
+          "unit": "ladyfinger",
+          "preparation": "savoiardi"
+        },
+        {
+          "name": "Unsweetened cocoa powder for dusting"
+        }
+      ],
+      "instructions": [
+        "Beat the egg yolks and sugar together with an electric mixer until thick, pale and ribbony, about 5 minutes.",
+        "Add the mascarpone cheese and fold gently until completely smooth and combined.",
+        "Combine the cooled espresso and coffee liqueur in a shallow dish.",
+        "Quickly dip each ladyfinger into the espresso mixture -- just long enough to moisten but not saturate.",
+        "Arrange a single layer of dipped ladyfingers in the bottom of a 9x13-inch dish, then spread half the mascarpone mixture evenly over the top.",
+        "Repeat with a second layer of dipped ladyfingers and the remaining mascarpone mixture. Dust generously with cocoa powder.",
+        "Cover and refrigerate for at least 6 hours or overnight to allow the flavours to meld. Dust with a final layer of cocoa before serving."
+      ]
+    },
+    {
+      "id": "romance-indulgence-005",
+      "title": "Mulled Wine",
+      "description": "A fragrant, warming pot of red wine simmered gently with cinnamon sticks, star anise, cloves and strips of orange peel, sweetened with golden honey. This is the drink of long winter evenings, shared cups and whispered confidences by the fire.",
+      "prepTime": "5 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "beverage",
+        "winter",
+        "Victorian"
+      ],
+      "source": "Inspired by Victorian and Regency novels",
+      "story": "Victorian and Regency novels often depict characters sharing spiced wine on cold nights. A steaming cup of mulled wine fosters warmth and intimacy during long winters.",
+      "ingredients": [
+        {
+          "name": "(750 ml) dry red wine",
+          "amount": 1,
+          "unit": "bottle"
+        },
+        {
+          "name": "cinnamon sticks",
+          "amount": 2
+        },
+        {
+          "name": "whole cloves",
+          "amount": 4
+        },
+        {
+          "name": "star anise pods",
+          "amount": 2
+        },
+        {
+          "name": "Peel of 1 orange, in wide strips"
+        },
+        {
+          "name": "honey",
+          "amount": 3,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "Pour the wine into a saucepan over low heat.",
+        "Add the cinnamon sticks, cloves, star anise and orange peel strips.",
+        "Warm the wine gently for 15-20 minutes, keeping the heat low so it never comes to a boil.",
+        "Stir in the honey until dissolved and taste for sweetness.",
+        "Strain into mugs or heatproof glasses.",
+        "Serve warm, garnished with a cinnamon stick or orange peel if desired."
+      ]
+    },
+    {
+      "id": "romance-indulgence-006",
+      "title": "Strawberries and Champagne",
+      "description": "Ripe, ruby-red strawberries macerated in sugar and a splash of champagne, served in elegant coupes with the remaining bubbly poured tableside. A Regency-era indulgence worthy of the most scandalous ballroom whisper.",
+      "prepTime": "10 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "dessert",
+        "Regency",
+        "celebration"
+      ],
+      "source": "Inspired by Bridgerton and Regency romance",
+      "story": "In the Regency romances brought to life by Bridgerton, champagne and strawberries signal celebration, courtship and the delicious tension of a season's most anticipated ball. The pairing of fruit and bubbles is the taste of new beginnings.",
+      "ingredients": [
+        {
+          "name": "fresh strawberries, hulled and halved",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "brut champagne or sparkling wine, well chilled",
+          "amount": 1,
+          "unit": "bottle"
+        },
+        {
+          "name": "Fresh mint leaves for garnish"
+        }
+      ],
+      "instructions": [
+        "Toss the hulled and halved strawberries with the sugar in a bowl.",
+        "Let the strawberries macerate at room temperature for 15-20 minutes until they release their juices.",
+        "Divide the macerated strawberries and their juices among four champagne coupes or wine glasses.",
+        "Pour the chilled champagne over the strawberries at the table.",
+        "Garnish each glass with a sprig of fresh mint.",
+        "Serve immediately and enjoy with good company."
+      ]
+    },
+    {
+      "id": "romance-indulgence-007",
+      "title": "Heart-Shaped Ravioli",
+      "description": "Delicate handmade pasta parcels cut into heart shapes and filled with a lush mixture of ricotta, Parmesan and fresh basil. Tossed in a simple brown butter and sage sauce, these ravioli are a love letter you can eat.",
+      "prepTime": "1 hour",
+      "cookTime": "15 minutes",
+      "servings": "Serves 4",
+      "difficulty": "hard",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "main dish",
+        "Italian",
+        "handmade pasta"
+      ],
+      "source": "Inspired by Italian cinema and romance",
+      "story": "Italian cinema is filled with scenes of lovers sharing handmade pasta in candlelit kitchens. Shaping ravioli into hearts transforms an already intimate act of cooking into a declaration of devotion.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "olive oil",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "ricotta cheese",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "freshly grated Parmesan cheese",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "fresh basil, finely chopped",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "egg yolk",
+          "amount": 1
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh sage leaves",
+          "amount": 8
+        },
+        {
+          "name": "Salt, pepper and nutmeg to taste"
+        }
+      ],
+      "instructions": [
+        "Make the pasta dough by mounding the flour on a work surface, creating a well in the centre, adding the eggs and olive oil, and gradually incorporating the flour until a smooth dough forms. Knead for 8 minutes, then wrap and rest for 30 minutes.",
+        "Mix the ricotta, Parmesan, basil, egg yolk, salt, pepper and a pinch of nutmeg until smooth.",
+        "Roll the pasta dough very thin using a pasta machine or rolling pin, then cut into sheets.",
+        "Place small spoonfuls of filling at regular intervals on one sheet. Brush water around each mound, lay a second sheet on top and press firmly around each filling pocket to seal, removing air.",
+        "Use a heart-shaped cookie cutter to cut out each ravioli. Press the edges once more to ensure a tight seal.",
+        "Cook the ravioli in a large pot of salted boiling water for 3-4 minutes until they float.",
+        "Meanwhile, melt the butter in a pan over medium heat with the sage leaves until the butter turns golden and nutty. Toss the cooked ravioli gently in the brown butter sauce and serve immediately."
+      ]
+    },
+    {
+      "id": "romance-indulgence-008",
+      "title": "Chocolate-Dipped Strawberries",
+      "description": "Plump, juicy strawberries half-cloaked in glossy dark chocolate with an optional drizzle of white chocolate. The ultimate romantic gesture -- simple to make, impossible to resist, and best shared between two.",
+      "prepTime": "15 minutes",
+      "cookTime": "5 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "dessert",
+        "chocolate",
+        "romantic"
+      ],
+      "source": "Inspired by classic romance tradition",
+      "story": "Chocolate-dipped strawberries have been the universal symbol of romantic indulgence for over a century. From Valentine's Day boxes to candlelit hotel rooms in romantic comedies, the combination of ripe fruit and rich chocolate speaks a language everyone understands.",
+      "ingredients": [
+        {
+          "name": "large fresh strawberries, with stems",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "dark chocolate , finely chopped",
+          "amount": 8,
+          "unit": "oz",
+          "preparation": "70% cocoa"
+        },
+        {
+          "name": "white chocolate, finely chopped",
+          "amount": 2,
+          "unit": "oz",
+          "preparation": "optional, for drizzle"
+        },
+        {
+          "name": "coconut oil",
+          "amount": 1,
+          "unit": "teaspoon"
+        }
+      ],
+      "instructions": [
+        "Wash the strawberries and pat them completely dry with paper towels -- any moisture will cause the chocolate to seize.",
+        "Line a baking sheet with parchment paper.",
+        "Melt the dark chocolate with the coconut oil in a double boiler or in the microwave in 30-second intervals, stirring between each, until smooth and glossy.",
+        "Hold each strawberry by the stem and dip it two-thirds of the way into the melted chocolate, letting excess drip off.",
+        "Place on the prepared baking sheet and repeat with all the strawberries.",
+        "If using white chocolate, melt it separately and drizzle over the dipped strawberries with a fork.",
+        "Refrigerate for 15-20 minutes until the chocolate is set, then serve at room temperature."
+      ]
+    },
+    {
+      "id": "romance-indulgence-009",
+      "title": "Lavender Honey Panna Cotta",
+      "description": "A silky, trembling custard infused with the floral perfume of dried lavender and sweetened with Provençal honey. This elegant dessert captures the sun-drenched romance of the French countryside in every delicate spoonful.",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "dessert",
+        "French",
+        "floral"
+      ],
+      "source": "Inspired by Provençal romance",
+      "story": "The lavender fields of Provence have inspired countless love stories, from Peter Mayle's memoirs to romantic films set against the rolling purple hills. Lavender-infused desserts capture the intoxicating fragrance of summer evenings in the south of France.",
+      "ingredients": [
+        {
+          "name": "heavy cream",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "whole milk",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "honey",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "dried culinary lavender",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "packet  unflavoured gelatin",
+          "amount": 1,
+          "preparation": "2 1/4 teaspoons"
+        },
+        {
+          "name": "cold water",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Fresh berries for serving"
+        }
+      ],
+      "instructions": [
+        "Sprinkle the gelatin over the cold water in a small bowl and let it bloom for 5 minutes.",
+        "Gently heat the cream, milk and dried lavender in a saucepan over medium-low heat until it just begins to simmer. Remove from heat and let steep for 10 minutes.",
+        "Strain the cream through a fine sieve to remove the lavender, then return to low heat.",
+        "Stir in the honey until dissolved, then add the bloomed gelatin and stir until completely melted.",
+        "Pour the mixture into four ramekins or small glasses.",
+        "Refrigerate for at least 4 hours or overnight until firmly set.",
+        "Serve chilled, topped with fresh berries."
+      ]
+    },
+    {
+      "id": "romance-indulgence-010",
+      "title": "Pain au Chocolat",
+      "description": "Flaky, buttery layers of laminated pastry wrapped around batons of dark chocolate, baked until deeply golden and shatteringly crisp. The quintessential Parisian breakfast indulgence that makes every morning feel like a love affair with the city.",
+      "prepTime": "2 hours",
+      "cookTime": "20 minutes",
+      "servings": "Serves 8",
+      "difficulty": "hard",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "pastry",
+        "French",
+        "chocolate"
+      ],
+      "source": "Inspired by Emily in Paris and French romance",
+      "story": "The pain au chocolat is the ultimate symbol of Parisian indulgence. From Emily in Paris to classic French cinema, biting into one at a corner boulangerie -- chocolate melting against warm, buttery pastry -- is the moment every visitor falls in love with the city.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 3.25,
+          "unit": "cups"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "packet  instant yeast",
+          "amount": 1,
+          "preparation": "2 1/4 teaspoons"
+        },
+        {
+          "name": "cold whole milk",
+          "amount": 1.25,
+          "unit": "cups"
+        },
+        {
+          "name": "cold unsalted butter for laminating",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "2 sticks"
+        },
+        {
+          "name": "dark chocolate batons (or 8 oz dark chocolate, broken into sticks)",
+          "amount": 16
+        },
+        {
+          "name": "egg, beaten, for egg wash",
+          "amount": 1
+        }
+      ],
+      "instructions": [
+        "Mix the flour, sugar, salt, yeast and cold milk into a shaggy dough. Knead briefly until just combined, then wrap in plastic and refrigerate for 1 hour.",
+        "Pound the cold butter into a flat rectangle between sheets of parchment. Roll the dough into a rectangle twice the size of the butter, place the butter on one half, fold the dough over and seal the edges.",
+        "Roll out the dough into a long rectangle, fold into thirds like a letter, wrap and chill for 30 minutes. Repeat this fold-and-chill process two more times.",
+        "After the final chill, roll the dough into a large rectangle about 1/4 inch thick and cut into 8 smaller rectangles.",
+        "Place 2 chocolate batons along one edge of each rectangle and roll up tightly, sealing the seam underneath.",
+        "Place seam-side down on a lined baking sheet, brush with egg wash, and let proof in a warm place for 1 hour until puffy.",
+        "Brush again with egg wash and bake at 400°F (200°C) for 18-20 minutes until deeply golden and flaky."
+      ]
+    },
+    {
+      "id": "romance-indulgence-011",
+      "title": "Oysters Rockefeller",
+      "description": "Fresh oysters on the half shell topped with a rich, herbaceous blanket of spinach, breadcrumbs, butter and a whisper of anise, then broiled until bubbling and golden. An aphrodisiac worthy of Casanova himself.",
+      "prepTime": "20 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "appetizer",
+        "seafood",
+        "classic"
+      ],
+      "source": "Inspired by Casanova legends and romantic dining",
+      "story": "Casanova reportedly ate 50 oysters every morning to fuel his legendary romantic exploits. Oysters Rockefeller, invented at Antoine's in New Orleans in 1899, takes the humble bivalve and gilds it with butter, herbs and breadcrumbs into a dish so rich it was named after the wealthiest man in America.",
+      "ingredients": [
+        {
+          "name": "fresh oysters, shucked and on the half shell",
+          "amount": 24
+        },
+        {
+          "name": "fresh spinach, finely chopped",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "fine breadcrumbs",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "Pernod or pastis",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "freshly grated Parmesan cheese",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Salt, pepper and hot sauce to taste"
+        },
+        {
+          "name": "Rock salt for bedding"
+        },
+        {
+          "name": "Lemon wedges for serving"
+        }
+      ],
+      "instructions": [
+        "Preheat the broiler and spread a layer of rock salt on a baking sheet to keep the oysters steady.",
+        "Melt the butter in a pan and sauté the garlic for 1 minute, then add the chopped spinach and cook until wilted.",
+        "Stir in the Pernod, breadcrumbs, salt, pepper and hot sauce. Remove from heat.",
+        "Nestle the shucked oysters on the rock salt bed.",
+        "Spoon a generous amount of the spinach mixture onto each oyster and sprinkle with Parmesan.",
+        "Broil for 3-4 minutes until the topping is bubbling and lightly browned.",
+        "Serve immediately on the rock salt with lemon wedges on the side."
+      ]
+    },
+    {
+      "id": "romance-indulgence-012",
+      "title": "Rose Petal Ice Cream",
+      "description": "A delicately perfumed, pale pink ice cream infused with rose water and studded with candied rose petals and crushed pistachios. This enchanting frozen dessert draws from the poetic traditions of the Arabian Nights, where roses mean love.",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "dessert",
+        "Middle Eastern",
+        "floral"
+      ],
+      "source": "Inspired by Arabian Nights and romantic poetry",
+      "story": "In the tales of the Arabian Nights and in centuries of Persian and Arabic love poetry, roses are the supreme symbol of romantic devotion. Rose water has perfumed Middle Eastern desserts for a thousand years, transforming simple cream and sugar into something that tastes like a love poem.",
+      "ingredients": [
+        {
+          "name": "heavy cream",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "whole milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "egg yolks",
+          "amount": 5,
+          "unit": "large"
+        },
+        {
+          "name": "rose water",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "A few drops pink food colouring (optional)"
+        },
+        {
+          "name": "candied rose petals for garnish",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "crushed pistachios for garnish",
+          "amount": 2,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "Heat the cream and milk together in a saucepan until it just begins to simmer.",
+        "In a separate bowl, whisk the egg yolks and sugar until pale and thick.",
+        "Slowly pour the hot cream into the egg yolk mixture, whisking constantly to temper.",
+        "Return the custard to the saucepan and cook over low heat, stirring with a wooden spoon, until it thickens enough to coat the back of the spoon, about 8-10 minutes. Do not let it boil.",
+        "Strain the custard through a fine sieve, then stir in the rose water and food colouring if using. Chill completely in the refrigerator.",
+        "Churn the chilled custard in an ice cream maker according to the manufacturer's instructions.",
+        "Transfer to a container, fold in some candied rose petals, freeze until firm, then serve scooped into bowls with extra petals and crushed pistachios on top."
+      ]
+    },
+    {
+      "id": "romance-indulgence-013",
+      "title": "Affogato",
+      "description": "A single scoop of creamy vanilla gelato drowned in a shot of hot, freshly pulled espresso. This two-ingredient Italian masterpiece is the ultimate marriage of hot and cold, bitter and sweet -- romance distilled into a glass.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "dessert",
+        "Italian",
+        "coffee"
+      ],
+      "source": "Inspired by Italian romance and café culture",
+      "story": "The affogato -- literally 'drowned' in Italian -- is the meeting point of two great Italian passions: espresso and gelato. Served at the end of a long, lingering dinner, it captures the Italian philosophy that the simplest things, done perfectly, are the most romantic.",
+      "ingredients": [
+        {
+          "name": "scoops high-quality vanilla gelato or ice cream",
+          "amount": 4
+        },
+        {
+          "name": "shots freshly brewed hot espresso",
+          "amount": 2
+        },
+        {
+          "name": "Dark chocolate shavings for garnish (optional)"
+        },
+        {
+          "name": "Amaretti biscuits for serving (optional)"
+        }
+      ],
+      "instructions": [
+        "Chill two small glasses or espresso cups in the freezer for 10 minutes.",
+        "Place 2 scoops of vanilla gelato into each chilled glass.",
+        "Pull 2 shots of hot espresso (or brew strong stovetop coffee).",
+        "Pour one shot of hot espresso over the gelato in each glass immediately before serving.",
+        "Garnish with dark chocolate shavings if desired.",
+        "Serve at once with amaretti biscuits on the side. Eat quickly before it all melts together."
+      ]
+    },
+    {
+      "id": "romance-indulgence-014",
+      "title": "Champagne Cocktail",
+      "description": "A classic champagne cocktail built on a sugar cube soaked in Angostura bitters, topped with cold champagne and finished with a twist of lemon. This sparkling, sophisticated drink is the toast of every great period drama ballroom.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "cocktail",
+        "celebration",
+        "period drama"
+      ],
+      "source": "Inspired by Downton Abbey and period romance",
+      "story": "From the glittering ballrooms of Downton Abbey to the champagne toasts of Gatsby's parties, the champagne cocktail has been the drink of celebration, seduction and high society for over a century. The bitters-soaked sugar cube slowly dissolving into the bubbles is a metaphor for sweetness revealed over time.",
+      "ingredients": [
+        {
+          "name": "sugar cube",
+          "amount": 1
+        },
+        {
+          "name": "-4 dashes Angostura bitters",
+          "amount": 3
+        },
+        {
+          "name": "brut champagne or sparkling wine, well chilled",
+          "amount": 4,
+          "unit": "oz"
+        },
+        {
+          "name": "cognac",
+          "amount": 0.5,
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon twist for garnish"
+        }
+      ],
+      "instructions": [
+        "Place the sugar cube on a small plate and saturate it with 3-4 dashes of Angostura bitters.",
+        "Drop the bitters-soaked sugar cube into a chilled champagne flute.",
+        "Pour the cognac over the sugar cube.",
+        "Slowly top with chilled champagne, pouring gently down the side of the glass.",
+        "Garnish with a lemon twist, expressing the oils over the surface of the drink.",
+        "Serve immediately and watch the bubbles cascade from the dissolving sugar cube."
+      ]
+    }
+  ]
+}

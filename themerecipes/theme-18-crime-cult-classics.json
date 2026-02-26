@@ -1,0 +1,985 @@
+{
+  "themeId": "crime-cult-classics",
+  "themeName": "Crime & Cult Classics",
+  "recipes": [
+    {
+      "id": "crime-cult-classics-001",
+      "title": "Royale with Cheese",
+      "description": "A perfectly seasoned quarter-pound beef patty topped with melted American cheese on a toasted sesame bun. This classic fast-food homage is elevated with fresh toppings and captures the spirit of a Parisian McDonald's conversation that became cinematic legend.",
+      "prepTime": "10 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "burger",
+        "Pulp Fiction",
+        "crime"
+      ],
+      "source": "Pulp Fiction directed by Quentin Tarantino",
+      "story": "In Quentin Tarantino's Pulp Fiction, Vincent tells Jules that a Quarter Pounder with Cheese is called a 'Royal with Cheese' in France because 'Quarter Pounder' has no meaning in the metric system. McDonald's in France actually sells a 'Royal with Cheese' — the same burger with a different name. The dialogue captures cultural differences and became one of the most quoted exchanges in film history.",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "lb",
+          "preparation": "80/20"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "American cheese",
+          "amount": 4,
+          "unit": "slices"
+        },
+        {
+          "name": "sesame seed hamburger buns",
+          "amount": 4
+        },
+        {
+          "name": "Ketchup"
+        },
+        {
+          "name": "Yellow mustard"
+        },
+        {
+          "name": "Dill pickle slices"
+        },
+        {
+          "name": "diced white onion",
+          "amount": 0.25,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "Divide the ground beef into four equal portions and shape into flat patties slightly larger than your buns, as they will shrink during cooking.",
+        "Season both sides of each patty generously with salt and pepper.",
+        "Heat a cast-iron skillet or grill over high heat until very hot.",
+        "Cook the patties for 3-4 minutes per side for medium doneness.",
+        "Place a slice of American cheese on each patty during the last minute of cooking and cover to melt.",
+        "Toast the sesame buns cut-side down in the skillet for about 30 seconds.",
+        "Assemble burgers with ketchup, mustard, pickles, and diced onion on toasted buns and serve immediately."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-002",
+      "title": "Cherry Pie & Damn Fine Coffee",
+      "description": "A bubbling lattice-top cherry pie with a crust that shatters into buttery flakes, paired with a cup of strong, black coffee. This small-town diner pairing is as comforting as it is mysterious, evoking the eerie warmth of a Pacific Northwest logging town.",
+      "prepTime": "30 minutes",
+      "cookTime": "50 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "dessert",
+        "pie",
+        "Twin Peaks",
+        "cult classic"
+      ],
+      "source": "Twin Peaks created by David Lynch",
+      "story": "In the tie-in book The Autobiography of F.B.I. Special Agent Dale Cooper, Cooper recalls stopping on Pennsylvania Route 487 for his first cup of coffee and cherry pie and calls it 'damn good.' Agent Cooper's love of cherry pie and coffee became a recurring motif in Twin Peaks, symbolising small-town comfort amidst supernatural mystery.",
+      "ingredients": [
+        {
+          "name": "pie dough, homemade or store-bought",
+          "amount": 2,
+          "unit": "sheets"
+        },
+        {
+          "name": "fresh or frozen sour cherries, pitted",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "cornstarch",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh lemon juice",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "almond extract",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "egg, beaten for egg wash",
+          "amount": 1
+        },
+        {
+          "name": "coarse sugar for topping",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Dark-roast coffee beans for brewing"
+        }
+      ],
+      "instructions": [
+        "Preheat your oven to 400°F (200°C). Line a 9-inch pie dish with one sheet of dough.",
+        "In a large bowl, toss the cherries with sugar, cornstarch, lemon juice, and almond extract.",
+        "Pour the cherry filling into the pie crust.",
+        "Cut the second sheet of dough into strips and weave a lattice top over the filling, crimping the edges to seal.",
+        "Brush the lattice with beaten egg and sprinkle with coarse sugar.",
+        "Bake for 20 minutes at 400°F, then reduce to 350°F and bake 25-30 minutes more until the filling bubbles and the crust is golden.",
+        "Cool for at least 30 minutes before slicing.",
+        "Brew a pot of strong black coffee to serve alongside and enjoy a damn fine slice."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-003",
+      "title": "Prison Pasta Sauce",
+      "description": "A slow-simmered tomato sauce rich with browned meats and red wine, built on garlic sliced so thin it dissolves into the oil. This gangster's Sunday gravy turns a simple pot of spaghetti into a feast worthy of the wiseguys, even behind bars.",
+      "prepTime": "20 minutes",
+      "cookTime": "120 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "main dish",
+        "pasta",
+        "Italian",
+        "Goodfellas",
+        "crime"
+      ],
+      "source": "Goodfellas directed by Martin Scorsese",
+      "story": "In Martin Scorsese's Goodfellas, mobsters cook an elaborate dinner in prison. A TASTE article describes how Paulie slices garlic with a razor blade so thin it 'liquefies in the pan with just a little oil,' according to Henry Hill's narration. The scene shows that even behind bars, the wise guys preserve their Italian culinary rituals.",
+      "ingredients": [
+        {
+          "name": "(28 oz each) San Marzano whole tomatoes",
+          "amount": 2,
+          "unit": "cans"
+        },
+        {
+          "name": "ground veal",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "ground beef",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "ground pork",
+          "amount": 0.25,
+          "unit": "lb"
+        },
+        {
+          "name": "garlic",
+          "amount": 6,
+          "unit": "cloves",
+          "preparation": "sliced paper-thin"
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "olive oil",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "dry red wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "dried basil",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dried oregano",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        },
+        {
+          "name": "spaghetti",
+          "amount": 1,
+          "unit": "lb"
+        }
+      ],
+      "instructions": [
+        "Heat the olive oil in a large Dutch oven over medium-low heat. Add the paper-thin garlic slices and cook gently until they begin to dissolve into the oil, about 2 minutes.",
+        "Add the diced onion and cook until soft and translucent, about 5 minutes.",
+        "Increase heat to medium-high, add the ground veal, beef, and pork, and brown the meat, breaking it up as it cooks.",
+        "Pour in the red wine and scrape up any browned bits from the bottom of the pot. Let the wine reduce by half.",
+        "Crush the San Marzano tomatoes by hand and add them to the pot along with the basil and oregano. Season with salt and pepper.",
+        "Bring to a gentle simmer, then reduce heat to low, cover partially, and cook for at least 1.5 hours, stirring occasionally.",
+        "Cook the spaghetti according to package directions, drain, and serve topped with the slow-simmered sauce."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-004",
+      "title": "Cannoli",
+      "description": "Crisp, golden cannoli shells filled with a sweet ricotta cream studded with chocolate chips and brightened with candied orange peel. These Sicilian pastries are the dessert that even a Corleone enforcer would never leave behind.",
+      "prepTime": "20 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 12",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "dessert",
+        "Italian",
+        "The Godfather",
+        "crime"
+      ],
+      "source": "The Godfather directed by Francis Ford Coppola",
+      "story": "In The Godfather, Clemenza says 'Leave the gun, take the cannoli.' ACMI notes that the line was improvised by actor Richard Castellano and underscores how food is intertwined with mafia family life. The ad-libbed line highlights how even hit men won't forget dessert.",
+      "ingredients": [
+        {
+          "name": "crispy cannoli shells",
+          "amount": 12
+        },
+        {
+          "name": "whole-milk ricotta cheese, drained",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "mini chocolate chips",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "candied orange peel, finely chopped",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Powdered sugar for dusting"
+        }
+      ],
+      "instructions": [
+        "Drain the ricotta in a fine-mesh strainer set over a bowl in the refrigerator for at least 1 hour to remove excess moisture.",
+        "In a large bowl, whip the drained ricotta with the powdered sugar and vanilla until smooth and fluffy.",
+        "Fold in the mini chocolate chips and candied orange peel.",
+        "Transfer the filling to a piping bag fitted with a large round tip.",
+        "Pipe the ricotta cream into both ends of each cannoli shell, filling them generously.",
+        "Dust the filled cannoli with powdered sugar and serve immediately to keep the shells crisp."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-005",
+      "title": "Sazerac",
+      "description": "New Orleans' oldest cocktail, a potent blend of rye whiskey, Peychaud's bitters, and a whisper of absinthe that coats the glass. Each sip carries the sultry, slightly dangerous atmosphere of the French Quarter and the eccentric characters who haunt it.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "cocktail",
+        "beverage",
+        "A Confederacy of Dunces",
+        "crime"
+      ],
+      "source": "A Confederacy of Dunces by John Kennedy Toole",
+      "story": "The Sazerac, a New Orleans cocktail, is made with cognac or rye whiskey, absinthe, sugar and Peychaud's bitters and is considered one of the oldest American cocktails. Originating in the 19th century, the drink reflects New Orleans' cocktail heritage and appears alongside the eccentric characters of A Confederacy of Dunces.",
+      "ingredients": [
+        {
+          "name": "rye whiskey",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "sugar cube",
+          "amount": 1
+        },
+        {
+          "name": "Peychaud's bitters",
+          "amount": 3,
+          "unit": "dashes"
+        },
+        {
+          "name": "absinthe or absinthe substitute",
+          "amount": 0.25,
+          "unit": "oz"
+        },
+        {
+          "name": "Lemon peel"
+        },
+        {
+          "name": "Splash of water"
+        }
+      ],
+      "instructions": [
+        "Chill a rocks glass by filling it with ice and setting it aside.",
+        "In a mixing glass, place the sugar cube and add the Peychaud's bitters and a splash of water. Muddle until the sugar is dissolved.",
+        "Add the rye whiskey and fill the mixing glass with ice. Stir for about 30 seconds until well chilled.",
+        "Discard the ice from the chilled rocks glass and rinse it with absinthe, swirling to coat the inside, then discarding any excess.",
+        "Strain the whiskey mixture into the absinthe-rinsed glass.",
+        "Twist the lemon peel over the glass to express its oils, then drop it in or discard as preferred."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-006",
+      "title": "Lucky Dog Hot Dogs",
+      "description": "Simple, satisfying all-beef franks served on toasted buns with classic yellow mustard, diced onions, and tangy relish. These New Orleans street-cart staples are best enjoyed with the gusto of a man who eats more product than he sells.",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "main dish",
+        "street food",
+        "A Confederacy of Dunces",
+        "cult classic"
+      ],
+      "source": "A Confederacy of Dunces by John Kennedy Toole",
+      "story": "In John Kennedy Toole's A Confederacy of Dunces, Ignatius Reilly briefly works at a Lucky Dog cart. Big Little Meals notes that Lucky Dog carts sell hot dogs in New Orleans' French Quarter and that Ignatius eats more than he sells. The iconic cart and Ignatius's incompetence provide comic relief in the novel.",
+      "ingredients": [
+        {
+          "name": "all-beef frankfurters",
+          "amount": 4
+        },
+        {
+          "name": "soft hot dog buns",
+          "amount": 4
+        },
+        {
+          "name": "Yellow mustard"
+        },
+        {
+          "name": "diced white onion",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "sweet pickle relish",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "butter for toasting buns",
+          "amount": 1,
+          "unit": "tablespoon"
+        }
+      ],
+      "instructions": [
+        "Bring a pot of water to a gentle simmer and add the frankfurters. Cook for 5-7 minutes until heated through.",
+        "Alternatively, grill the franks over medium heat, turning occasionally, until lightly charred on all sides.",
+        "Butter the insides of the hot dog buns and toast them in a skillet over medium heat until golden.",
+        "Place each frankfurter in a toasted bun.",
+        "Top with a generous line of yellow mustard, diced onions, and sweet relish.",
+        "Serve immediately with napkins and a side of Ignatius-level enthusiasm."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-007",
+      "title": "Old-Fashioned Cocktail",
+      "description": "The quintessential whiskey cocktail, built slowly in the glass with muddled sugar, aromatic bitters, and a wide swath of orange peel. This amber-hued classic is the drink of choice for hard-boiled detectives and mid-century schemers alike.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "cocktail",
+        "beverage",
+        "film noir",
+        "Mad Men",
+        "crime"
+      ],
+      "source": "Film noir and Mad Men",
+      "story": "Film noir detectives and characters in shows like Mad Men sip old-fashioned cocktails while plotting schemes. The old-fashioned epitomises mid-century cocktail culture and lends sophistication to crime dramas. It is one of the earliest defined cocktails in American history, appearing in bartending guides since the 1860s.",
+      "ingredients": [
+        {
+          "name": "bourbon or rye whiskey",
+          "amount": 2,
+          "unit": "oz"
+        },
+        {
+          "name": "sugar cube",
+          "amount": 1
+        },
+        {
+          "name": "-3 dashes Angostura bitters",
+          "amount": 2
+        },
+        {
+          "name": "Orange peel"
+        },
+        {
+          "name": "cherry or brandied cherry",
+          "amount": 1,
+          "unit": "Luxardo"
+        },
+        {
+          "name": "Splash of water"
+        },
+        {
+          "name": "Large ice cube"
+        }
+      ],
+      "instructions": [
+        "Place the sugar cube in a rocks glass and saturate it with the Angostura bitters and a splash of water.",
+        "Muddle the sugar until it is fully dissolved.",
+        "Add the bourbon or rye whiskey and stir gently to combine.",
+        "Place a single large ice cube in the glass.",
+        "Express the oils from the orange peel by holding it over the glass and giving it a firm twist, then drop it in.",
+        "Garnish with a cherry and serve."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-008",
+      "title": "Beef Wellington",
+      "description": "A showstopping centrepiece of seared beef tenderloin wrapped in savoury mushroom duxelles, delicate prosciutto, and golden puff pastry. Slicing through the flaky crust to reveal a perfectly pink interior is a moment of pure aristocratic drama.",
+      "prepTime": "45 minutes",
+      "cookTime": "30 minutes",
+      "servings": "Serves 6",
+      "difficulty": "hard",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "main dish",
+        "British",
+        "period drama",
+        "fine dining"
+      ],
+      "source": "Period dramas and fine dining cinema",
+      "story": "National Geographic explains that beef wellington traditionally consists of a fillet of beef coated in mushroom duxelles and wrapped in puff pastry. The dish is widely claimed to be named after the Duke of Wellington although its exact origin is unclear. Wrapping meat in pastry predates the 19th century, but the Wellington name elevated the dish to fine dining.",
+      "ingredients": [
+        {
+          "name": "beef tenderloin, centre-cut",
+          "amount": 2,
+          "unit": "lb"
+        },
+        {
+          "name": "cremini mushrooms, finely chopped",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "shallots",
+          "amount": 2,
+          "preparation": "minced"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh thyme leaves",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "prosciutto",
+          "amount": 6,
+          "unit": "slices"
+        },
+        {
+          "name": "Dijon mustard",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "puff pastry, thawed",
+          "amount": 1,
+          "unit": "sheet"
+        },
+        {
+          "name": "egg, beaten for egg wash",
+          "amount": 1
+        },
+        {
+          "name": "Salt and pepper"
+        }
+      ],
+      "instructions": [
+        "Season the beef tenderloin generously with salt and pepper. Sear it in a hot skillet with oil on all sides until deeply browned, about 2 minutes per side. Brush with Dijon mustard and let it cool.",
+        "In the same skillet, melt the butter and cook the mushrooms, shallots, and thyme over medium-high heat until all moisture has evaporated and the mixture is dry, about 10 minutes. Season and let cool.",
+        "Lay overlapping slices of prosciutto on a large sheet of plastic wrap. Spread the mushroom duxelles evenly over the prosciutto.",
+        "Place the seared tenderloin at one edge and roll it tightly in the prosciutto and duxelles using the plastic wrap. Twist the ends to form a tight cylinder and refrigerate for 30 minutes.",
+        "Roll out the puff pastry, unwrap the beef log, and place it in the centre. Wrap the pastry around the beef, sealing the seam and tucking the ends underneath.",
+        "Brush the entire surface with egg wash and score the top decoratively with a sharp knife. Chill for 15 minutes.",
+        "Bake at 425°F (220°C) for 25-30 minutes until the pastry is deeply golden and the internal temperature reaches 125°F for medium-rare.",
+        "Rest for 10 minutes before slicing into thick rounds."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-009",
+      "title": "Scooby Snack Shot",
+      "description": "A playful neon-green shooter that blends tropical melon and banana liqueurs with coconut rum, pineapple juice, and a velvety layer of cream. Topped with whipped cream, this sweet little mystery is solved in a single sip.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "cocktail",
+        "shot",
+        "Scooby-Doo",
+        "cult classic"
+      ],
+      "source": "Scooby-Doo animated series",
+      "story": "A Chowhound article explains that the Scooby Snack shot combines melon and banana liqueur with coconut rum, pineapple juice and cream and should be shaken vigorously to stay velvety. The neon-green shot nods to the gang's fondness for snacks in the classic cartoon.",
+      "ingredients": [
+        {
+          "name": "melon liqueur",
+          "amount": 1,
+          "unit": "oz",
+          "preparation": "Midori"
+        },
+        {
+          "name": "banana liqueur",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "coconut rum",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "pineapple juice",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "Whipped cream for topping"
+        },
+        {
+          "name": "Ice"
+        }
+      ],
+      "instructions": [
+        "Fill a cocktail shaker with ice.",
+        "Add the melon liqueur, banana liqueur, coconut rum, pineapple juice, and heavy cream.",
+        "Shake vigorously for 15-20 seconds until the mixture is frothy and well combined.",
+        "Strain evenly into four shot glasses.",
+        "Top each shot with a small dollop of whipped cream.",
+        "Serve immediately and enjoy the mystery-solving energy."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-010",
+      "title": "Big Kahuna Burger",
+      "description": "A towering Hawaiian-inspired burger with a juicy beef patty topped with a grilled pineapple ring, teriyaki glaze, and crisp lettuce on a soft bun. This is the tasty burger that caught Jules Winnfield's attention and changed the course of a very bad morning.",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "main dish",
+        "burger",
+        "Pulp Fiction",
+        "crime"
+      ],
+      "source": "Pulp Fiction directed by Quentin Tarantino",
+      "story": "In Pulp Fiction, Jules Winnfield helps himself to Brett's Big Kahuna Burger before delivering his famous Ezekiel 25:17 monologue. The fictional Big Kahuna Burger chain appears in several Tarantino films and has become a symbol of the director's playful world-building. The Hawaiian-themed burger joint represents Tarantino's love of embedding pop-culture details into his crime narratives.",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "lb",
+          "preparation": "80/20"
+        },
+        {
+          "name": "pineapple rings, fresh or canned",
+          "amount": 4
+        },
+        {
+          "name": "brioche hamburger buns",
+          "amount": 4
+        },
+        {
+          "name": "teriyaki sauce",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "pepper jack cheese",
+          "amount": 4,
+          "unit": "slices"
+        },
+        {
+          "name": "butter lettuce",
+          "amount": 4,
+          "unit": "leaves"
+        },
+        {
+          "name": "tomato",
+          "amount": 4,
+          "unit": "slices"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        }
+      ],
+      "instructions": [
+        "Divide the ground beef into four equal portions and form into patties. Season both sides with salt and pepper.",
+        "Heat a grill or grill pan over medium-high heat and brush with vegetable oil.",
+        "Grill the patties for 4-5 minutes per side for medium doneness.",
+        "During the last minute, place a slice of pepper jack cheese on each patty and cover to melt. At the same time, grill the pineapple rings for 1-2 minutes per side until caramelised.",
+        "Toast the brioche buns cut-side down on the grill for about 30 seconds.",
+        "Brush each patty with teriyaki sauce.",
+        "Assemble the burgers with lettuce, tomato, a grilled pineapple ring, and the teriyaki-glazed patty. Serve with a knowing nod."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-011",
+      "title": "Clemenza's Meatballs",
+      "description": "Tender, hand-rolled meatballs made from a classic three-meat blend of veal, beef, and pork, simmered low and slow in a rich tomato sauce. These are the meatballs Clemenza could make for twenty men just as easily as for one.",
+      "prepTime": "25 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "main dish",
+        "Italian",
+        "The Godfather",
+        "crime"
+      ],
+      "source": "The Godfather directed by Francis Ford Coppola",
+      "story": "In The Godfather, Peter Clemenza teaches Michael Corleone how to cook for a large group during wartime, famously instructing him to start with the oil and garlic. Clemenza's cooking scenes reveal the domestic side of mob life, where feeding the family — whether biological or criminal — is a sacred duty. His recipe has become one of the most iconic cooking moments in film history.",
+      "ingredients": [
+        {
+          "name": "ground veal",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "ground beef",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "ground pork",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "Italian breadcrumbs",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "whole milk",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "chopped"
+        },
+        {
+          "name": "grated Pecorino Romano",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "marinara sauce",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "Olive oil for frying"
+        }
+      ],
+      "instructions": [
+        "Soak the breadcrumbs in milk for 5 minutes until softened.",
+        "In a large bowl, combine the ground veal, beef, pork, soaked breadcrumbs, egg, garlic, parsley, Pecorino Romano, salt, and pepper. Mix gently with your hands until just combined — do not overwork.",
+        "Roll the mixture into golf-ball-sized meatballs, about 18-20 total.",
+        "Heat olive oil in a large deep skillet over medium-high heat. Brown the meatballs on all sides in batches, about 2 minutes per side. They do not need to be cooked through.",
+        "Pour the marinara sauce into the skillet and nestle the browned meatballs into the sauce.",
+        "Reduce heat to low, cover, and simmer for 30-35 minutes until the meatballs are cooked through and the sauce has thickened.",
+        "Serve over pasta or on crusty bread, and remember: leave the gun, take the meatballs."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-012",
+      "title": "Dexter's Blood-Orange Mojito",
+      "description": "A crimson-hued twist on the classic mojito, made with fresh blood-orange juice, muddled mint, and white rum. The deep red colour is as striking in the glass as it is thematically fitting for Miami's most meticulous forensic analyst.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "cocktail",
+        "beverage",
+        "Dexter",
+        "crime"
+      ],
+      "source": "Dexter TV series",
+      "story": "In the TV series Dexter, the titular character works as a blood-spatter analyst for the Miami Metro Police by day while pursuing his own dark justice by night. Set against Miami's sun-drenched backdrop, the show is saturated with tropical imagery. This blood-orange mojito captures the city's vibrant cocktail culture with a colour that nods to Dexter's unique expertise.",
+      "ingredients": [
+        {
+          "name": "white rum",
+          "amount": 4,
+          "unit": "oz"
+        },
+        {
+          "name": "blood oranges, juiced",
+          "amount": 2,
+          "preparation": "about 1/2 cup"
+        },
+        {
+          "name": "fresh lime juice",
+          "amount": 1,
+          "unit": "oz"
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh mint leaves",
+          "amount": 12
+        },
+        {
+          "name": "Club soda"
+        },
+        {
+          "name": "Ice"
+        },
+        {
+          "name": "Blood-orange slices and mint sprigs for garnish"
+        }
+      ],
+      "instructions": [
+        "Divide the mint leaves and sugar between two tall glasses.",
+        "Muddle gently to bruise the mint and dissolve the sugar.",
+        "Add the fresh blood-orange juice and lime juice to each glass and stir.",
+        "Fill each glass with ice.",
+        "Pour 2 oz of white rum into each glass.",
+        "Top with club soda and stir gently to combine.",
+        "Garnish with blood-orange slices and a sprig of fresh mint."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-013",
+      "title": "Hannibal's Amuse-Bouche",
+      "description": "An elegant seared duck breast fanned over a bed of fig compote, drizzled with a port wine reduction and garnished with micro greens. This refined small plate demonstrates the kind of exquisite culinary artistry that would earn a compliment from even the most discerning epicurean.",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 4",
+      "difficulty": "hard",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "appetiser",
+        "fine dining",
+        "Hannibal",
+        "crime"
+      ],
+      "source": "Hannibal TV series",
+      "story": "In Bryan Fuller's Hannibal TV series, Dr. Hannibal Lecter is as renowned for his exquisite dinner parties as he is infamous for his crimes. Each episode features elaborately plated dishes prepared by the fictional psychiatrist, with food stylist Janice Poon creating real, stunning plates for filming. The show elevated food styling in television and blurred the line between haute cuisine and horror.",
+      "ingredients": [
+        {
+          "name": "duck breasts, scored on the skin side",
+          "amount": 2
+        },
+        {
+          "name": "fresh figs, quartered",
+          "amount": 6
+        },
+        {
+          "name": "honey",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "ruby port wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "balsamic vinegar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Flaky sea salt"
+        },
+        {
+          "name": "Micro greens or watercress for garnish"
+        },
+        {
+          "name": "Freshly cracked black pepper"
+        }
+      ],
+      "instructions": [
+        "Score the skin of each duck breast in a crosshatch pattern, being careful not to cut into the meat. Season both sides with salt and pepper.",
+        "Place the duck breasts skin-side down in a cold skillet, then turn the heat to medium. Render the fat slowly for 8-10 minutes until the skin is deeply golden and crisp.",
+        "Flip and cook for 3-4 minutes more for medium-rare. Remove and rest for 5 minutes.",
+        "In a small saucepan, combine the quartered figs, honey, and a splash of water. Cook over medium heat for 5 minutes until the figs soften into a compote.",
+        "In another small saucepan, reduce the port wine and balsamic vinegar over medium-high heat until syrupy, about 8 minutes. Swirl in the butter at the end.",
+        "Spoon the fig compote onto four plates. Slice the duck breasts thinly on a bias and fan the slices over the figs.",
+        "Drizzle with the port reduction, finish with flaky salt, and garnish with micro greens. Serve with impeccable presentation."
+      ]
+    },
+    {
+      "id": "crime-cult-classics-014",
+      "title": "Los Pollos Hermanos Fried Chicken",
+      "description": "Crispy, golden-brown fried chicken with a seasoned buttermilk marinade and a crunchy double-dredged coating. This addictively good recipe channels the flagship dish of Albuquerque's most successful fast-food chain — and its most dangerous proprietor.",
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "main dish",
+        "fried chicken",
+        "Breaking Bad",
+        "crime"
+      ],
+      "source": "Breaking Bad created by Vince Gilligan",
+      "story": "In Breaking Bad, Los Pollos Hermanos is the fast-food fried chicken restaurant owned by Gustavo Fring, who uses it as a front for his methamphetamine distribution empire. The restaurant's logo and branding became iconic symbols of the show, representing the duality of Fring's character — the consummate professional businessman hiding a ruthless drug lord. The chicken was so well-marketed that fans have long demanded a real Los Pollos Hermanos franchise.",
+      "ingredients": [
+        {
+          "name": "bone-in chicken pieces",
+          "amount": 8,
+          "preparation": "thighs and drumsticks"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "garlic powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "onion powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dried oregano",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Vegetable oil for frying (about 3 cups)"
+        }
+      ],
+      "instructions": [
+        "Place the chicken pieces in a large bowl and pour the buttermilk over them. Cover and refrigerate for at least 2 hours or overnight for the most tender result.",
+        "In a wide shallow dish, combine the flour, paprika, garlic powder, onion powder, cayenne, oregano, salt, and pepper.",
+        "Remove the chicken from the buttermilk, letting the excess drip off. Dredge each piece thoroughly in the seasoned flour.",
+        "Dip the floured chicken briefly back into the buttermilk, then dredge again in the flour mixture for an extra-crispy double coating.",
+        "Heat the vegetable oil in a large heavy-bottomed pot or Dutch oven to 350°F (175°C).",
+        "Fry the chicken in batches, without crowding the pot, for 12-15 minutes, turning once, until the coating is deeply golden and the internal temperature reaches 165°F.",
+        "Drain on a wire rack set over a baking sheet and season with a pinch of additional salt while hot.",
+        "Serve with your choice of sides and the quiet confidence of a man who is the one who knocks."
+      ]
+    }
+  ]
+}

@@ -91,7 +91,7 @@ async function uploadThemeCovers() {
   console.log('\n📸 Uploading theme cover images...\n');
 
   const files = fs.readdirSync(THEME_COVERS_DIR)
-    .filter(f => f.endsWith('.webp') && f.startsWith('theme-'));
+    .filter(f => f.endsWith('.webp') && f.includes('-cover.webp'));
 
   let successCount = 0;
   let failCount = 0;

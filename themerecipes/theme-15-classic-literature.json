@@ -1,0 +1,1205 @@
+{
+  "themeId": "classic-literature",
+  "themeName": "Classic Literature & Historical Fiction",
+  "recipes": [
+    {
+      "id": "classic-literature-001",
+      "title": "Virginia Woolf's Boeuf en Daube",
+      "description": "A rich Provencal beef stew slowly braised in red wine with bacon, root vegetables, and fragrant herbs. This deeply flavored casserole rewards patience, emerging from the oven with meltingly tender meat in a dark, glossy sauce.",
+      "prepTime": "40 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "French",
+        "stew",
+        "classic literature"
+      ],
+      "source": "To the Lighthouse by Virginia Woolf",
+      "story": "Virginia Woolf's To the Lighthouse centres a dinner around this Provencal stew. A Guardian article explains that boeuf en daube is made by marinating beef in red wine with bacon, vegetables and herbs before slow cooking. Mrs Ramsay's careful preparation of the dish symbolises her domestic artistry.",
+      "ingredients": [
+        {
+          "name": "beef shin or chuck",
+          "amount": 2.5,
+          "unit": "lb",
+          "preparation": "cut into large cubes"
+        },
+        {
+          "name": "red wine (750 ml)",
+          "amount": 1,
+          "unit": "bottle"
+        },
+        {
+          "name": "thick-cut bacon",
+          "amount": 6,
+          "unit": "oz",
+          "preparation": "diced"
+        },
+        {
+          "name": "onions, quartered",
+          "amount": 2,
+          "unit": "medium"
+        },
+        {
+          "name": "carrots",
+          "amount": 3,
+          "preparation": "peeled and cut into chunks"
+        },
+        {
+          "name": "cremini mushrooms, halved",
+          "amount": 8,
+          "unit": "oz"
+        },
+        {
+          "name": "tomatoes, roughly chopped",
+          "amount": 2,
+          "unit": "medium"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "crushed"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 4,
+          "unit": "sprigs"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "orange zest",
+          "amount": 2,
+          "unit": "strips"
+        },
+        {
+          "name": "beef stock",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Cut the beef into large cubes and place in a bowl with the red wine, thyme, bay leaves, and orange zest. Cover and marinate in the refrigerator overnight.",
+        "Remove the beef from the marinade and pat dry, reserving the wine and aromatics. Season the beef with salt and pepper.",
+        "In a heavy casserole, fry the diced bacon in olive oil until the fat renders. Remove the bacon and set aside.",
+        "Brown the beef in batches in the bacon fat, then set aside with the bacon.",
+        "Saute the onions, carrots, and garlic in the same pot until softened, about 5 minutes.",
+        "Return the beef and bacon to the pot. Add the mushrooms, tomatoes, reserved marinade, and beef stock. Bring to a simmer.",
+        "Cover tightly and cook in a preheated 300°F oven for 2 1/2 to 3 hours, until the beef is very tender and the sauce has thickened.",
+        "Remove the bay leaves and orange zest. Adjust seasoning and serve in deep bowls."
+      ]
+    },
+    {
+      "id": "classic-literature-002",
+      "title": "Dickens' Christmas Plum Pudding",
+      "description": "A gloriously dense and dark steamed pudding packed with dried fruits, warm spices, and a generous splash of brandy. This Victorian Christmas icon emerges from its long steam bath rich, aromatic, and ready to be set alight at the table.",
+      "prepTime": "30 minutes",
+      "cookTime": "6 hours",
+      "servings": "Serves 8",
+      "difficulty": "hard",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "tags": [
+        "dessert",
+        "British",
+        "Victorian",
+        "holiday",
+        "classic literature"
+      ],
+      "source": "A Christmas Carol by Charles Dickens",
+      "story": "Charles Dickens' A Christmas Carol popularised plum pudding at Victorian Christmas. Our Heritage of Health clarifies that 'plum' referred to raisins and currants and that the pudding was a steamed suet pudding with dried fruit, spices and brandy. Dickens portrays the Cratchit family proudly carrying their pudding as the highlight of Christmas dinner.",
+      "ingredients": [
+        {
+          "name": "shredded beef suet or cold butter",
+          "amount": 4,
+          "unit": "oz",
+          "preparation": "grated"
+        },
+        {
+          "name": "fresh breadcrumbs",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "raisins",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "currants",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "chopped dried figs",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "diced candied citron",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "dark brown sugar, packed",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "eggs, beaten",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "milk",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "brandy, plus extra for flaming",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "freshly grated nutmeg",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground cinnamon",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground cloves",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of salt"
+        }
+      ],
+      "instructions": [
+        "In a large bowl, combine the suet, breadcrumbs, flour, all dried fruits, citron, brown sugar, and spices. Toss to mix evenly.",
+        "In a separate bowl, whisk together the eggs, milk, and brandy. Pour the wet mixture into the dry ingredients and stir until thoroughly combined.",
+        "Generously grease a 1 1/2 quart pudding basin. Spoon the batter in, pressing down firmly, and cover the top tightly with a double layer of parchment and foil, secured with string.",
+        "Place the basin on a trivet in a large pot. Pour boiling water halfway up the sides of the basin.",
+        "Cover the pot and steam gently for 5 to 6 hours, topping up with boiling water as needed.",
+        "Remove the pudding and let it cool completely. Re-wrap and store in a cool place for up to a month to mature.",
+        "On serving day, steam again for 1 to 2 hours to heat through. Turn out onto a plate, warm a little brandy, pour over the pudding, and set alight at the table."
+      ]
+    },
+    {
+      "id": "classic-literature-003",
+      "title": "Outlander's Scotch Broth",
+      "description": "A nourishing Highland soup brimming with tender lamb, pearl barley, split peas, and root vegetables. This hearty one-pot meal captures the spirit of Scottish hospitality with its wholesome simplicity and warming depth.",
+      "prepTime": "20 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 2,
+      "sortOrder": 3,
+      "tags": [
+        "soup",
+        "Scottish",
+        "lamb",
+        "classic literature"
+      ],
+      "source": "Outlander series by Diana Gabaldon",
+      "story": "Diana Gabaldon's Outlander series features hearty Scottish soups. Outlander Kitchen notes that Scotch broth is made by simmering lamb or mutton with split peas, barley and root vegetables. The soup reflects Scottish frugality and sustenance.",
+      "ingredients": [
+        {
+          "name": "lamb shank or neck",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "yellow split peas, rinsed",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "pearl barley, rinsed",
+          "amount": 0.333,
+          "unit": "cup"
+        },
+        {
+          "name": "cleaned and sliced",
+          "amount": 2,
+          "unit": "leeks,"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "turnip",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "chopped kale, stems removed",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 3,
+          "unit": "sprigs"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "cold water",
+          "amount": 8,
+          "unit": "cups"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Place the lamb in a large pot with the cold water. Bring to a boil and skim off any foam that rises to the surface.",
+        "Add the rinsed split peas, pearl barley, thyme, and bay leaves. Reduce heat and simmer gently for 1 hour.",
+        "Add the leeks, carrots, and turnip. Continue to simmer for 30 to 40 minutes until the vegetables are tender.",
+        "Stir in the chopped kale and cook for another 10 minutes.",
+        "Remove the lamb from the pot. Shred the meat off the bone and return it to the broth.",
+        "Discard the bay leaves and thyme stems. Season generously with salt and pepper and serve in deep bowls."
+      ]
+    },
+    {
+      "id": "classic-literature-004",
+      "title": "Tolstoy's Borshch",
+      "description": "A vibrant crimson soup built on rich stock with earthy beets, tender cabbage, and aromatic vegetables. Finished with a crown of sour cream and fresh dill, this soul-warming bowl embodies the heart of Eastern European home cooking.",
+      "prepTime": "25 minutes",
+      "cookTime": "1 hour",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 2,
+      "sortOrder": 4,
+      "tags": [
+        "soup",
+        "Russian",
+        "Ukrainian",
+        "beets",
+        "classic literature"
+      ],
+      "source": "Classic Russian and Ukrainian Literature",
+      "story": "Classic Russian and Ukrainian novels often depict bowls of borshch. Smithsonian Folklife describes the soup as a symbol of Ukrainian culture made from meat stock with cabbage, onions, carrots, garlic and beets and explains that it began as a peasant dish using humble ingredients. Borshch symbolises home and hospitality in Eastern European literature.",
+      "ingredients": [
+        {
+          "name": "beef or chicken stock",
+          "amount": 6,
+          "unit": "cups"
+        },
+        {
+          "name": "beets",
+          "amount": 3,
+          "unit": "medium",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "shredded green cabbage",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "onion, finely diced",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and grated"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "red wine vinegar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "sunflower or vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Fresh dill, chopped, for garnish"
+        },
+        {
+          "name": "Sour cream, for serving"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Heat the oil in a large pot over medium heat. Saute the onion, carrots, and garlic until softened, about 5 minutes.",
+        "Add the diced beets and cook, stirring occasionally, for another 5 minutes.",
+        "Stir in the tomato paste and cook for 1 minute until fragrant.",
+        "Add the shredded cabbage, stock, and vinegar. Bring to a boil, then reduce heat and simmer for 40 to 50 minutes, until the beets are fully tender.",
+        "Season with salt and pepper to taste. The soup should have a pleasant sweet-and-sour balance.",
+        "Ladle into bowls and garnish generously with sour cream and chopped fresh dill."
+      ]
+    },
+    {
+      "id": "classic-literature-005",
+      "title": "Count of Monte Cristo's Bouillabaisse",
+      "description": "A magnificent Marseillaise fish stew teeming with mixed seafood in a saffron-scented tomato broth. Served over crusty bread with a fiery rouille, this Provencal masterpiece is worthy of a feast thrown by the Count himself.",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "hard",
+      "unlockDay": 3,
+      "sortOrder": 5,
+      "tags": [
+        "seafood",
+        "French",
+        "soup",
+        "classic literature"
+      ],
+      "source": "The Count of Monte Cristo by Alexandre Dumas",
+      "story": "Alexandre Dumas, author of The Count of Monte Cristo, was also a passionate gastronome who wrote his own culinary dictionary. The Count's lavish banquets in Marseille would certainly have featured bouillabaisse, the iconic Provencal fisherman's stew that transforms humble catch into an extraordinary feast.",
+      "ingredients": [
+        {
+          "name": "mixed firm white fish , cut into chunks",
+          "amount": 1.5,
+          "unit": "lb",
+          "preparation": "monkfish, sea bass, snapper"
+        },
+        {
+          "name": "shell-on shrimp",
+          "amount": 0.5,
+          "unit": "lb"
+        },
+        {
+          "name": "mussels, scrubbed and debearded",
+          "amount": 1,
+          "unit": "lb"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "white part only, sliced",
+          "amount": 2,
+          "unit": "leeks,"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "(14 oz) diced tomatoes",
+          "amount": 1,
+          "unit": "can"
+        },
+        {
+          "name": "dry white wine",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "fish stock",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "Large pinch of saffron threads"
+        },
+        {
+          "name": "orange zest",
+          "amount": 1,
+          "unit": "strip"
+        },
+        {
+          "name": "olive oil",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "Crusty bread, for serving"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Heat olive oil in a large, deep pot. Saute the onion, leeks, and garlic until soft and fragrant, about 5 minutes.",
+        "Add the diced tomatoes, white wine, fish stock, saffron, and orange zest. Bring to a boil, then reduce heat and simmer for 20 minutes to develop the broth.",
+        "Season the broth with salt and pepper. Add the firm white fish chunks and simmer gently for 5 minutes.",
+        "Add the shrimp and mussels. Cover and cook for 4 to 5 minutes, until the shrimp are pink and the mussels have opened. Discard any mussels that remain closed.",
+        "Remove the orange zest. Taste and adjust the seasoning.",
+        "Ladle the stew into wide bowls over slices of crusty bread and serve immediately."
+      ]
+    },
+    {
+      "id": "classic-literature-006",
+      "title": "Anna Karenina's Blini with Caviar",
+      "description": "Delicate buckwheat pancakes with a tender, lacy texture, served warm with glistening caviar and cool sour cream. These elegant Russian blini capture the refined dining of Tolstoy's aristocratic world.",
+      "prepTime": "20 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 3,
+      "sortOrder": 6,
+      "tags": [
+        "appetizer",
+        "Russian",
+        "classic literature",
+        "elegant"
+      ],
+      "source": "Anna Karenina by Leo Tolstoy",
+      "story": "In Tolstoy's Anna Karenina, Stiva Oblonsky orders blini at a fashionable Moscow restaurant, savoring them with caviar and champagne. The scene captures the indulgent world of Russian aristocracy, where food served as both social ritual and sensory pleasure.",
+      "ingredients": [
+        {
+          "name": "buckwheat flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "warm milk",
+          "amount": 1.25,
+          "unit": "cups"
+        },
+        {
+          "name": "active dry yeast",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "eggs, separated",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "melted butter, plus more for cooking",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "caviar or salmon roe",
+          "amount": 4,
+          "unit": "oz"
+        },
+        {
+          "name": "sour cream",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "Fresh chives, finely snipped"
+        }
+      ],
+      "instructions": [
+        "Dissolve the yeast in warm milk with the sugar. Let stand for 5 minutes until frothy.",
+        "Whisk together the buckwheat flour, all-purpose flour, and salt. Stir in the yeast mixture, egg yolks, and melted butter until smooth. Cover and let rise in a warm place for 1 hour.",
+        "Beat the egg whites to soft peaks and gently fold into the batter.",
+        "Heat a non-stick pan or blini pan over medium heat and brush lightly with butter. Drop small spoonfuls of batter to form 3-inch rounds.",
+        "Cook until bubbles appear on the surface, about 1 to 2 minutes, then flip and cook for another minute until golden.",
+        "Serve the warm blini topped with a spoonful of sour cream, a small mound of caviar, and a sprinkle of chives."
+      ]
+    },
+    {
+      "id": "classic-literature-007",
+      "title": "Treasure Island's Ship's Hardtack",
+      "description": "Dense, sturdy biscuits baked twice until bone-dry and virtually indestructible. These honest sailor's crackers were the backbone of every sea voyage, and they taste surprisingly good when paired with soup or crumbled into stew.",
+      "prepTime": "15 minutes",
+      "cookTime": "1 hour",
+      "servings": "Makes 12 biscuits",
+      "difficulty": "easy",
+      "unlockDay": 5,
+      "sortOrder": 7,
+      "tags": [
+        "bread",
+        "historical",
+        "nautical",
+        "classic literature"
+      ],
+      "source": "Treasure Island by Robert Louis Stevenson",
+      "story": "In Robert Louis Stevenson's Treasure Island, young Jim Hawkins and the crew of the Hispaniola survive on ship's provisions including hardtack biscuits. These twice-baked, rock-hard crackers could last for months at sea and were a staple aboard every sailing vessel from the Age of Exploration onward.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "water",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "softened (optional, for flavor)"
+        }
+      ],
+      "instructions": [
+        "Preheat the oven to 375°F. Mix the flour and salt together in a large bowl.",
+        "Add the water and butter, stirring until a very stiff dough forms. Knead on a floured surface for 5 minutes until smooth.",
+        "Roll the dough out to about 1/3 inch thickness. Cut into 3-inch squares or rounds.",
+        "Use a fork to dock each biscuit thoroughly, pricking holes across the entire surface to prevent puffing.",
+        "Place on an ungreased baking sheet and bake for 30 minutes. Flip the biscuits and bake for another 30 minutes until completely dry and pale golden.",
+        "Turn off the oven and leave the hardtack inside as the oven cools to dry them further. Store in an airtight container."
+      ]
+    },
+    {
+      "id": "classic-literature-008",
+      "title": "Les Miserables' French Onion Soup",
+      "description": "Sweet, deeply caramelized onions swimming in a rich beef broth, crowned with a crusty crouton and a bubbling cap of melted Gruyere. This Parisian classic is the ultimate comfort for both revolutionaries and readers alike.",
+      "prepTime": "15 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 5,
+      "sortOrder": 8,
+      "tags": [
+        "soup",
+        "French",
+        "classic literature",
+        "comfort food"
+      ],
+      "source": "Les Miserables by Victor Hugo",
+      "story": "Victor Hugo's Les Miserables paints a vivid portrait of Parisian life across all social classes. French onion soup, originally a humble dish of the poor made from little more than onions and stale bread, became a symbol of French resilience. The novel's characters, from Jean Valjean to the street urchin Gavroche, would have known this warming sustenance well.",
+      "ingredients": [
+        {
+          "name": "yellow onions, thinly sliced",
+          "amount": 4,
+          "unit": "large"
+        },
+        {
+          "name": "unsalted butter",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "olive oil",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "dry white wine",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "rich beef stock",
+          "amount": 6,
+          "unit": "cups"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 2,
+          "unit": "sprigs"
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1
+        },
+        {
+          "name": "thick slices crusty French bread, toasted",
+          "amount": 4
+        },
+        {
+          "name": "grated Gruyere cheese",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Melt the butter with the olive oil in a heavy-bottomed pot over medium-low heat. Add the sliced onions and a pinch of salt.",
+        "Cook the onions slowly, stirring occasionally, for 40 to 50 minutes until deeply golden and caramelized. Sprinkle in the sugar during the last 10 minutes to help browning.",
+        "Pour in the white wine and stir to deglaze the pot, scraping up all the brown bits. Cook until the wine has mostly evaporated.",
+        "Add the beef stock, thyme, and bay leaf. Bring to a simmer and cook for 20 minutes. Remove the thyme and bay leaf, then season with salt and pepper.",
+        "Ladle the soup into oven-safe crocks. Place a toasted bread slice on top of each and cover generously with grated Gruyere.",
+        "Place under a hot broiler for 3 to 5 minutes until the cheese is bubbling and golden brown. Serve immediately."
+      ]
+    },
+    {
+      "id": "classic-literature-009",
+      "title": "The Three Musketeers' Coq au Vin",
+      "description": "Chicken braised to succulent tenderness in a robust red wine sauce with mushrooms, pearl onions, and smoky lardons. This quintessential French country dish is hearty enough for any swashbuckling adventure.",
+      "prepTime": "30 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 7,
+      "sortOrder": 9,
+      "tags": [
+        "main dish",
+        "French",
+        "chicken",
+        "classic literature"
+      ],
+      "source": "The Three Musketeers by Alexandre Dumas",
+      "story": "Alexandre Dumas' swashbuckling Musketeers frequently gather at taverns for wine-fueled feasts between duels. Dumas himself was an avid cook who later wrote Le Grand Dictionnaire de Cuisine. Coq au vin, a rustic dish of rooster braised in wine, perfectly embodies the bold French spirit of Athos, Porthos, Aramis, and d'Artagnan.",
+      "ingredients": [
+        {
+          "name": "whole chicken (about 3 1/2 lb)",
+          "amount": 1,
+          "preparation": "cut into 8 pieces"
+        },
+        {
+          "name": "thick-cut bacon or lardons",
+          "amount": 6,
+          "unit": "oz",
+          "preparation": "diced"
+        },
+        {
+          "name": "red Burgundy wine (750 ml)",
+          "amount": 1,
+          "unit": "bottle"
+        },
+        {
+          "name": "cremini mushrooms, quartered",
+          "amount": 8,
+          "unit": "oz"
+        },
+        {
+          "name": "pearl onions",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "peeled"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and sliced"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "crushed"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Fresh thyme sprigs and bay leaves"
+        },
+        {
+          "name": "Fresh parsley, chopped, for garnish"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Season the chicken pieces generously with salt and pepper. In a large Dutch oven, cook the bacon until crisp. Remove and set aside.",
+        "Brown the chicken pieces in the bacon fat on all sides, working in batches. Set the chicken aside.",
+        "Saute the pearl onions, carrots, and garlic in the pot until lightly browned. Sprinkle in the flour and tomato paste, stirring for 1 minute.",
+        "Pour in the red wine, scraping up all the brown bits from the bottom. Add the thyme and bay leaves.",
+        "Return the chicken and bacon to the pot. Bring to a simmer, then cover and cook gently for 1 hour.",
+        "Add the mushrooms and cook uncovered for another 20 minutes until the sauce has thickened and the chicken is very tender.",
+        "Remove the thyme stems and bay leaves. Swirl in the butter, garnish with parsley, and serve with crusty bread or mashed potatoes."
+      ]
+    },
+    {
+      "id": "classic-literature-010",
+      "title": "Canterbury Tales' Pottage",
+      "description": "A thick, satisfying medieval stew of root vegetables, dried peas, and herbs simmered until everything melts together into a comforting bowl. This humble yet deeply flavorful dish connects us to the kitchens of Chaucer's England.",
+      "prepTime": "15 minutes",
+      "cookTime": "1 hour 15 minutes",
+      "servings": "Serves 6",
+      "difficulty": "easy",
+      "unlockDay": 7,
+      "sortOrder": 10,
+      "tags": [
+        "soup",
+        "medieval",
+        "British",
+        "vegetarian",
+        "classic literature"
+      ],
+      "source": "The Canterbury Tales by Geoffrey Chaucer",
+      "story": "Geoffrey Chaucer's Canterbury Tales features pilgrims from every walk of medieval English life, and pottage was the dish that united them all. This thick vegetable stew was the daily sustenance of peasants and nobles alike throughout the Middle Ages, made from whatever was available in the garden and larder.",
+      "ingredients": [
+        {
+          "name": "dried yellow split peas, rinsed",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "cleaned and sliced",
+          "amount": 2,
+          "unit": "leeks,"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "parsnip",
+          "amount": 1,
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "turnip",
+          "amount": 1,
+          "unit": "small",
+          "preparation": "peeled and diced"
+        },
+        {
+          "name": "chopped cabbage",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "vegetable or chicken stock",
+          "amount": 6,
+          "unit": "cups"
+        },
+        {
+          "name": "butter or lard",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "dried thyme",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ground cumin",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Pinch of saffron (optional)"
+        },
+        {
+          "name": "Crusty bread, for serving"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Melt the butter in a large pot over medium heat. Add the leeks and cook until softened, about 5 minutes.",
+        "Add the carrots, parsnip, and turnip, stirring for a few minutes to coat.",
+        "Pour in the stock and add the split peas, thyme, cumin, and saffron if using. Bring to a boil.",
+        "Reduce heat and simmer for 45 minutes, stirring occasionally, until the peas begin to break down.",
+        "Add the chopped cabbage and cook for another 15 to 20 minutes until all vegetables are very tender.",
+        "The pottage should be thick and hearty. Season with salt and pepper, and serve in bowls with crusty bread for dipping."
+      ]
+    },
+    {
+      "id": "classic-literature-011",
+      "title": "David Copperfield's Mutton Chops",
+      "description": "Thick, juicy mutton chops seared to a beautiful crust and finished with a simple pan sauce of port wine and redcurrant jelly. This hearty Victorian supper captures the warmth and honest pleasures of Dickens' beloved characters.",
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 4",
+      "difficulty": "easy",
+      "unlockDay": 9,
+      "sortOrder": 11,
+      "tags": [
+        "main dish",
+        "British",
+        "Victorian",
+        "meat",
+        "classic literature"
+      ],
+      "source": "David Copperfield by Charles Dickens",
+      "story": "In David Copperfield, Dickens frequently describes the simple pleasures of a well-cooked chop. Young David's dining experiences range from mean workhouse fare to the comforts of a properly grilled mutton chop at a chophouse. The dish represents the Victorian ideal of honest, satisfying nourishment.",
+      "ingredients": [
+        {
+          "name": "thick-cut lamb or mutton loin chops",
+          "amount": 4,
+          "preparation": "about 1 inch thick"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "port wine",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "redcurrant jelly",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Dijon mustard",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 2,
+          "unit": "sprigs"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Remove the chops from the refrigerator 30 minutes before cooking. Pat dry and season generously on both sides with salt and pepper.",
+        "Heat the oil in a heavy skillet over high heat until shimmering. Sear the chops for 3 to 4 minutes per side for medium-rare, or until cooked to your preference.",
+        "Add the butter and rosemary to the pan during the last minute of cooking, basting the chops with the foaming butter.",
+        "Transfer the chops to a warm plate and let rest for 5 minutes.",
+        "Reduce the heat to medium. Pour the port wine into the pan, stirring to deglaze. Stir in the redcurrant jelly and mustard, cooking until the sauce is glossy and slightly thickened.",
+        "Spoon the pan sauce over the rested chops and serve with roasted potatoes and steamed greens."
+      ]
+    },
+    {
+      "id": "classic-literature-012",
+      "title": "Gone with the Wind's Barbecue Pork",
+      "description": "Slow-roasted pulled pork shoulder basted in a tangy vinegar and tomato sauce, capturing the spirit of a grand Southern barbecue. Pile it onto soft rolls with coleslaw for a meal that would make Scarlett O'Hara proud.",
+      "prepTime": "20 minutes",
+      "cookTime": "5 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 9,
+      "sortOrder": 12,
+      "tags": [
+        "main dish",
+        "Southern",
+        "barbecue",
+        "American",
+        "classic literature"
+      ],
+      "source": "Gone with the Wind by Margaret Mitchell",
+      "story": "Margaret Mitchell's Gone with the Wind opens with the grand barbecue at Twelve Oaks, where the plantation aristocracy gathers for an extravagant outdoor feast. Southern barbecue was the social event of the antebellum South, and whole-hog roasts were centerpieces of celebrations that could last an entire day.",
+      "ingredients": [
+        {
+          "name": "bone-in pork shoulder",
+          "amount": 4,
+          "unit": "lb"
+        },
+        {
+          "name": "smoked paprika",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "onion powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "apple cider vinegar",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "ketchup",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "yellow mustard",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Soft rolls, for serving"
+        },
+        {
+          "name": "Coleslaw, for serving"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Combine the smoked paprika, garlic powder, onion powder, brown sugar, cayenne, salt, and pepper. Rub the mixture generously all over the pork shoulder.",
+        "Place the pork in a roasting pan, cover tightly with foil, and roast in a preheated 300°F oven for 4 to 5 hours, until the meat is fall-apart tender.",
+        "While the pork cooks, make the sauce by combining the cider vinegar, ketchup, Worcestershire sauce, and mustard in a saucepan. Simmer for 10 minutes.",
+        "Remove the pork from the oven and let it rest for 15 minutes. Shred the meat using two forks, discarding any large pieces of fat.",
+        "Toss the shredded pork with enough sauce to coat it well, reserving extra sauce for serving.",
+        "Pile the sauced pork onto soft rolls and top with coleslaw. Serve with additional sauce on the side."
+      ]
+    },
+    {
+      "id": "classic-literature-013",
+      "title": "War and Peace's Beef Stroganoff",
+      "description": "Tender strips of beef sauteed with mushrooms and onions in a luscious sour cream sauce. This refined Russian classic is as rich and layered as Tolstoy's epic novel, and comes together in just minutes once you start cooking.",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 11,
+      "sortOrder": 13,
+      "tags": [
+        "main dish",
+        "Russian",
+        "beef",
+        "classic literature"
+      ],
+      "source": "War and Peace by Leo Tolstoy",
+      "story": "Beef Stroganoff was created in 19th-century Russia for the wealthy Stroganov family. In Tolstoy's War and Peace, the lavish dinner parties of Moscow's aristocracy showcased exactly this kind of refined French-influenced Russian cuisine. The dish became a symbol of the elegant lifestyle that Tolstoy both portrayed and critiqued.",
+      "ingredients": [
+        {
+          "name": "beef tenderloin or sirloin",
+          "amount": 1.5,
+          "unit": "lb",
+          "preparation": "cut into thin strips"
+        },
+        {
+          "name": "cremini mushrooms",
+          "amount": 8,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "name": "onion, thinly sliced",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "sour cream",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "beef stock",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "Dijon mustard",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Egg noodles, cooked, for serving"
+        },
+        {
+          "name": "Fresh parsley, chopped, for garnish"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Season the beef strips with salt and pepper. Heat the oil in a large skillet over high heat and sear the beef in batches for about 1 minute per side until browned. Transfer to a plate.",
+        "Reduce heat to medium. Add the butter to the pan and saute the onion until softened, about 5 minutes. Add the mushrooms and garlic, cooking until the mushrooms release their liquid and turn golden.",
+        "Sprinkle the flour over the vegetables and stir for 1 minute. Pour in the beef stock and stir until the sauce thickens slightly.",
+        "Reduce heat to low. Stir in the sour cream and Dijon mustard. Do not let the sauce boil once the sour cream is added.",
+        "Return the beef and any accumulated juices to the pan. Gently stir to coat and warm through for 2 minutes.",
+        "Serve immediately over hot egg noodles, garnished with chopped parsley."
+      ]
+    },
+    {
+      "id": "classic-literature-014",
+      "title": "Dracula's Paprika Hendl",
+      "description": "Chicken pieces braised in a velvety paprika-laced cream sauce, fragrant with onions and sweet peppers. This traditional Hungarian dish greeted Jonathan Harker on his fateful journey and remains one of Eastern Europe's most beloved comfort foods.",
+      "prepTime": "15 minutes",
+      "cookTime": "50 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 14,
+      "sortOrder": 14,
+      "tags": [
+        "main dish",
+        "Hungarian",
+        "chicken",
+        "classic literature"
+      ],
+      "source": "Dracula by Bram Stoker",
+      "story": "In Bram Stoker's Dracula, Jonathan Harker records in his journal that he dined on paprika hendl at the Golden Krone Hotel in Bistritz before continuing to Castle Dracula. He described it as a dish of chicken seasoned with red pepper that was very good but thirsty-making. The recipe captures the culinary traditions of Transylvania before the horror begins.",
+      "ingredients": [
+        {
+          "name": "whole chicken (about 3 1/2 lb)",
+          "amount": 1,
+          "preparation": "cut into 8 pieces"
+        },
+        {
+          "name": "onions, finely diced",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "sweet Hungarian paprika",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "hot paprika",
+          "amount": 1,
+          "unit": "teaspoon",
+          "preparation": "optional"
+        },
+        {
+          "name": "red bell pepper",
+          "amount": 1,
+          "preparation": "diced"
+        },
+        {
+          "name": "tomatoes",
+          "amount": 2,
+          "preparation": "chopped"
+        },
+        {
+          "name": "chicken stock",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "sour cream",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "lard or butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "Egg noodles or spaetzle, for serving"
+        },
+        {
+          "name": "Salt and freshly ground black pepper"
+        }
+      ],
+      "instructions": [
+        "Season the chicken pieces with salt and pepper. Melt the lard or butter in a deep skillet or Dutch oven over medium heat.",
+        "Add the onions and cook slowly until very soft and translucent, about 10 minutes. Remove the pan from heat.",
+        "Stir in both paprikas immediately, coating the onions evenly. The residual heat will bloom the spice without burning it.",
+        "Add the chicken pieces, bell pepper, tomatoes, and chicken stock. Return to heat and bring to a gentle simmer.",
+        "Cover and cook for 35 to 40 minutes until the chicken is cooked through and tender.",
+        "Transfer the chicken to a warm serving dish. Whisk the flour into the sour cream, then stir this mixture into the sauce. Simmer for 3 to 4 minutes until thickened.",
+        "Pour the paprika cream sauce over the chicken and serve with egg noodles or spaetzle."
+      ]
+    }
+  ]
+}
