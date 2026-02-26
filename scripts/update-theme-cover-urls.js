@@ -30,7 +30,17 @@ const THEME_COVER_URLS = {
   'presidential-pantry': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/presidential-pantry.webp',
   'literary-kitchen': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/literary-kitchen.webp',
   'ancient-table': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/ancient-table.webp',
-  'american-foundation': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/american-foundation.webp'
+  'american-foundation': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/american-foundation.webp',
+  'classic-literature': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/classic-literature.webp',
+  'childrens-stories': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/childrens-stories.webp',
+  'fantasy-scifi': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/fantasy-scifi.webp',
+  'crime-cult-classics': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/crime-cult-classics.webp',
+  'magical-realism': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/magical-realism.webp',
+  'romance-indulgence': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/romance-indulgence.webp',
+  'dystopian-fiction': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/dystopian-fiction.webp',
+  'film-tv-favourites': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/film-tv-favourites.webp',
+  'feasts-banquets': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/feasts-banquets.webp',
+  'cocktails-confections': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/cocktails-confections.webp'
 };
 
 async function updateThemeCoverUrls() {

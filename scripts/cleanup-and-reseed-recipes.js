@@ -54,7 +54,17 @@ const THEME_FILES = [
   'theme-11-presidential-pantry.json',
   'theme-12-literary-kitchen.json',
   'theme-13-ancient-table.json',
-  'theme-14-american-foundation.json'
+  'theme-14-american-foundation.json',
+  'theme-15-classic-literature.json',
+  'theme-16-childrens-stories.json',
+  'theme-17-fantasy-scifi.json',
+  'theme-18-crime-cult-classics.json',
+  'theme-19-magical-realism.json',
+  'theme-20-romance-indulgence.json',
+  'theme-21-dystopian-fiction.json',
+  'theme-22-film-tv-favourites.json',
+  'theme-23-feasts-banquets.json',
+  'theme-24-cocktails-confections.json'
 ];
 
 /**

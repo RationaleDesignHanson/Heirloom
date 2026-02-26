@@ -1135,6 +1135,9 @@ struct RootView: View {
                 // Set up listener for credit tier updates (subscription changes)
                 setupCreditTierUpdateListener()
 
+                // Set up listener for syncing credits to Firebase
+                setupCreditsSyncListener()
+
                 // Mark interrupted imports on app launch
                 Task {
                     await markInterruptedImportsOnLaunch(modelContainer: modelContainer)
@@ -1175,10 +1178,16 @@ struct RootView: View {
                     let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
                     syncService.startAutomaticSync()
 
-                    // Configure deletion test account themes on launch (not just sign-in)
+                    // Configure deletion test account on launch (not just sign-in)
                     let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
                     if subscriptionManager.isDeletionTestAccount(email: authService.currentUserEmail) {
-                        Log.info("Deletion test account detected on launch - configuring themes", category: .theme)
+                        Log.info("Deletion test account detected on launch - configuring subscription and themes", category: .theme)
+
+                        // Configure subscription: Monthly with 7 days remaining (allows download/restore testing)
+                        if !subscriptionManager.isDeletionTestAccountConfigured {
+                            subscriptionManager.configureForDeletionTestAccount()
+                        }
+
                         let themeTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
                         themeTracker.configureForDeletionTest()
 
@@ -1431,15 +1440,101 @@ struct RootView: View {
                             }
                         }
                     } else if subscriptionManager.isDeletionTestAccount(email: authService.currentUserEmail) {
-                        // DISABLED: Self-healing code for deletion test account
-                        // Re-enable when Apple needs to test: delete account → re-create → see content immediately
-                        // For now, deletetest@ goes through normal onboarding to test restore from backup
-                        Log.info("Deletion test account detected - self-healing DISABLED, using normal onboarding", category: .theme)
-                        DeviceLogger.shared.log("🧪 [DeletionTest] Deletion test account sign-in - self-healing DISABLED")
+                        // Configure deletion test account: Monthly subscription with 7 days remaining
+                        // This allows Apple to test account deletion with a premium user
+                        Log.info("Deletion test account detected - configuring subscription", category: .store)
+                        DeviceLogger.shared.log("🧪 [DeletionTest] Configuring subscription - Monthly with 7 days left")
+
+                        // Configure subscription (only if not already configured)
+                        if !subscriptionManager.isDeletionTestAccountConfigured {
+                            subscriptionManager.configureForDeletionTestAccount()
+                        }
+
+                        // Configure themes at day 3
+                        let themeTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+                        themeTracker.configureForDeletionTest()
+                        DeviceLogger.shared.log("🧪 [DeletionTest] Theme trial set to day 3 with demo themes", level: .info)
+
+                        // Profile seeding for deletion test account
+                        Task { @MainActor in
+                            let profileService = ServiceContainer.shared.resolve(FirebaseProfileService.self)
+                            do {
+                                var profile = try await profileService.fetchCurrentUserProfile()
+
+                                // Deletion test avatar - different from demo account
+                                let deletionTestAvatarURL = "https://api.dicebear.com/7.x/avataaars/png?seed=AlexThompson&backgroundColor=ffd5dc"
+
+                                // Update if display name or photo doesn't match expected values
+                                var needsUpdate = false
+                                if profile.displayName != "Alex Thompson" {
+                                    profile.displayName = "Alex Thompson"
+                                    needsUpdate = true
+                                }
+                                if profile.photoURL != deletionTestAvatarURL {
+                                    profile.photoURL = deletionTestAvatarURL
+                                    needsUpdate = true
+                                }
+
+                                if needsUpdate {
+                                    try await profileService.updateProfile(profile)
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Profile seeded: displayName=Alex Thompson, avatar=set", level: .info)
+                                    Log.info("Deletion test account profile seeded", category: .auth)
+                                } else {
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Profile already configured", level: .info)
+                                }
+                            } catch {
+                                DeviceLogger.shared.log("🧪 [DeletionTest] ERROR seeding profile: \(error.localizedDescription)", level: .error)
+                                Log.error("Failed to seed deletion test profile: \(error.localizedDescription)", category: .auth)
+                            }
+                        }
+
+                        // Fetch credits from Firebase for deletion test account
+                        Task { @MainActor in
+                            do {
+                                let modelContext = modelContainer.mainContext
+                                if let userId = authService.currentUser?.uid {
+                                    let profileService = ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+
+                                    // Fetch credits from Firebase
+                                    if let firebaseCredits = await profileService.fetchCreditsFromFirebase() {
+                                        var descriptor = FetchDescriptor<UserCredits>()
+                                        descriptor.predicate = #Predicate<UserCredits> { credits in
+                                            credits.userId == userId
+                                        }
+
+                                        let userCredits: UserCredits
+                                        if let existing = try modelContext.fetch(descriptor).first {
+                                            userCredits = existing
+                                            DeviceLogger.shared.log("🧪 [DeletionTest] Found existing UserCredits record", level: .info)
+                                        } else {
+                                            userCredits = UserCredits(userId: userId)
+                                            modelContext.insert(userCredits)
+                                            DeviceLogger.shared.log("🧪 [DeletionTest] Created new UserCredits record", level: .info)
+                                        }
+
+                                        // Apply Firebase credits to local model
+                                        userCredits.tierType = firebaseCredits.tierType
+                                        userCredits.tierCreditsUsed = firebaseCredits.tierCreditsUsed
+                                        userCredits.creditsBalance = firebaseCredits.creditsBalance
+                                        userCredits.tierCreditResetDate = firebaseCredits.tierCreditResetDate
+                                        userCredits.lifetimePurchasedCredits = firebaseCredits.lifetimePurchasedCredits
+                                        try modelContext.save()
+
+                                        DeviceLogger.shared.log("🧪 [DeletionTest] Credits restored from Firebase: tier=\(firebaseCredits.tierType), tierUsed=\(firebaseCredits.tierCreditsUsed), balance=\(firebaseCredits.creditsBalance), remaining=\(userCredits.availableCredits)", level: .info)
+                                        Log.info("Deletion test account credits restored from Firebase", category: .store)
+                                    } else {
+                                        DeviceLogger.shared.log("🧪 [DeletionTest] No credits in Firebase, using defaults", level: .info)
+                                    }
+                                }
+                            } catch {
+                                DeviceLogger.shared.log("🧪 [DeletionTest] ERROR restoring credits: \(error.localizedDescription)", level: .error)
+                                Log.error("Failed to restore deletion test credits: \(error.localizedDescription)", category: .store)
+                            }
+                        }
                     } else {
                         // Tester accounts (tester01-05@) are treated as normal users
                         // They experience the full new user flow including paywall and Apple-managed trials
-                        // Non-demo user: clear any demo/tester account configuration
+                        // Non-demo user: clear any demo/tester/deletion-test account configuration
                         // This restores normal trial behavior if device was previously used for App Store Review testing
                         if subscriptionManager.isDemoAccountConfigured {
                             subscriptionManager.clearDemoAccountConfiguration()
@@ -1449,8 +1544,13 @@ struct RootView: View {
                             subscriptionManager.clearTesterAccountConfiguration()
                             DeviceLogger.shared.log("🔄 [Auth] Cleared tester account config for non-tester user", level: .info)
                         }
+                        if subscriptionManager.isDeletionTestAccountConfigured {
+                            subscriptionManager.clearDeletionTestAccountConfiguration()
+                            DeviceLogger.shared.log("🔄 [Auth] Cleared deletion test account config for non-deletion-test user", level: .info)
+                        }
 
-                        // Create UserCredits for regular users on sign-in
+                        // Create/restore UserCredits for regular users on sign-in
+                        // Fetches from Firebase first for cross-device sync
                         if let userId = authService.currentUserId {
                             Task { @MainActor in
                                 do {
@@ -1460,18 +1560,80 @@ struct RootView: View {
                                         credits.userId == userId
                                     }
 
-                                    if try modelContext.fetch(descriptor).first == nil {
+                                    let existingCredits = try modelContext.fetch(descriptor).first
+
+                                    // Try to fetch credits from Firebase for cross-device sync
+                                    let profileService = ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+                                    let firebaseCredits = await profileService.fetchCreditsFromFirebase()
+
+                                    if let userCredits = existingCredits {
+                                        // User has local credits - check if Firebase has newer data
+                                        if let fbCredits = firebaseCredits {
+                                            // Firebase has credits - sync them to local
+                                            userCredits.creditsBalance = fbCredits.creditsBalance
+                                            userCredits.tierCreditsUsed = fbCredits.tierCreditsUsed
+                                            userCredits.tierType = fbCredits.tierType
+                                            userCredits.tierCreditResetDate = fbCredits.tierCreditResetDate
+                                            userCredits.lifetimePurchasedCredits = fbCredits.lifetimePurchasedCredits
+                                            try modelContext.save()
+
+                                            DeviceLogger.shared.log("💳 [Credits] Synced from Firebase on sign-in: tier=\(fbCredits.tierType), tierUsed=\(fbCredits.tierCreditsUsed), balance=\(fbCredits.creditsBalance), total=\(userCredits.availableCredits)", level: .info)
+                                            Log.info("Credits synced from Firebase on sign-in", category: .store, metadata: [
+                                                "userId": userId,
+                                                "tierType": fbCredits.tierType,
+                                                "availableCredits": userCredits.availableCredits
+                                            ])
+                                        } else {
+                                            // No Firebase credits - upload local credits for cross-device sync
+                                            await profileService.uploadCreditsToFirebase(
+                                                creditsBalance: userCredits.creditsBalance,
+                                                tierCreditsUsed: userCredits.tierCreditsUsed,
+                                                tierType: userCredits.tierType,
+                                                tierCreditResetDate: userCredits.tierCreditResetDate,
+                                                lifetimePurchasedCredits: userCredits.lifetimePurchasedCredits
+                                            )
+                                            DeviceLogger.shared.log("💳 [Credits] Uploaded local credits to Firebase (no existing Firebase data)", level: .info)
+                                        }
+                                    } else {
+                                        // No local credits - create new or restore from Firebase
                                         let newCredits = UserCredits(userId: userId)
+
+                                        if let fbCredits = firebaseCredits {
+                                            // Restore from Firebase (returning user on new device)
+                                            newCredits.creditsBalance = fbCredits.creditsBalance
+                                            newCredits.tierCreditsUsed = fbCredits.tierCreditsUsed
+                                            newCredits.tierType = fbCredits.tierType
+                                            newCredits.tierCreditResetDate = fbCredits.tierCreditResetDate
+                                            newCredits.lifetimePurchasedCredits = fbCredits.lifetimePurchasedCredits
+
+                                            DeviceLogger.shared.log("💳 [Credits] Restored from Firebase (new device): tier=\(fbCredits.tierType), tierUsed=\(fbCredits.tierCreditsUsed), balance=\(fbCredits.creditsBalance), total=\(newCredits.availableCredits)", level: .info)
+                                            Log.info("Credits restored from Firebase on new device", category: .store, metadata: [
+                                                "userId": userId,
+                                                "tierType": fbCredits.tierType,
+                                                "availableCredits": newCredits.availableCredits
+                                            ])
+                                        } else {
+                                            // New user - upload initial credits to Firebase
+                                            await profileService.uploadCreditsToFirebase(
+                                                creditsBalance: newCredits.creditsBalance,
+                                                tierCreditsUsed: newCredits.tierCreditsUsed,
+                                                tierType: newCredits.tierType,
+                                                tierCreditResetDate: newCredits.tierCreditResetDate,
+                                                lifetimePurchasedCredits: newCredits.lifetimePurchasedCredits
+                                            )
+                                            DeviceLogger.shared.log("💳 [Credits] New user - created defaults and uploaded to Firebase: tier=\(newCredits.tierType), total=\(newCredits.availableCredits)", level: .info)
+                                            Log.info("Created UserCredits on sign-in and synced to Firebase", category: .store, metadata: [
+                                                "userId": userId,
+                                                "tierType": newCredits.tierType,
+                                                "availableCredits": newCredits.availableCredits
+                                            ])
+                                        }
+
                                         modelContext.insert(newCredits)
                                         try modelContext.save()
-                                        Log.info("Created UserCredits on sign-in", category: .store, metadata: [
-                                            "userId": userId,
-                                            "tierType": newCredits.tierType,
-                                            "availableCredits": newCredits.availableCredits
-                                        ])
                                     }
                                 } catch {
-                                    Log.error("Failed to create UserCredits on sign-in: \(error)", category: .store)
+                                    Log.error("Failed to create/restore UserCredits on sign-in: \(error)", category: .store)
                                 }
                             }
                         }
@@ -1679,6 +1841,40 @@ struct RootView: View {
         }
 
         Log.info("Credit tier update listener registered", category: .store)
+    }
+
+    // MARK: - Credits Firebase Sync Listener
+
+    /// Set up notification listener for syncing credits to Firebase when they change
+    private func setupCreditsSyncListener() {
+        NotificationCenter.default.addObserver(
+            forName: .userCreditsDidChange,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let userInfo = notification.userInfo,
+                  let creditsBalance = userInfo["creditsBalance"] as? Int,
+                  let tierCreditsUsed = userInfo["tierCreditsUsed"] as? Int,
+                  let tierType = userInfo["tierType"] as? String,
+                  let tierCreditResetDate = userInfo["tierCreditResetDate"] as? Date,
+                  let lifetimePurchasedCredits = userInfo["lifetimePurchasedCredits"] as? Int else {
+                Log.warning("Credits sync notification missing required fields", category: .store)
+                return
+            }
+
+            Task { @MainActor in
+                let profileService = ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+                await profileService.uploadCreditsToFirebase(
+                    creditsBalance: creditsBalance,
+                    tierCreditsUsed: tierCreditsUsed,
+                    tierType: tierType,
+                    tierCreditResetDate: tierCreditResetDate,
+                    lifetimePurchasedCredits: lifetimePurchasedCredits
+                )
+            }
+        }
+
+        Log.info("Credits Firebase sync listener registered", category: .store)
     }
 
     // MARK: - Interrupted Import Detection
@@ -2058,6 +2254,14 @@ struct ContentView: View {
         .sheet(isPresented: $showSignInSheet) {
             FirebaseSignInView()
                 .presentationDetents([.large])
+                .interactiveDismissDisabled(!firebaseAuth.isAuthenticated) // Can't dismiss until signed in
+        }
+        .onAppear {
+            // IMMEDIATE: Show sign-in sheet if not authenticated (before async checks)
+            if !firebaseAuth.isAuthenticated && !hasCompletedOnboarding {
+                Log.info("Showing sign-in sheet immediately (not authenticated)", category: .auth)
+                showSignInSheet = true
+            }
         }
         .onAppear {
             Log.info("ContentView.onAppear", category: .auth, metadata: [

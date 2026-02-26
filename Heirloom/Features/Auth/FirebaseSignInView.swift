@@ -56,28 +56,29 @@ struct FirebaseSignInView: View {
                         .padding(.top, compact ? 8 : 12)
 
                     // Tagline - Emotional hook (smaller than app name)
-                    VStack(spacing: HeirloomSpacing.sm) {
-                        Text("Your family's recipes deserve a home")
-                            .font(HeirloomFonts.title3)
-                            .foregroundColor(HeirloomColors.primaryText)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Text("Scattered across screenshots, texts, and fading cards — until now.")
-                            .font(HeirloomFonts.callout)
-                            .foregroundColor(HeirloomColors.secondaryText)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, compact ? 12 : 20)
+                    Text("Your family's recipes deserve a home")
+                        .font(HeirloomFonts.title3)
+                        .foregroundColor(HeirloomColors.primaryText)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 24)
+                        .padding(.top, compact ? 12 : 20)
 
                     // Value proposition features (minimal horizontal row) - hide when email form is shown
                     if !showEmailSignIn {
-                        HStack(spacing: 32) {
-                            miniFeature(icon: "square.and.arrow.down", label: "Save")
-                            miniFeature(icon: "sparkles", label: "Structure")
-                            miniFeature(icon: "lock.shield", label: "Private")
+                        VStack(spacing: HeirloomSpacing.sm) {
+                            HStack(spacing: 32) {
+                                miniFeature(icon: "square.and.arrow.down", label: "Save")
+                                miniFeature(icon: "sparkles", label: "Structure")
+                                miniFeature(icon: "lock.shield", label: "Private")
+                            }
+
+                            Text("Scattered across screenshots, texts, and fading cards — until now.")
+                                .font(HeirloomFonts.callout)
+                                .foregroundColor(HeirloomColors.secondaryText)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 24)
                         }
                         .padding(.top, compact ? 12 : 20)
                     }

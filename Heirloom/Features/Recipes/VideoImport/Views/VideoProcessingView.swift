@@ -33,7 +33,7 @@ struct VideoProcessingView: View {
     var body: some View {
         NavigationStack {
             if showPaywall {
-                SoftWallView(trigger: .urlImport)
+                SoftWallView(trigger: .visualVideoExtraction)
             } else {
                 processingContent
                     .onAppear {
@@ -387,8 +387,8 @@ struct VideoProcessingView: View {
         hasCheckedPremium = true
 
         if !subscriptionManager.isPremium {
-            if paywallManager.shouldShow(for: .urlImport) {
-                paywallManager.show(for: .urlImport)
+            if paywallManager.shouldShow(for: .visualVideoExtraction) {
+                paywallManager.show(for: .visualVideoExtraction)
                 showPaywall = true
             }
             // If shouldShow returns false, 3-strike rule is active - allow access

@@ -92,6 +92,56 @@ THEME_COVER_PROMPTS = {
         'title': 'American Foundation',
         'prompt': 'Colonial American hearth kitchen with copper pots hanging on wall and wooden utensils on rustic table, candlelit warmth creating cozy atmosphere, cast iron cookware, rough-hewn wood surfaces, Americana folk art style, founding era simplicity, early American heritage aesthetic, honest craftsmanship',
         'era': '1700s-1800s'
+    },
+    'classic-literature': {
+        'title': 'Classic Literature & Historical Fiction',
+        'prompt': 'A grand Victorian study and dining room with leather-bound novels stacked beside ornate china, Dickensian feast laid on dark mahogany table, candlelit warmth with sepia and amber tones, quill pen and ink pot, classic European literary atmosphere, period-accurate tableware from Austen to Tolstoy era',
+        'era': 'Victorian-Edwardian'
+    },
+    'childrens-stories': {
+        'title': "Children's & Young-Adult Stories",
+        'prompt': 'A whimsical storybook kitchen with enchanted cookware and bright cheerful colors, fairy-tale cottage interior with warm hearth, magical ingredients floating in golden light, illustrated cookbook open on a worn wooden table, Roald Dahl and Grimm fairy tale charm, childhood wonder aesthetic',
+        'era': 'Timeless Storybook'
+    },
+    'fantasy-scifi': {
+        'title': 'Fantasy & Science Fiction',
+        'prompt': 'A medieval fantasy tavern table laden with rustic fare beside a futuristic spaceship canteen tray, split composition showing both worlds, dramatic torchlight on one side and blue neon on the other, Tolkien meets Star Wars aesthetic, epic otherworldly dining atmosphere, mythical and galactic foods',
+        'era': 'Fantasy & Future'
+    },
+    'crime-cult-classics': {
+        'title': 'Crime & Cult Classics',
+        'prompt': 'A 1970s Italian-American restaurant booth with red checkered tablecloth and a film noir detective bar in background, dramatic chiaroscuro lighting, Godfather and Pulp Fiction aesthetic, retro diner counter with chrome stools, cinematic crime drama atmosphere, moody shadows and warm amber highlights',
+        'era': '1970s-1990s Cinema'
+    },
+    'magical-realism': {
+        'title': 'Magical Realism & World Cuisine',
+        'prompt': 'A vibrant global street market kitchen with enchanted floating spices and tropical flowers, magical realism dreamlike quality, colorful dishes from around the world arranged on handwoven textiles, Garcia Marquez and Esquivel inspired warmth, lush botanical setting with golden mystical light',
+        'era': 'Contemporary World'
+    },
+    'romance-indulgence': {
+        'title': 'Romance & Indulgence',
+        'prompt': 'An intimate candlelit Parisian cafe table set for two with champagne flutes and chocolate desserts, soft rose-petal scattered white linen, warm romantic golden glow, ornate French bistro chair, Bridgerton and Amelie aesthetic, luxurious indulgent atmosphere, Valentine evening mood',
+        'era': 'Romantic Era'
+    },
+    'dystopian-fiction': {
+        'title': 'Dystopian & Speculative Fiction',
+        'prompt': 'A stark industrial cafeteria in a concrete bunker, utilitarian metal trays with rationed portions, harsh fluorescent lighting mixing with cyberpunk neon accents, Orwell 1984 and Blade Runner aesthetic, brutalist architecture, muted desaturated color palette with occasional vivid accent, survival aesthetic',
+        'era': 'Speculative Future'
+    },
+    'film-tv-favourites': {
+        'title': 'Film & Television Favourites',
+        'prompt': 'A collage-style scene of iconic TV and film kitchens, retro sitcom set with bright studio lighting, movie theater popcorn machine and diner counter, pop culture nostalgia from Seinfeld to Matilda, warm familiar domestic atmosphere, recognizable comfort food spread, cinematic food photography',
+        'era': 'Pop Culture Era'
+    },
+    'feasts-banquets': {
+        'title': 'Feasts & Banquets',
+        'prompt': 'A grand medieval banquet hall with long wooden trestle tables laden with roasted meats and goblets of mead, stone walls draped with tapestries, candlelit iron chandeliers overhead, Game of Thrones and Tolkien feast grandeur, Viking and Tudor era celebration, epic communal dining atmosphere',
+        'era': 'Medieval-Renaissance'
+    },
+    'cocktails-confections': {
+        'title': 'Iconic Cocktails & Confections',
+        'prompt': 'An art deco speakeasy bar with jewel-toned cocktails in elegant crystal glassware alongside a vintage confectionery display case, golden hour bar lighting, Great Gatsby glamour, Willy Wonka candy shop whimsy, luxurious barware and sweet treats arrangement, prohibition-era romance meets storybook magic',
+        'era': 'Art Deco & Fantasy'
     }
 }
 

@@ -39,6 +39,8 @@ struct OnboardingContainerView: View {
         case completing        // Final: Saving profile and finishing up
     }
 
+    @State private var showSignOutConfirmation = false
+
     var body: some View {
         NavigationStack {
             switch currentScreen {
@@ -110,14 +112,9 @@ struct OnboardingContainerView: View {
                 ))
 
             case .premiumTrial:
-                // Screen 6: Premium upsell
+                // Screen 6: Premium subscription (mandatory - no skip option)
                 OnboardingSubscriptionScreen(
                     onStartTrial: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .profileSetup
-                        }
-                    },
-                    onSkip: {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentScreen = .profileSetup
                         }
@@ -155,6 +152,40 @@ struct OnboardingContainerView: View {
                 completingView
                     .transition(.opacity)
             }
+        }
+        .overlay(alignment: .topTrailing) {
+            // Sign-out escape hatch for users stuck in onboarding
+            // (e.g., Firebase auth restored from keychain after app deletion)
+            if firebaseAuth.isAuthenticated {
+                Button {
+                    showSignOutConfirmation = true
+                } label: {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 16))
+                        .foregroundColor(HeirloomColors.secondaryText.opacity(0.5))
+                        .padding(12)
+                }
+                .accessibilityLabel("Sign out")
+                .padding(.top, 8)
+                .padding(.trailing, 8)
+            }
+        }
+        .confirmationDialog(
+            "Sign Out?",
+            isPresented: $showSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Sign Out", role: .destructive) {
+                do {
+                    try firebaseAuth.signOut()
+                    Log.info("User signed out from onboarding", category: .auth)
+                } catch {
+                    Log.error("Failed to sign out from onboarding", category: .auth, error: error)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Sign out to return to the sign-in screen.")
         }
         .task {
             // Seed heritage recipes if user is already authenticated

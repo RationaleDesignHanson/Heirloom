@@ -8,6 +8,11 @@
 import Foundation
 import SwiftData
 
+/// Notification posted when credits change (for Firebase sync)
+extension Notification.Name {
+    static let userCreditsDidChange = Notification.Name("userCreditsDidChange")
+}
+
 /// Tracks user's credit balance based on subscription tier
 /// - Trial users: 50 credits for the entire trial period (no reset)
 /// - Premium users: 100 credits per month (resets monthly)
@@ -198,6 +203,9 @@ final class UserCredits {
         } else if availableCredits == 0 {
             DeviceLogger.shared.log("💳 [Credits] 🚨 OUT OF CREDITS - user has 0 credits remaining", level: .warning)
         }
+
+        // Notify for Firebase sync
+        notifyCreditsChanged()
     }
 
     /// Add purchased credits to user's balance
@@ -214,6 +222,9 @@ final class UserCredits {
             "newBalance": creditsBalance,
             "lifetimeTotal": lifetimePurchasedCredits
         ])
+
+        // Notify for Firebase sync
+        notifyCreditsChanged()
     }
 
     /// Refund credits to user's balance (e.g., when a processing job fails)
@@ -242,6 +253,9 @@ final class UserCredits {
             "newTierUsed": tierCreditsUsed,
             "newBalance": creditsBalance
         ])
+
+        // Notify for Firebase sync
+        notifyCreditsChanged()
     }
 
     // MARK: - Tier Management
@@ -280,6 +294,9 @@ final class UserCredits {
             "resetCredits": resetCredits,
             "carryOverCredits": carryOverCredits
         ])
+
+        // Notify for Firebase sync
+        notifyCreditsChanged()
     }
 
     /// Reset to trial state (for first-time user reset)
@@ -296,6 +313,28 @@ final class UserCredits {
         Log.info("Credits reset to trial state", category: .general, metadata: [
             "tierCredits": Self.trialCredits
         ])
+
+        // Notify for Firebase sync
+        notifyCreditsChanged()
+    }
+
+    // MARK: - Firebase Sync
+
+    /// Post notification that credits changed (for Firebase sync)
+    /// Call this after any operation that modifies credits
+    func notifyCreditsChanged() {
+        NotificationCenter.default.post(
+            name: .userCreditsDidChange,
+            object: nil,
+            userInfo: [
+                "userId": userId,
+                "creditsBalance": creditsBalance,
+                "tierCreditsUsed": tierCreditsUsed,
+                "tierType": tierType,
+                "tierCreditResetDate": tierCreditResetDate,
+                "lifetimePurchasedCredits": lifetimePurchasedCredits
+            ]
+        )
     }
 
     // MARK: - Debug Helpers

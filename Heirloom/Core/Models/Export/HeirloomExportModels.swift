@@ -229,7 +229,7 @@ struct ThemeProgressExportData: Codable {
     /// IDs of themes the user selected during onboarding
     let selectedThemeIds: [String]
 
-    /// When the trial started (ISO8601)
+    /// When the trial started (ISO8601) - legacy compatibility
     let trialStartDate: String
 
     /// The last unlock day that was processed (1-14)
@@ -237,6 +237,10 @@ struct ThemeProgressExportData: Codable {
 
     /// Current trial day at time of export (for reference)
     let currentTrialDay: Int
+
+    /// Per-theme added dates (themeId → ISO8601 date string)
+    /// Used by Discovery tab for per-theme progress tracking
+    let themeAddedDates: [String: String]?
 }
 
 // MARK: - Comment Export Data (v2)

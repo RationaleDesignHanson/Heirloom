@@ -550,7 +550,7 @@ struct CollectionsListView: View {
                 }
             }
             .sheet(isPresented: $showPaywall) {
-                PaywallView(trigger: .urlImport)
+                PaywallView()
             }
             .navigationDestination(for: RecipeCollection.self) { collection in
                 CollectionDetailView(collection: collection)
@@ -2150,10 +2150,45 @@ struct CollectionsListView: View {
 
             Task {
                 // First, ensure themes are loaded from Firebase (may be missing after app reinstall)
+                var themesToApplyDates: [RecipeTheme] = []
+
                 if allThemes.isEmpty {
                     Log.info("Themes not loaded - fetching from Firebase for returning user", category: .collections)
                     let themeLoader = ThemeLoader()
-                    _ = try? await themeLoader.loadThemes(into: modelContext)
+                    if let loadedThemes = try? await themeLoader.loadThemes(into: modelContext) {
+                        themesToApplyDates = loadedThemes
+                    }
+                } else {
+                    // Themes already loaded - use existing ones
+                    themesToApplyDates = Array(allThemes)
+                }
+
+                // Apply restored theme added dates from Firebase profile
+                // This is needed because syncThemeDataOnLogin may have returned early if ModelContainer wasn't ready
+                if !themesToApplyDates.isEmpty,
+                   let profileService = ServiceContainer.shared.resolveOptional(FirebaseUserProfileService.self),
+                   !profileService.restoredThemeAddedDates.isEmpty {
+                    await MainActor.run {
+                        // Clear stale selections first
+                        for theme in themesToApplyDates {
+                            if theme.addedDate != nil || theme.isSelected {
+                                theme.addedDate = nil
+                                theme.isSelected = false
+                            }
+                        }
+                        // Apply restored dates
+                        for theme in themesToApplyDates {
+                            if let addedDate = profileService.restoredThemeAddedDates[theme.firebaseId] {
+                                theme.addedDate = addedDate
+                                theme.isSelected = true
+                                Log.info("Applied restored theme addedDate (returning user)", category: .collections, metadata: [
+                                    "themeId": theme.firebaseId,
+                                    "addedDate": addedDate.description
+                                ])
+                            }
+                        }
+                        try? modelContext.save()
+                    }
                 }
 
                 // Now recreate collections (must be on main actor since we touch modelContext)

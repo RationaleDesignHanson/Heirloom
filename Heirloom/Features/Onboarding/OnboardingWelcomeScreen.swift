@@ -15,6 +15,7 @@ import UniformTypeIdentifiers
 /// Shows all the ways users can save recipes: video, web, photo, handwriting, voice, generative
 struct OnboardingWelcomeScreen: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseAuth) private var firebaseAuth
 
     let onContinue: () -> Void
     /// Callback when user restores from backup (skips rest of onboarding)
@@ -25,6 +26,7 @@ struct OnboardingWelcomeScreen: View {
     @State private var showRestorePreview = false
     @State private var restoreFileURL: URL?
     @State private var restorePreviewData: ImportPreviewData?
+    @State private var showSignOutConfirmation = false
 
     var body: some View {
         ZStack {
@@ -40,13 +42,31 @@ struct OnboardingWelcomeScreen: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Progress indicator
-                Text("1/7")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundColor(HeirloomColors.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
+                // Progress indicator with sign-out escape hatch
+                HStack {
+                    Spacer()
+                    Text("1/7")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(HeirloomColors.secondaryText)
+                    Spacer()
+                }
+                .overlay(alignment: .trailing) {
+                    // Sign-out escape hatch (for users stuck due to keychain auth restore)
+                    if firebaseAuth.isAuthenticated {
+                        Button {
+                            showSignOutConfirmation = true
+                        } label: {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(HeirloomColors.secondaryText.opacity(0.5))
+                                .padding(8)
+                        }
+                        .accessibilityLabel("Sign out")
+                    }
+                }
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+                .padding(.horizontal, 16)
 
                 // Scrollable content
                 GeometryReader { geometry in
@@ -164,6 +184,23 @@ struct OnboardingWelcomeScreen: View {
             withAnimation(.easeOut(duration: 0.3).delay(0.2)) {
                 showSources = true
             }
+        }
+        .confirmationDialog(
+            "Sign Out?",
+            isPresented: $showSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Sign Out", role: .destructive) {
+                do {
+                    try firebaseAuth.signOut()
+                    Log.info("User signed out from welcome screen", category: .auth)
+                } catch {
+                    Log.error("Failed to sign out from welcome screen", category: .auth, error: error)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Sign out to use a different account.")
         }
     }
 

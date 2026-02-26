@@ -35,10 +35,42 @@ final class RecipeTheme: Identifiable {
     // MARK: - User State
     var isSelected: Bool = false
     var sortOrder: Int = 0
+    var addedDate: Date? // When user added this theme (nil = not added)
 
     // MARK: - Timestamps
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
+
+    // MARK: - Computed Properties
+
+    /// Days since user added this theme (nil if not added)
+    var daysSinceAdded: Int? {
+        guard let addedDate else { return nil }
+        return Calendar.current.dateComponents([.day], from: addedDate, to: Date()).day
+    }
+
+    /// Current day in this theme's 14-day journey (1-14, or 15+ if complete)
+    var currentDay: Int {
+        guard let days = daysSinceAdded else { return 0 }
+        return min(days + 1, 15) // Day 1 on add date, capped at 15
+    }
+
+    /// Whether this theme's 14-day unlock period is complete
+    var isComplete: Bool {
+        guard let days = daysSinceAdded else { return false }
+        return days >= 14
+    }
+
+    /// Whether this theme is actively in progress (added but not complete)
+    var isInProgress: Bool {
+        addedDate != nil && !isComplete
+    }
+
+    /// Days remaining in this theme's journey (0 if complete)
+    var daysRemaining: Int {
+        guard let days = daysSinceAdded else { return 14 }
+        return max(0, 14 - days)
+    }
 
     // MARK: - Relationships
     @Relationship(deleteRule: .nullify, inverse: \RecipeCollection.sourceTheme)

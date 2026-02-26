@@ -156,6 +156,7 @@ final class SubscriptionManager {
         static let cachedProductID = "cached_product_id"
         static let autoPremiumEnabled = "debug_auto_premium_enabled"
         static let demoAccountConfigured = "demo_account_configured_for_review"
+        static let deletionTestAccountConfigured = "deletion_test_account_configured"
     }
 
     // MARK: - Auto Premium (Debug Feature)
@@ -376,6 +377,26 @@ final class SubscriptionManager {
                 isRefreshing = false
                 return
             }
+        }
+
+        // Deletion test account: Force Monthly subscription with 7 days remaining
+        // This allows Apple to test account deletion with a "premium" user
+        if isDeletionTestAccountConfigured {
+            logger.log("Deletion test account configured - forcing Monthly status", category: .store, level: .info, metadata: nil)
+            DeviceLogger.shared.log("🧪 [DeletionTest] Forcing Monthly status with 7 days", level: .info)
+
+            // Set Monthly status with expiry 7 days from now
+            let expiryDate = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+            subscriptionExpiryDate = expiryDate
+            UserDefaults.standard.set(expiryDate, forKey: Keys.subscriptionExpiryDate)
+            UserDefaults.standard.set(ProductIdentifier.monthly.rawValue, forKey: Keys.cachedProductID)
+
+            willRenew = false  // Show as cancelled
+            daysRemaining = 7
+
+            updateStatus(.monthly)
+            isRefreshing = false
+            return
         }
 
         // Try RevenueCat first (preferred method)
@@ -958,6 +979,52 @@ final class SubscriptionManager {
     /// Check if demo account is currently configured
     var isDemoAccountConfigured: Bool {
         return UserDefaults.standard.bool(forKey: Keys.demoAccountConfigured)
+    }
+
+    /// Check if deletion test account is currently configured
+    var isDeletionTestAccountConfigured: Bool {
+        return UserDefaults.standard.bool(forKey: Keys.deletionTestAccountConfigured)
+    }
+
+    /// Configure subscription status for deletion test account
+    /// - Shows as Monthly subscription with 7 days remaining
+    /// - Allows Apple to test account deletion with a "premium" user
+    func configureForDeletionTestAccount() {
+        logger.log("Configuring subscription for deletion test account", category: .store, level: .info, metadata: nil)
+        DeviceLogger.shared.log("🧪 [DeletionTest] Configuring subscription - Monthly with 7 days left", level: .info)
+
+        // Set flag to prevent re-initialization
+        UserDefaults.standard.set(true, forKey: Keys.deletionTestAccountConfigured)
+
+        // Clear any existing state
+        UserDefaults.standard.removeObject(forKey: Keys.firstLaunchDate)
+        UserDefaults.standard.removeObject(forKey: Keys.trialExpiryDate)
+
+        // Set as Monthly subscription expiring in 7 days
+        let expiryDate = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+        subscriptionExpiryDate = expiryDate
+        UserDefaults.standard.set(expiryDate, forKey: Keys.subscriptionExpiryDate)
+
+        // Set product ID to monthly
+        UserDefaults.standard.set(ProductIdentifier.monthly.rawValue, forKey: Keys.cachedProductID)
+
+        // Set days remaining
+        daysRemaining = 7
+
+        // Set as active but not renewing (cancelled state - shows "Cancelled - 7 days left")
+        willRenew = false
+
+        // Update status to monthly
+        updateStatus(.monthly)
+
+        logger.log("Deletion test account configured: Monthly subscription, 7 days remaining, cancelled", category: .store, level: .info, metadata: nil)
+        DeviceLogger.shared.log("🧪 [DeletionTest] Status set to Monthly (cancelled) - 7 days left", level: .info)
+    }
+
+    /// Clear the deletion test account configuration flag
+    func clearDeletionTestAccountConfiguration() {
+        UserDefaults.standard.removeObject(forKey: Keys.deletionTestAccountConfigured)
+        logger.log("Deletion test account configuration cleared", category: .store, level: .info, metadata: nil)
     }
 
     // MARK: - Debug

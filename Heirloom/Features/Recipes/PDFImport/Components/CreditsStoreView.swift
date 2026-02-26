@@ -198,7 +198,7 @@ struct CreditsStoreView: View {
                 // Log when PaywallView is dismissed to track any lingering state issues
                 Log.info("PaywallView dismissed from CreditsStoreView", category: .store)
             }) {
-                PaywallView(trigger: .urlImport)
+                PaywallView()
                     .onAppear {
                         Log.info("PaywallView opened from CreditsStoreView", category: .store)
                         DeviceLogger.shared.log("💳 [CreditsStore] PaywallView sheet opened", level: .info)

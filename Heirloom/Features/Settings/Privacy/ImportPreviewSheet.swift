@@ -336,21 +336,41 @@ struct ImportPreviewSheet: View {
     }
 
     private var accountFlexibilityNote: some View {
-        HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
-            Image(systemName: "person.badge.key.fill")
-                .font(.system(size: 14))
-                .foregroundStyle(HeirloomColors.familyGreen)
-                .padding(.top, 2)
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                Image(systemName: "person.badge.key.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(HeirloomColors.familyGreen)
+                    .padding(.top, 2)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Works with any sign-in method")
-                    .font(HeirloomFonts.caption1)
-                    .fontWeight(.medium)
-                    .foregroundStyle(HeirloomColors.primaryText)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Works with any sign-in method")
+                        .font(HeirloomFonts.caption1)
+                        .fontWeight(.medium)
+                        .foregroundStyle(HeirloomColors.primaryText)
 
-                Text("Your backup data syncs to your current account, regardless of how you signed in.")
-                    .font(HeirloomFonts.caption2)
-                    .foregroundStyle(HeirloomColors.secondaryText)
+                    Text("Your backup data syncs to your current account, regardless of how you signed in.")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+
+            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 14))
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Backup replaces existing data")
+                        .font(HeirloomFonts.caption1)
+                        .fontWeight(.medium)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Any recipes not included in this backup will be removed from your account.")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
             }
         }
         .padding(.top, HeirloomSpacing.sm)
@@ -721,6 +741,11 @@ struct ImportPreviewSheet: View {
                     Log.info("Recreated system collections after restore", category: .storage)
                 }
             }
+
+            // Restore preset backgrounds for import collections (From Web, From Friends, etc.)
+            await MainActor.run {
+                restoreCollectionPresetBackgrounds()
+            }
             await updateProgress(phase: .linkingCollections, progress: 0.60)
 
             // Phase 4: Restoring images (60-80%)
@@ -743,6 +768,30 @@ struct ImportPreviewSheet: View {
             // Mark onboarding as complete after successful restore
             if cleanRestore {
                 await markOnboardingComplete()
+
+                // Set Firebase sync timestamp to NOW to prevent re-downloading old recipes
+                // This ensures the backup is the source of truth and subsequent syncs
+                // only download changes made AFTER the restore
+                await MainActor.run {
+                    let now = Date()
+                    UserDefaults.standard.set(now, forKey: "firebase_lastSyncDate")
+
+                    // Also update the sync service if available
+                    if let syncService = ServiceContainer.shared.resolveOptional(FirebaseSyncService.self) {
+                        syncService.lastSyncDate = now
+                        syncService.hasCompletedInitialSync = true
+                    }
+
+                    Log.info("Set sync timestamp after restore to prevent duplicate downloads", category: .storage, metadata: [
+                        "timestamp": now.description
+                    ])
+
+                    // Ensure trial is started for restored users
+                    // (SubscriptionManager.init() ran before restore, so trial may not be initialized)
+                    if let subscriptionManager = ServiceContainer.shared.resolveOptional(SubscriptionManager.self) {
+                        subscriptionManager.ensureTrialAfterRestore()
+                    }
+                }
             }
 
             // Count shared recipes for update prompt
@@ -784,6 +833,17 @@ struct ImportPreviewSheet: View {
     /// Delete all existing local data for clean restore
     private func cleanExistingData() async {
         Log.info("Cleaning existing data for restore", category: .storage)
+
+        // Reset Firebase sync timestamp to force fresh start after restore
+        // This is critical to prevent sync from re-downloading recipes that existed
+        // before the restore, which would create duplicates
+        UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+        UserDefaults.standard.removeObject(forKey: "lastSyncTimestamp")
+        if let syncService = ServiceContainer.shared.resolveOptional(FirebaseSyncService.self) {
+            syncService.lastSyncDate = nil
+            syncService.hasCompletedInitialSync = false
+        }
+        Log.info("Reset sync timestamps for clean restore", category: .storage)
 
         // Delete all recipes
         let recipeDescriptor = FetchDescriptor<Recipe>()
@@ -853,11 +913,59 @@ struct ImportPreviewSheet: View {
 
         try? modelContext.save()
 
+        // Apply restored themeAddedDates to RecipeTheme objects
+        await applyRestoredThemeAddedDates()
+
         // Now create theme collections and link recipes
         // This is normally done in CollectionsListView but we need to do it here for restore
         await createThemeCollectionsAfterRestore(themeIds: selectedThemeIds)
 
         Log.info("Theme recipe download complete", category: .storage)
+    }
+
+    /// Apply restored themeAddedDates to RecipeTheme objects
+    /// This restores per-theme progress after backup restore
+    private func applyRestoredThemeAddedDates() async {
+        guard let restoredDates = UserDefaults.standard.dictionary(forKey: "restored_theme_added_dates") as? [String: String] else {
+            return
+        }
+
+        Log.info("Applying restored theme added dates", category: .storage, metadata: [
+            "count": restoredDates.count
+        ])
+
+        let formatter = ISO8601DateFormatter()
+        let themeDescriptor = FetchDescriptor<RecipeTheme>()
+
+        guard let themes = try? modelContext.fetch(themeDescriptor) else {
+            Log.warning("Failed to fetch themes for addedDate restoration", category: .storage)
+            return
+        }
+
+        var appliedCount = 0
+        for theme in themes {
+            if let dateString = restoredDates[theme.firebaseId],
+               let date = formatter.date(from: dateString) {
+                theme.addedDate = date
+                theme.isSelected = true
+                appliedCount += 1
+
+                Log.debug("Restored addedDate for theme", category: .storage, metadata: [
+                    "themeId": theme.firebaseId,
+                    "addedDate": dateString
+                ])
+            }
+        }
+
+        try? modelContext.save()
+
+        // Clean up temp storage
+        UserDefaults.standard.removeObject(forKey: "restored_theme_added_dates")
+
+        Log.info("Applied restored theme added dates", category: .storage, metadata: [
+            "appliedCount": appliedCount,
+            "totalThemes": themes.count
+        ])
     }
 
     /// Create theme collections and link unlocked recipes after restore
@@ -981,6 +1089,70 @@ struct ImportPreviewSheet: View {
             }
             Log.info("Found shared recipes after restore", category: .storage, metadata: [
                 "count": sharedRecipes.count
+            ])
+        }
+    }
+
+    /// Restore preset backgrounds for import collections (From Web, From Friends, etc.)
+    /// These collections may exist from backup but lose their preset backgrounds
+    private func restoreCollectionPresetBackgrounds() {
+        let collectionDescriptor = FetchDescriptor<RecipeCollection>()
+        guard let collections = try? modelContext.fetch(collectionDescriptor) else { return }
+
+        // Map of collection name -> (expected collectionType, assetName)
+        // Collections created during import may have "userCreated" type instead of the expected type,
+        // so we match by name and also fix the type if needed
+        let presetMap: [(String, String, String)] = [
+            // (name, expectedCollectionType, assetName)
+            ("Generated Recipes", "userCreated", "generated-recipes-bg"),
+            ("Cookbook Pages", "cookbook", "cookbook-pages-bg"),
+            ("From Web", "webImports", "from-web-bg"),
+            ("From Videos", "videoImports", "from-videos-bg"),
+            ("From Photos", "photoImports", "from-photos-bg"),
+            ("From Friends", "fromFriends", "from-friends-bg"),
+            ("Read Recipes", "readRecipes", "read-recipes-bg"),
+        ]
+
+        var restoredCount = 0
+
+        for collection in collections {
+            // Check if this collection matches any preset by NAME only
+            // (import may create collections with default "userCreated" type)
+            for (name, expectedType, assetName) in presetMap {
+                guard collection.name == name else { continue }
+
+                // Fix the collection type if it was created with default type during import
+                if collection.collectionType == "userCreated" && expectedType != "userCreated" {
+                    collection.collectionType = expectedType
+                    Log.info("Fixed collection type during restore", category: .storage, metadata: [
+                        "collection": collection.name,
+                        "newType": expectedType
+                    ])
+                }
+
+                // Apply preset background if not already set
+                let hasPreset = collection.customBackgroundImagePath?.hasPrefix("preset-") == true
+                if !hasPreset, UIImage(named: assetName) != nil {
+                    collection.customBackgroundImagePath = "preset-\(assetName)"
+                    collection.useCustomBackground = true
+                    // Clear any stale AI-generated background
+                    if collection.generatedBackgroundImagePath != nil {
+                        collection.generatedBackgroundImagePath = nil
+                    }
+                    restoredCount += 1
+                    Log.info("Restored preset background after import", category: .storage, metadata: [
+                        "collection": collection.name,
+                        "preset": assetName
+                    ])
+                }
+                break
+            }
+        }
+
+        if restoredCount > 0 {
+            try? modelContext.save()
+            Log.info("Restored preset backgrounds for collections", category: .storage, metadata: [
+                "count": restoredCount
             ])
         }
     }

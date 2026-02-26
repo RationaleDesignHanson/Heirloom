@@ -30,7 +30,6 @@ struct RecipeImportView: View {
     @State private var importedRecipe: ImportedRecipe?
     @State private var importError: String?
     @State private var isSaving = false
-    @State private var showSoftWall = false
 
     // Init for manual URL entry
     init() {
@@ -92,20 +91,13 @@ struct RecipeImportView: View {
             }
             .onAppear {
                 // If URL was passed from Share Extension, auto-populate and import
+                // Web import is free for all users (only AI image generation requires premium)
                 if let shareURL = url {
                     urlText = shareURL.absoluteString
-                    // Check premium before auto-importing
-                    if subscriptionManager.isPremium {
-                        Task {
-                            await importFromURL()
-                        }
-                    } else {
-                        showSoftWall = true
+                    Task {
+                        await importFromURL()
                     }
                 }
-            }
-            .sheet(isPresented: $showSoftWall) {
-                SoftWallView(trigger: .urlImport)
             }
         }
     }
@@ -156,13 +148,8 @@ struct RecipeImportView: View {
             }
 
             // Import Button
+            // Web import is free for all users (only AI image generation requires premium)
             Button {
-                // Check for premium subscription
-                guard subscriptionManager.isPremium else {
-                    showSoftWall = true
-                    return
-                }
-
                 Task {
                     await importFromURL()
                 }
@@ -570,21 +557,26 @@ struct RecipeImportView: View {
             router.routeURLImport(recipe, sourceURL: sourceURL)
         }
 
-        // Generate AI image instead of downloading scraped image (avoids copyright issues)
-        do {
-            Log.info("Generating AI image for web import", category: .ai, metadata: ["title": recipe.title])
-            let importImageService = ServiceContainer.shared.resolve(ImportImageGenerationService.self)
-            try await importImageService.generateImageForImport(recipe: recipe)
-            Log.info("AI image generated for web import", category: .ai, metadata: [
-                "title": recipe.title,
-                "imageFileName": recipe.imageFileName ?? "none"
-            ])
-        } catch {
-            Log.warning("AI image generation failed for web import, recipe will have no image", category: .ai, metadata: [
-                "title": recipe.title,
-                "error": error.localizedDescription
-            ])
-            // Recipe proceeds without image - user can generate later
+        // Generate AI image only for premium users (free users get blank image)
+        if subscriptionManager.isPremium {
+            do {
+                Log.info("Generating AI image for web import (premium user)", category: .ai, metadata: ["title": recipe.title])
+                let importImageService = ServiceContainer.shared.resolve(ImportImageGenerationService.self)
+                try await importImageService.generateImageForImport(recipe: recipe)
+                Log.info("AI image generated for web import", category: .ai, metadata: [
+                    "title": recipe.title,
+                    "imageFileName": recipe.imageFileName ?? "none"
+                ])
+            } catch {
+                Log.warning("AI image generation failed for web import, recipe will have no image", category: .ai, metadata: [
+                    "title": recipe.title,
+                    "error": error.localizedDescription
+                ])
+                // Recipe proceeds without image - user can generate later
+            }
+        } else {
+            Log.info("Skipping AI image generation for web import (free user)", category: .ai, metadata: ["title": recipe.title])
+            // Free users get recipe content but no AI-generated image
         }
 
         // Create snapshot for edit tracking

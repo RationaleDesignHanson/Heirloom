@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
@@ -51,6 +52,7 @@ struct DeletionProgress: Equatable {
 
 /// Service for coordinating full account deletion
 /// CRITICAL: Must delete ALL user data before deleting Firebase Auth user
+@Observable
 @MainActor
 final class AccountDeletionService {
 

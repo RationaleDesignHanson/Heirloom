@@ -335,6 +335,87 @@ class FirebaseUserProfileService {
         }
     }
 
+    // MARK: - Credits Sync
+
+    /// Upload user credits to Firebase for cross-device sync
+    /// Call this after any credit change (deduction, purchase, tier change)
+    func uploadCreditsToFirebase(
+        creditsBalance: Int,
+        tierCreditsUsed: Int,
+        tierType: String,
+        tierCreditResetDate: Date,
+        lifetimePurchasedCredits: Int
+    ) async {
+        guard let userId = auth.currentUser?.uid else {
+            Log.warning("Cannot upload credits - no authenticated user", category: .auth)
+            return
+        }
+
+        do {
+            let creditsData: [String: Any] = [
+                "creditsBalance": creditsBalance,
+                "tierCreditsUsed": tierCreditsUsed,
+                "tierType": tierType,
+                "tierCreditResetDate": Timestamp(date: tierCreditResetDate),
+                "lifetimePurchasedCredits": lifetimePurchasedCredits,
+                "creditsUpdatedAt": FieldValue.serverTimestamp()
+            ]
+
+            try await db.collection("users").document(userId)
+                .collection("profile").document("data")
+                .setData(creditsData, merge: true)
+
+            Log.info("Uploaded credits to Firebase", category: .auth, metadata: [
+                "balance": creditsBalance,
+                "tierUsed": tierCreditsUsed,
+                "tier": tierType
+            ])
+        } catch {
+            Log.error("Failed to upload credits to Firebase", category: .auth, error: error)
+        }
+    }
+
+    /// Fetch user credits from Firebase
+    /// Returns nil if no credits data exists
+    func fetchCreditsFromFirebase() async -> (
+        creditsBalance: Int,
+        tierCreditsUsed: Int,
+        tierType: String,
+        tierCreditResetDate: Date,
+        lifetimePurchasedCredits: Int
+    )? {
+        guard let userId = auth.currentUser?.uid else {
+            return nil
+        }
+
+        do {
+            let doc = try await db.collection("users").document(userId)
+                .collection("profile").document("data").getDocument()
+
+            guard let data = doc.data(),
+                  let creditsBalance = data["creditsBalance"] as? Int,
+                  let tierCreditsUsed = data["tierCreditsUsed"] as? Int,
+                  let tierType = data["tierType"] as? String else {
+                Log.info("No credits data in Firebase profile", category: .auth)
+                return nil
+            }
+
+            let tierCreditResetDate = (data["tierCreditResetDate"] as? Timestamp)?.dateValue() ?? Date()
+            let lifetimePurchasedCredits = data["lifetimePurchasedCredits"] as? Int ?? 0
+
+            Log.info("Fetched credits from Firebase", category: .auth, metadata: [
+                "balance": creditsBalance,
+                "tierUsed": tierCreditsUsed,
+                "tier": tierType
+            ])
+
+            return (creditsBalance, tierCreditsUsed, tierType, tierCreditResetDate, lifetimePurchasedCredits)
+        } catch {
+            Log.error("Failed to fetch credits from Firebase", category: .auth, error: error)
+            return nil
+        }
+    }
+
     // MARK: - Private Methods
 
     /// Fetch user profile from Firestore

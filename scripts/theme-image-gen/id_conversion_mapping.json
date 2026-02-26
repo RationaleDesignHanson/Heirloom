@@ -1,7 +1,7 @@
 {
   "conversion_date": "2026-01-27T01:01:02.874Z",
-  "total_themes": 14,
-  "total_recipes": 240,
+  "total_themes": 24,
+  "total_recipes": 380,
   "dry_run": false,
   "conversions": [
     {
@@ -169,7 +169,7 @@
       "theme_name": "Golden Age of Rail",
       "old_id": "pullman-chicken-ala-king",
       "new_id": "railroad-dining-007",
-      "title": "Pullman Car Chicken à la King",
+      "title": "Pullman Car Chicken \u00e0 la King",
       "sort_order": 2
     },
     {
@@ -665,7 +665,7 @@
       "theme_name": "Scandinavian Heritage",
       "old_id": "swedish-meatballs",
       "new_id": "scandinavian-heritage-001",
-      "title": "Swedish Meatballs (Köttbullar)",
+      "title": "Swedish Meatballs (K\u00f6ttbullar)",
       "sort_order": 1
     },
     {
@@ -689,7 +689,7 @@
       "theme_name": "Scandinavian Heritage",
       "old_id": "danish-roast-pork",
       "new_id": "scandinavian-heritage-004",
-      "title": "Danish Roast Pork with Crackling (Flæskesteg)",
+      "title": "Danish Roast Pork with Crackling (Fl\u00e6skesteg)",
       "sort_order": 1
     },
     {
@@ -777,7 +777,7 @@
       "theme_name": "German-American Kitchen",
       "old_id": "spaetzle",
       "new_id": "german-american-003",
-      "title": "Spätzle (German Egg Noodles)",
+      "title": "Sp\u00e4tzle (German Egg Noodles)",
       "sort_order": 1
     },
     {
@@ -857,7 +857,7 @@
       "theme_name": "German-American Kitchen",
       "old_id": "german-pork-schnitzel",
       "new_id": "german-american-013",
-      "title": "Jägerschnitzel (Hunter's Schnitzel)",
+      "title": "J\u00e4gerschnitzel (Hunter's Schnitzel)",
       "sort_order": 2
     },
     {
@@ -1922,6 +1922,1126 @@
       "old_id": "014",
       "new_id": "sunday-suppers-014",
       "title": "Honey-Glazed Carrots",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-001",
+      "new_id": "classic-literature-001",
+      "title": "Virginia Woolf's Boeuf en Daube",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-002",
+      "new_id": "classic-literature-002",
+      "title": "Dickens' Christmas Plum Pudding",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-003",
+      "new_id": "classic-literature-003",
+      "title": "Outlander's Scotch Broth",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-004",
+      "new_id": "classic-literature-004",
+      "title": "Tolstoy's Borshch",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-005",
+      "new_id": "classic-literature-005",
+      "title": "Count of Monte Cristo's Bouillabaisse",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-006",
+      "new_id": "classic-literature-006",
+      "title": "Anna Karenina's Blini with Caviar",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-007",
+      "new_id": "classic-literature-007",
+      "title": "Treasure Island's Ship's Hardtack",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-008",
+      "new_id": "classic-literature-008",
+      "title": "Les Miserables' French Onion Soup",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-009",
+      "new_id": "classic-literature-009",
+      "title": "The Three Musketeers' Coq au Vin",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-010",
+      "new_id": "classic-literature-010",
+      "title": "Canterbury Tales' Pottage",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-011",
+      "new_id": "classic-literature-011",
+      "title": "David Copperfield's Mutton Chops",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-012",
+      "new_id": "classic-literature-012",
+      "title": "Gone with the Wind's Barbecue Pork",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-013",
+      "new_id": "classic-literature-013",
+      "title": "War and Peace's Beef Stroganoff",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "classic-literature",
+      "theme_name": "Classic Literature & Historical Fiction",
+      "old_id": "classic-literature-014",
+      "new_id": "classic-literature-014",
+      "title": "Dracula's Paprika Hendl",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-001",
+      "new_id": "childrens-stories-001",
+      "title": "Dr. Seuss' Green Eggs & Ham",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-002",
+      "new_id": "childrens-stories-002",
+      "title": "Goldilocks' Just-Right Porridge",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-003",
+      "new_id": "childrens-stories-003",
+      "title": "Hansel & Gretel's Gingerbread House",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-004",
+      "new_id": "childrens-stories-004",
+      "title": "Hogwarts Pumpkin Pasties",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-005",
+      "new_id": "childrens-stories-005",
+      "title": "Three Broomsticks' Butterbeer",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-006",
+      "new_id": "childrens-stories-006",
+      "title": "Katniss's Lamb Stew with Dried Plums",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-007",
+      "new_id": "childrens-stories-007",
+      "title": "Lennie's Baked Beans & Ketchup",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-008",
+      "new_id": "childrens-stories-008",
+      "title": "Edmund's Turkish Delight",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-009",
+      "new_id": "childrens-stories-009",
+      "title": "Percy Jackson's Blue Cookies & Ambrosia Brownies",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-010",
+      "new_id": "childrens-stories-010",
+      "title": "Eleven's Eggo Waffles",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-011",
+      "new_id": "childrens-stories-011",
+      "title": "Curious George's Banana Bread",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-012",
+      "new_id": "childrens-stories-012",
+      "title": "Charlie Bucket's Cabbage Soup",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-013",
+      "new_id": "childrens-stories-013",
+      "title": "Paddington's Marmalade Sandwiches",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "childrens-stories",
+      "theme_name": "Children's & Young-Adult Stories",
+      "old_id": "childrens-stories-014",
+      "new_id": "childrens-stories-014",
+      "title": "The Very Hungry Caterpillar's Fruit Salad",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-001",
+      "new_id": "fantasy-scifi-001",
+      "title": "Lembas Bread",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-002",
+      "new_id": "fantasy-scifi-002",
+      "title": "Blue Milk",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-003",
+      "new_id": "fantasy-scifi-003",
+      "title": "Pan-Galactic Gargle Blaster",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-004",
+      "new_id": "fantasy-scifi-004",
+      "title": "Everlasting Gobstopper",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-005",
+      "new_id": "fantasy-scifi-005",
+      "title": "Daenerys' Dragon Eggs",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-006",
+      "new_id": "fantasy-scifi-006",
+      "title": "Ent-Draught",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-007",
+      "new_id": "fantasy-scifi-007",
+      "title": "Romulan Ale",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-008",
+      "new_id": "fantasy-scifi-008",
+      "title": "Cram",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-009",
+      "new_id": "fantasy-scifi-009",
+      "title": "Spice Melange Tea",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-010",
+      "new_id": "fantasy-scifi-010",
+      "title": "Fizzy Lifting Drink",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-011",
+      "new_id": "fantasy-scifi-011",
+      "title": "Redwall Abbey's Deeper'n'Ever Pie",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-012",
+      "new_id": "fantasy-scifi-012",
+      "title": "Butterbeer Fudge",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-013",
+      "new_id": "fantasy-scifi-013",
+      "title": "Synthahol Sour",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "theme_name": "Fantasy & Science Fiction",
+      "old_id": "fantasy-scifi-014",
+      "new_id": "fantasy-scifi-014",
+      "title": "Ambrosia",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-001",
+      "new_id": "crime-cult-classics-001",
+      "title": "Royale with Cheese",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-002",
+      "new_id": "crime-cult-classics-002",
+      "title": "Cherry Pie & Damn Fine Coffee",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-003",
+      "new_id": "crime-cult-classics-003",
+      "title": "Prison Pasta Sauce",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-004",
+      "new_id": "crime-cult-classics-004",
+      "title": "Cannoli",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-005",
+      "new_id": "crime-cult-classics-005",
+      "title": "Sazerac",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-006",
+      "new_id": "crime-cult-classics-006",
+      "title": "Lucky Dog Hot Dogs",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-007",
+      "new_id": "crime-cult-classics-007",
+      "title": "Old-Fashioned Cocktail",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-008",
+      "new_id": "crime-cult-classics-008",
+      "title": "Beef Wellington",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-009",
+      "new_id": "crime-cult-classics-009",
+      "title": "Scooby Snack Shot",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-010",
+      "new_id": "crime-cult-classics-010",
+      "title": "Big Kahuna Burger",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-011",
+      "new_id": "crime-cult-classics-011",
+      "title": "Clemenza's Meatballs",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-012",
+      "new_id": "crime-cult-classics-012",
+      "title": "Dexter's Blood-Orange Mojito",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-013",
+      "new_id": "crime-cult-classics-013",
+      "title": "Hannibal's Amuse-Bouche",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "theme_name": "Crime & Cult Classics",
+      "old_id": "crime-cult-classics-014",
+      "new_id": "crime-cult-classics-014",
+      "title": "Los Pollos Hermanos Fried Chicken",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-001",
+      "new_id": "magical-realism-001",
+      "title": "Ratatouille",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-002",
+      "new_id": "magical-realism-002",
+      "title": "Tiana's Gumbo",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-003",
+      "new_id": "magical-realism-003",
+      "title": "Tiana's Beignets",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-004",
+      "new_id": "magical-realism-004",
+      "title": "Quail in Rose Petal Sauce",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-005",
+      "new_id": "magical-realism-005",
+      "title": "Chai Tea",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-006",
+      "new_id": "magical-realism-006",
+      "title": "Matcha Mochi",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-007",
+      "new_id": "magical-realism-007",
+      "title": "Moana's Polynesian Pork",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-008",
+      "new_id": "magical-realism-008",
+      "title": "Curry Puffs",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-009",
+      "new_id": "magical-realism-009",
+      "title": "Kugelhopf",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-010",
+      "new_id": "magical-realism-010",
+      "title": "Jollof Rice",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-011",
+      "new_id": "magical-realism-011",
+      "title": "Empanadas",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-012",
+      "new_id": "magical-realism-012",
+      "title": "Bibimbap",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-013",
+      "new_id": "magical-realism-013",
+      "title": "Pho",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "magical-realism",
+      "theme_name": "Magical Realism & World Cuisine",
+      "old_id": "magical-realism-014",
+      "new_id": "magical-realism-014",
+      "title": "Tres Leches Cake",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-001",
+      "new_id": "romance-indulgence-001",
+      "title": "Red Wine Risotto",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-002",
+      "new_id": "romance-indulgence-002",
+      "title": "Chocolate Pudding",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-003",
+      "new_id": "romance-indulgence-003",
+      "title": "Cr\u00e8me Br\u00fbl\u00e9e",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-004",
+      "new_id": "romance-indulgence-004",
+      "title": "Tiramisu",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-005",
+      "new_id": "romance-indulgence-005",
+      "title": "Mulled Wine",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-006",
+      "new_id": "romance-indulgence-006",
+      "title": "Strawberries and Champagne",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-007",
+      "new_id": "romance-indulgence-007",
+      "title": "Heart-Shaped Ravioli",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-008",
+      "new_id": "romance-indulgence-008",
+      "title": "Chocolate-Dipped Strawberries",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-009",
+      "new_id": "romance-indulgence-009",
+      "title": "Lavender Honey Panna Cotta",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-010",
+      "new_id": "romance-indulgence-010",
+      "title": "Pain au Chocolat",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-011",
+      "new_id": "romance-indulgence-011",
+      "title": "Oysters Rockefeller",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-012",
+      "new_id": "romance-indulgence-012",
+      "title": "Rose Petal Ice Cream",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-013",
+      "new_id": "romance-indulgence-013",
+      "title": "Affogato",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "theme_name": "Romance & Indulgence",
+      "old_id": "romance-indulgence-014",
+      "new_id": "romance-indulgence-014",
+      "title": "Champagne Cocktail",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-001",
+      "new_id": "dystopian-fiction-001",
+      "title": "Soylent Green Smoothie",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-002",
+      "new_id": "dystopian-fiction-002",
+      "title": "Nutrient Bars",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-003",
+      "new_id": "dystopian-fiction-003",
+      "title": "Mung Bean Soup",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-004",
+      "new_id": "dystopian-fiction-004",
+      "title": "Kibble Cakes",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-005",
+      "new_id": "dystopian-fiction-005",
+      "title": "Lab-Grown \"Steak\"",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-006",
+      "new_id": "dystopian-fiction-006",
+      "title": "Victory Gin",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-007",
+      "new_id": "dystopian-fiction-007",
+      "title": "Victory Coffee",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-008",
+      "new_id": "dystopian-fiction-008",
+      "title": "Instant Ramen",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-009",
+      "new_id": "dystopian-fiction-009",
+      "title": "Protein Skewers",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-010",
+      "new_id": "dystopian-fiction-010",
+      "title": "Soma Cocktail",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-011",
+      "new_id": "dystopian-fiction-011",
+      "title": "Fahrenheit 451 Burnt Ends",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-012",
+      "new_id": "dystopian-fiction-012",
+      "title": "Snowpiercer Protein Blocks",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-013",
+      "new_id": "dystopian-fiction-013",
+      "title": "The Road's Canned Peaches",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "theme_name": "Dystopian & Speculative Fiction",
+      "old_id": "dystopian-fiction-014",
+      "new_id": "dystopian-fiction-014",
+      "title": "Handmaid's Tale Red Velvet Cake",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-001",
+      "new_id": "film-tv-favourites-001",
+      "title": "Chocolate Cake & Milk",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-002",
+      "new_id": "film-tv-favourites-002",
+      "title": "Liver with Fava Beans & Chianti",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-003",
+      "new_id": "film-tv-favourites-003",
+      "title": "Tandoori Chicken",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-004",
+      "new_id": "film-tv-favourites-004",
+      "title": "Shawarma",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-005",
+      "new_id": "film-tv-favourites-005",
+      "title": "Blancmange",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-006",
+      "new_id": "film-tv-favourites-006",
+      "title": "Krabby Patty",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-007",
+      "new_id": "film-tv-favourites-007",
+      "title": "Fried Green Tomatoes",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-008",
+      "new_id": "film-tv-favourites-008",
+      "title": "Mrs. Doubtfire's Flamb\u00e9ed Bananas Foster",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-009",
+      "new_id": "film-tv-favourites-009",
+      "title": "Remy's Omelette",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-010",
+      "new_id": "film-tv-favourites-010",
+      "title": "The Simpsons' Pink Doughnuts",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-011",
+      "new_id": "film-tv-favourites-011",
+      "title": "Seinfeld's Marble Rye",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-012",
+      "new_id": "film-tv-favourites-012",
+      "title": "Kevin's Famous Chili",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-013",
+      "new_id": "film-tv-favourites-013",
+      "title": "Rachel's Trifle",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "theme_name": "Film & Television Favourites",
+      "old_id": "film-tv-favourites-014",
+      "new_id": "film-tv-favourites-014",
+      "title": "Willy Wonka's Chocolate Truffles",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-001",
+      "new_id": "feasts-banquets-001",
+      "title": "Honey Cake",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-002",
+      "new_id": "feasts-banquets-002",
+      "title": "Peeta's Cheese Buns",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-003",
+      "new_id": "feasts-banquets-003",
+      "title": "Elven Stew",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-004",
+      "new_id": "feasts-banquets-004",
+      "title": "Cheese & Fruit Platter",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-005",
+      "new_id": "feasts-banquets-005",
+      "title": "Spiced Wine",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-006",
+      "new_id": "feasts-banquets-006",
+      "title": "Roast Boar",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-007",
+      "new_id": "feasts-banquets-007",
+      "title": "Downton Abbey's Beef Consomm\u00e9",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-008",
+      "new_id": "feasts-banquets-008",
+      "title": "Henry VIII's Roasted Turkey Leg",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-009",
+      "new_id": "feasts-banquets-009",
+      "title": "Hogwarts Great Hall Shepherd's Pie",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-010",
+      "new_id": "feasts-banquets-010",
+      "title": "Redwall Abbey's Strawberry Cordial",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-011",
+      "new_id": "feasts-banquets-011",
+      "title": "Viking Mead",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-012",
+      "new_id": "feasts-banquets-012",
+      "title": "Roman Garum Fish Sauce Pasta",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-013",
+      "new_id": "feasts-banquets-013",
+      "title": "Beowulf's Mead Hall Braised Lamb",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "theme_name": "Feasts & Banquets",
+      "old_id": "feasts-banquets-014",
+      "new_id": "feasts-banquets-014",
+      "title": "Game of Thrones' Pigeon Pie",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-001",
+      "new_id": "cocktails-confections-001",
+      "title": "White Russian",
+      "sort_order": 1
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-002",
+      "new_id": "cocktails-confections-002",
+      "title": "Nick & Nora Dry Martini",
+      "sort_order": 2
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-003",
+      "new_id": "cocktails-confections-003",
+      "title": "French 75",
+      "sort_order": 3
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-004",
+      "new_id": "cocktails-confections-004",
+      "title": "Drink Me Potion",
+      "sort_order": 4
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-005",
+      "new_id": "cocktails-confections-005",
+      "title": "Treacle Tart",
+      "sort_order": 5
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-006",
+      "new_id": "cocktails-confections-006",
+      "title": "Cosmopolitan",
+      "sort_order": 6
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-007",
+      "new_id": "cocktails-confections-007",
+      "title": "Butterbeer Float",
+      "sort_order": 7
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-008",
+      "new_id": "cocktails-confections-008",
+      "title": "Mojito",
+      "sort_order": 8
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-009",
+      "new_id": "cocktails-confections-009",
+      "title": "Willy Wonka's Chocolate River Fondue",
+      "sort_order": 9
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-010",
+      "new_id": "cocktails-confections-010",
+      "title": "Narnia's Hot Chocolate",
+      "sort_order": 10
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-011",
+      "new_id": "cocktails-confections-011",
+      "title": "Moscow Mule",
+      "sort_order": 11
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-012",
+      "new_id": "cocktails-confections-012",
+      "title": "Absinthe Frappe",
+      "sort_order": 12
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-013",
+      "new_id": "cocktails-confections-013",
+      "title": "Lemon Cakes",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "theme_name": "Iconic Cocktails & Confections",
+      "old_id": "cocktails-confections-014",
+      "new_id": "cocktails-confections-014",
+      "title": "Amortentia Love Potion Punch",
       "sort_order": 14
     }
   ]

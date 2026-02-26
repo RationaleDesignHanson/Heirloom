@@ -37,7 +37,17 @@ ERA_STYLES = {
     'presidential-pantry': 'Colonial American formal entertaining, 18th-century Mount Vernon style, elegant but not ostentatious, presidential dining aesthetic, pewter and silver, White House state dinner tradition',
     'literary-kitchen': 'Victorian era formality, Mrs. Beeton cookbook aesthetic, ornate china, Edwardian dining, Dickensian literary feast feel, sepia undertones, classic literature inspiration',
     'ancient-table': 'Classical antiquity, archaeological recreation photography, earth tones, ancient Roman/Greek styling, museum-quality presentation, historical accuracy, terracotta and olive branches',
-    'american-foundation': 'Colonial hearth cooking, cast iron skillets, rough-hewn tables, rustic Americana, founding era simplicity, honest farm-to-table, early American heritage'
+    'american-foundation': 'Colonial hearth cooking, cast iron skillets, rough-hewn tables, rustic Americana, founding era simplicity, honest farm-to-table, early American heritage',
+    'classic-literature': 'Victorian and Edwardian literary dining, classic novel aesthetic, period-accurate table settings, leather-bound book atmosphere, warm candlelit study, Dickensian feast feel, sepia and amber tones',
+    'childrens-stories': 'Whimsical storybook illustration style, bright cheerful colors, enchanted kitchen aesthetic, fairy-tale warmth, cozy cottage feel, magical childhood nostalgia, playful yet homey presentation',
+    'fantasy-scifi': 'Fantasy and science fiction inspired, otherworldly atmospheric lighting, mythical feast aesthetic, medieval tavern meets futuristic canteen, dramatic moody tones, epic adventure dining',
+    'crime-cult-classics': 'Film noir and cult cinema aesthetic, dramatic chiaroscuro lighting, retro diner and Italian-American restaurant vibes, 1970s-1990s cinematic mood, gritty yet glamorous, Tarantino color palette',
+    'magical-realism': 'Magical realism world cuisine aesthetic, vibrant saturated colors, global street food markets, enchanted tropical atmosphere, lush botanical settings, García Márquez dreamlike quality',
+    'romance-indulgence': 'Romantic candlelit dining, soft focus warm glow, intimate two-person table setting, rose petals and silk, luxurious indulgent aesthetic, Parisian café romance, Valentine evening mood',
+    'dystopian-fiction': 'Dystopian speculative fiction aesthetic, stark industrial lighting, utilitarian presentation, brutalist concrete and steel, muted desaturated palette, ration-style minimalism, cyberpunk neon accents',
+    'film-tv-favourites': 'Iconic film and television dining scenes, pop culture nostalgia, bright studio lighting, recognizable TV kitchen aesthetic, cinematic food photography, retro sitcom warmth',
+    'feasts-banquets': 'Grand medieval and fantasy banquet hall, long wooden trestle tables laden with food, candlelit stone walls with tapestries, epic feast presentation, Game of Thrones grandeur, communal celebration',
+    'cocktails-confections': 'Glamorous cocktail bar and confectionery aesthetic, art deco barware, jewel-toned liquids, elegant glassware, vintage speakeasy mood, golden hour bar lighting, luxurious sweet shop display'
 }
 
 # Base heritage style (always applied)

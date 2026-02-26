@@ -321,7 +321,7 @@ struct DataExportView: View {
                 } label: {
                     HStack {
                         Image(systemName: "square.and.arrow.up")
-                        Text("Share Export File")
+                        Text("Save Export File")
                     }
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.buttonTextLight)

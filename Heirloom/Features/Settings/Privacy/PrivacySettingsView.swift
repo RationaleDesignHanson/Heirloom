@@ -2,8 +2,10 @@ import SwiftUI
 
 /// Simplified Privacy settings - Export/Import, Delete Account, Privacy Policy
 struct PrivacySettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var showDataExport = false
     @State private var showAccountDeletion = false
+    private var accountDeletionService = ServiceContainer.shared.resolve(AccountDeletionService.self)
 
     var body: some View {
         List {
@@ -23,6 +25,12 @@ struct PrivacySettingsView: View {
         }
         .sheet(isPresented: $showAccountDeletion) {
             AccountDeletionView()
+        }
+        .onChange(of: accountDeletionService.isDeleting) { _, isDeleting in
+            if isDeleting {
+                showAccountDeletion = false
+                dismiss()
+            }
         }
     }
 

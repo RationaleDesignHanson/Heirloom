@@ -42,6 +42,12 @@ interface TestAccountProfile {
     selectedThemeIds: string[];
     trialDay: number; // 1-14, determines trialStartDate
   };
+  // Credits configuration (optional - syncs to Firebase for cross-device persistence)
+  credits?: {
+    tierType: 'trial' | 'premium' | 'expired' | 'none';
+    tierCreditsUsed: number;      // How many tier credits used (out of 50 trial or 100 premium)
+    creditsBalance: number;       // Purchased credits
+  };
 }
 
 const TEST_ACCOUNTS: TestAccountProfile[] = [
@@ -54,11 +60,8 @@ const TEST_ACCOUNTS: TestAccountProfile[] = [
     specialties: ['Comfort Food', 'Baking', 'Family Recipes'],
     websiteURL: 'https://heirloomrecipebox.app',
     photoURL: 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/test-accounts/demo-avatar.webp',
-    // Demo account on day 3 - shows Apple reviewers theme content without waiting
-    themeProgress: {
-      selectedThemeIds: ['german-american', 'scandinavian-heritage'],
-      trialDay: 3,
-    },
+    // SKIP theme progress - demo@ already has working themeAddedDates in Firebase
+    // Only update profile info and emailVerified, don't touch themes
   },
   {
     email: 'deletetest@heirloomrecipebox.app',
@@ -72,6 +75,12 @@ const TEST_ACCOUNTS: TestAccountProfile[] = [
     themeProgress: {
       selectedThemeIds: ['german-american', 'scandinavian-heritage'],
       trialDay: 3,
+    },
+    // 10 credits remaining (premium tier with 90/100 used)
+    credits: {
+      tierType: 'premium',
+      tierCreditsUsed: 90,
+      creditsBalance: 0,
     },
   },
   {
@@ -160,6 +169,24 @@ async function setupProfile(account: TestAccountProfile): Promise<void> {
   if (account.themeProgress && themeTrialStartDate) {
     profileData.selectedThemeIds = account.themeProgress.selectedThemeIds;
     profileData.themeTrialStartDate = admin.firestore.Timestamp.fromDate(themeTrialStartDate);
+
+    // Per-theme added dates for Discovery tab (new model)
+    // Each theme gets its own addedDate for per-theme tracking
+    const themeAddedDates: Record<string, admin.firestore.Timestamp> = {};
+    for (const themeId of account.themeProgress.selectedThemeIds) {
+      themeAddedDates[themeId] = admin.firestore.Timestamp.fromDate(themeTrialStartDate);
+    }
+    profileData.themeAddedDates = themeAddedDates;
+  }
+
+  // Add credits if specified (for cross-device sync)
+  if (account.credits) {
+    profileData.creditsBalance = account.credits.creditsBalance;
+    profileData.tierCreditsUsed = account.credits.tierCreditsUsed;
+    profileData.tierType = account.credits.tierType;
+    profileData.tierCreditResetDate = admin.firestore.Timestamp.fromDate(now);
+    profileData.lifetimePurchasedCredits = 0;
+    profileData.creditsUpdatedAt = admin.firestore.FieldValue.serverTimestamp();
   }
 
   // Write to profile subcollection
@@ -176,12 +203,13 @@ async function setupProfile(account: TestAccountProfile): Promise<void> {
   }, { merge: true });
   console.log(`  ✓ Root user document updated`);
 
-  // Update Firebase Auth display name
+  // Update Firebase Auth display name and mark email as verified
   await auth.updateUser(userId, {
     displayName: account.displayName,
     photoURL: account.photoURL || undefined,
+    emailVerified: true,  // Skip email verification for test accounts
   });
-  console.log(`  ✓ Firebase Auth updated`);
+  console.log(`  ✓ Firebase Auth updated (emailVerified: true)`);
 
   console.log(`\n  Profile summary:`);
   console.log(`    Name: ${account.displayName}`);
@@ -193,6 +221,16 @@ async function setupProfile(account: TestAccountProfile): Promise<void> {
     console.log(`    Theme Progress:`);
     console.log(`      - Themes: ${account.themeProgress.selectedThemeIds.join(', ')}`);
     console.log(`      - Trial Day: ${account.themeProgress.trialDay}`);
+    console.log(`      - themeAddedDates: per-theme tracking for Discovery tab`);
+  }
+  if (account.credits) {
+    const tierAllocation = account.credits.tierType === 'premium' ? 100 : account.credits.tierType === 'trial' ? 50 : 0;
+    const remaining = tierAllocation - account.credits.tierCreditsUsed + account.credits.creditsBalance;
+    console.log(`    Credits:`);
+    console.log(`      - Tier: ${account.credits.tierType} (${tierAllocation} allocation)`);
+    console.log(`      - Used: ${account.credits.tierCreditsUsed}`);
+    console.log(`      - Purchased: ${account.credits.creditsBalance}`);
+    console.log(`      - Remaining: ${remaining}`);
   }
 }
 

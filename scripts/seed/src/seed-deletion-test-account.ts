@@ -585,6 +585,13 @@ async function createUserProfile(userId: string): Promise<void> {
   // Default themes for deletion test account (matching configureForDeletionTest in Swift)
   const selectedThemeIds = ['german-american', 'scandinavian-heritage'];
 
+  // Per-theme added dates for Discovery tab (new model)
+  // Each theme gets its own addedDate - same date for both = day 3
+  const themeAddedDates: Record<string, admin.firestore.Timestamp> = {};
+  for (const themeId of selectedThemeIds) {
+    themeAddedDates[themeId] = admin.firestore.Timestamp.fromDate(twoDaysAgo);
+  }
+
   await db.collection('users').doc(userId).collection('profile').doc('data').set({
     displayName: TEST_DISPLAY_NAME,
     email: TEST_EMAIL,
@@ -593,6 +600,7 @@ async function createUserProfile(userId: string): Promise<void> {
     // Theme progress - CRITICAL for theme recipes to appear
     selectedThemeIds: selectedThemeIds,
     themeTrialStartDate: admin.firestore.Timestamp.fromDate(twoDaysAgo),
+    themeAddedDates: themeAddedDates, // Per-theme tracking for Discovery tab
 
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -602,6 +610,7 @@ async function createUserProfile(userId: string): Promise<void> {
   console.log('    - hasCompletedOnboarding: true');
   console.log(`    - selectedThemeIds: ${selectedThemeIds.join(', ')}`);
   console.log(`    - themeTrialStartDate: ${twoDaysAgo.toISOString()} (day 3)`);
+  console.log(`    - themeAddedDates: per-theme tracking for Discovery tab`);
 }
 
 /**

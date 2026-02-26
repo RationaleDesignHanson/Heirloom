@@ -10,11 +10,14 @@ import SwiftUI
 import Observation
 
 /// Paywall trigger types
+/// NOTE: With mandatory subscription during onboarding, soft walls are mostly obsolete
+/// as users subscribe (with Apple trial) before using the app. Hard walls still apply
+/// for users who cancel and revert to free tier.
 enum PaywallTrigger {
-    case firstRecipeAdded           // After 1st recipe (48hr cooldown)
-    case fiveRecipesOrDay7          // After 5 recipes OR day 7 (72hr cooldown)
-    case day13Urgency               // Day 13 urgency nudge (no cooldown)
-    case urlImport                  // Hard wall - URL import feature
+    case firstRecipeAdded           // After 1st recipe (48hr cooldown) - legacy, rarely fires now
+    case fiveRecipesOrDay7          // After 5 recipes OR day 7 (72hr cooldown) - legacy, rarely fires now
+    case day13Urgency               // Day 13 urgency nudge (no cooldown) - legacy, rarely fires now
+    // NOTE: urlImport removed - web import is now free (only AI image generation requires premium)
     case cookbookScan               // Hard wall - cookbook scan feature
     case sync                       // Hard wall - sync feature
     case largePDFImport(pageCount: Int)  // Hard wall - PDF import 50+ pages
@@ -25,7 +28,6 @@ enum PaywallTrigger {
         case .firstRecipeAdded: return "First Recipe"
         case .fiveRecipesOrDay7: return "5 Recipes or Day 7"
         case .day13Urgency: return "Day 13 Urgency"
-        case .urlImport: return "URL Import"
         case .cookbookScan: return "Cookbook Scan"
         case .sync: return "Sync"
         case .largePDFImport: return "Large PDF Import"
@@ -37,7 +39,7 @@ enum PaywallTrigger {
         switch self {
         case .firstRecipeAdded, .fiveRecipesOrDay7, .day13Urgency:
             return true
-        case .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
+        case .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
             return false
         }
     }
@@ -46,7 +48,7 @@ enum PaywallTrigger {
         switch self {
         case .firstRecipeAdded: return 48
         case .fiveRecipesOrDay7: return 72
-        case .day13Urgency, .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction: return nil
+        case .day13Urgency, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction: return nil
         }
     }
 }
@@ -161,7 +163,7 @@ final class PaywallManager {
         case .day13Urgency:
             return canTriggerDay13()
 
-        case .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
+        case .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
             return true // Hard walls always pass
         }
     }
@@ -352,7 +354,7 @@ final class PaywallManager {
         case .day13Urgency:
             UserDefaults.standard.set(true, forKey: Keys.hasTriggeredDay13)
 
-        case .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
+        case .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
             break // Hard walls don't track trigger date
         }
     }

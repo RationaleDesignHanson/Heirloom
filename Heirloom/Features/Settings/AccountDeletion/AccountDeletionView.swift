@@ -15,14 +15,13 @@ struct AccountDeletionView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @State private var deletionService = AccountDeletionService()
+    private let deletionService = ServiceContainer.shared.resolve(AccountDeletionService.self)
     @State private var currentStep: DeletionFlowStep = .confirmation
     @State private var dataSummary: AccountDataSummary?
     @State private var understandsConsequences = false
     @State private var showExportSheet = false
     @State private var isReauthenticating = false
     @State private var reauthError: String?
-    @State private var deletionProgress: DeletionProgress?
     @State private var appleAuthorizationCode: String? // For Apple token revocation
     @State private var emailPassword: String = "" // For email/password re-auth
 
@@ -34,8 +33,6 @@ struct AccountDeletionView: View {
         case subscriptionWarning
         case reAuthentication
         case finalConfirmation
-        case deleting
-        case complete
     }
 
     var body: some View {
@@ -50,33 +47,17 @@ struct AccountDeletionView: View {
                     reAuthenticationView
                 case .finalConfirmation:
                     finalConfirmationView
-                case .deleting:
-                    if let progress = deletionProgress {
-                        DeletionProgressView(progress: progress) {
-                            dismiss()
-                        }
-                    }
-                case .complete:
-                    if let progress = deletionProgress {
-                        DeletionProgressView(progress: progress) {
-                            // Exit app after account deletion - user must restart fresh
-                            exit(0)
-                        }
-                    }
                 }
             }
             .navigationTitle("Delete Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    if currentStep != .deleting && currentStep != .complete {
-                        Button("Cancel") {
-                            dismiss()
-                        }
+                    Button("Cancel") {
+                        dismiss()
                     }
                 }
             }
-            .interactiveDismissDisabled(currentStep == .deleting)
         }
         .onAppear {
             dataSummary = deletionService.getDataSummary(context: modelContext)
@@ -462,9 +443,7 @@ struct AccountDeletionView: View {
 
                 // Delete button
                 Button {
-                    Task {
-                        await performDeletion()
-                    }
+                    performDeletion()
                 } label: {
                     Text("Delete My Account")
                         .font(HeirloomFonts.bodyBold)
@@ -568,41 +547,27 @@ struct AccountDeletionView: View {
         }
     }
 
-    private func performDeletion() async {
-        currentStep = .deleting
-        deletionProgress = DeletionProgress(currentStep: .preparing)
+    private func performDeletion() {
+        // Capture what we need before the sheet dismisses
+        let context = modelContext
+        let authCode = appleAuthorizationCode
+        let service = deletionService
+        let toast = toastManager
 
-        do {
-            // Observe progress from service
-            Task { @MainActor in
-                // Poll for progress updates
-                while deletionService.isDeleting || !deletionService.progress.isComplete {
-                    deletionProgress = deletionService.progress
-                    if deletionService.progress.error != nil || deletionService.progress.isComplete {
-                        break
-                    }
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
-                }
-                deletionProgress = deletionService.progress
-            }
+        // Dismiss the sheet immediately — the blocking overlay on ContentView takes over
+        dismiss()
 
-            try await deletionService.deleteAccount(
-                context: modelContext,
-                appleAuthorizationCode: appleAuthorizationCode
-            )
-
-            await MainActor.run {
-                deletionProgress = DeletionProgress(currentStep: .complete, isComplete: true)
-                currentStep = .complete
-            }
-
-        } catch {
-            await MainActor.run {
-                deletionProgress = DeletionProgress(
-                    currentStep: deletionService.progress.currentStep,
-                    error: error.localizedDescription
+        // Launch an unstructured task that survives the sheet dismiss
+        Task { @MainActor in
+            do {
+                try await service.deleteAccount(
+                    context: context,
+                    appleAuthorizationCode: authCode
                 )
-                toastManager.error(title: "Deletion failed", message: error.localizedDescription)
+                // On success: Firebase auth deletion triggers isAuthenticated = false
+                // RootView swaps to FirebaseSignInView automatically
+            } catch {
+                toast.error(title: "Deletion failed", message: error.localizedDescription)
             }
         }
     }

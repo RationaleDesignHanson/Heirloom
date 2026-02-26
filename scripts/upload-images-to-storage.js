@@ -44,7 +44,17 @@ const THEME_ID_MAP = {
   'theme-11-presidential-pantry-cover.webp': 'presidential-pantry',
   'theme-12-literary-kitchen-cover.webp': 'literary-kitchen',
   'theme-13-ancient-table-cover.webp': 'ancient-table',
-  'theme-14-american-foundation-cover.webp': 'american-foundation'
+  'theme-14-american-foundation-cover.webp': 'american-foundation',
+  'classic-literature-cover.webp': 'classic-literature',
+  'childrens-stories-cover.webp': 'childrens-stories',
+  'fantasy-scifi-cover.webp': 'fantasy-scifi',
+  'crime-cult-classics-cover.webp': 'crime-cult-classics',
+  'magical-realism-cover.webp': 'magical-realism',
+  'romance-indulgence-cover.webp': 'romance-indulgence',
+  'dystopian-fiction-cover.webp': 'dystopian-fiction',
+  'film-tv-favourites-cover.webp': 'film-tv-favourites',
+  'feasts-banquets-cover.webp': 'feasts-banquets',
+  'cocktails-confections-cover.webp': 'cocktails-confections'
 };
 
 /**
@@ -132,7 +142,10 @@ async function uploadRecipeImages() {
         'automat-classics', 'railroad-dining', 'victory-kitchen', 'navy-mess',
         'boston-cooking', 'southern-roots', 'scandinavian-heritage', 'german-american',
         'quick-weeknight', 'sunday-suppers', 'presidential-pantry', 'literary-kitchen',
-        'ancient-table', 'american-foundation'
+        'ancient-table', 'american-foundation',
+        'classic-literature', 'childrens-stories', 'fantasy-scifi', 'crime-cult-classics',
+        'magical-realism', 'romance-indulgence', 'dystopian-fiction', 'film-tv-favourites',
+        'feasts-banquets', 'cocktails-confections'
       ];
 
       if (possibleThemes.includes(twoWordId)) {

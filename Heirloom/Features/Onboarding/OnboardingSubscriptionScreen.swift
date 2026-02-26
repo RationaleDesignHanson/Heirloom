@@ -20,21 +20,22 @@ struct OnboardingSubscriptionScreen: View {
     @Environment(SubscriptionManager.self) private var subscriptionManager
     @Environment(StoreManager.self) private var storeManager
     @Environment(PaywallManager.self) private var paywallManager
+    @Environment(\.firebaseAuth) private var firebaseAuth
 
     // MARK: - State
 
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isLoadingProducts = true
-    @State private var selectedPlan: ProductIdentifier = .annual
+    @State private var selectedPlan: ProductIdentifier = .monthly
     @State private var showSuccessFlourish = false
     @State private var flourishScale: CGFloat = 0.5
     @State private var flourishOpacity: Double = 0
+    @State private var showSignOutConfirmation = false
 
     // MARK: - Callbacks
 
     var onStartTrial: () -> Void
-    var onSkip: () -> Void
 
     // MARK: - Body
 
@@ -52,13 +53,31 @@ struct OnboardingSubscriptionScreen: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Progress indicator
-                Text("6/7")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundColor(HeirloomColors.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
+                // Progress indicator with sign-out escape hatch
+                HStack {
+                    Spacer()
+                    Text("6/7")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(HeirloomColors.secondaryText)
+                    Spacer()
+                }
+                .overlay(alignment: .trailing) {
+                    // Sign-out escape hatch (for users stuck due to StoreKit errors)
+                    if firebaseAuth.isAuthenticated {
+                        Button {
+                            showSignOutConfirmation = true
+                        } label: {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(HeirloomColors.secondaryText.opacity(0.5))
+                                .padding(8)
+                        }
+                        .accessibilityLabel("Sign out")
+                    }
+                }
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+                .padding(.horizontal, 16)
 
                 // Scrollable content
                 ScrollView {
@@ -106,66 +125,37 @@ struct OnboardingSubscriptionScreen: View {
                     .padding(.bottom, 16)
                 }
 
-                // Fixed bottom CTAs - Split button layout
+                // Fixed bottom CTA - Single subscribe button (no skip option)
                 VStack(spacing: 12) {
-                    // Split buttons: Trial on left, Free on right
-                    HStack(spacing: 12) {
-                        // Start Free Trial Button (Left)
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            purchaseSelectedPlan()
-                        }) {
-                            VStack(spacing: 3) {
-                                if isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(.circular)
-                                        .tint(.white)
-                                } else {
-                                    Text(ctaTitle)
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                    if let subtitle = ctaSubtitle {
-                                        Text(subtitle)
-                                            .font(.caption2)
-                                            .opacity(0.85)
-                                    }
+                    // Start Free Trial Button (full width)
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        purchaseSelectedPlan()
+                    }) {
+                        VStack(spacing: 3) {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .tint(.white)
+                            } else {
+                                Text(ctaTitle)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                if let subtitle = ctaSubtitle {
+                                    Text(subtitle)
+                                        .font(.caption2)
+                                        .opacity(0.85)
                                 }
                             }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(HeirloomColors.tomato)
-                            .foregroundColor(.white)
-                            .cornerRadius(14)
-                            .shadow(color: HeirloomColors.tomato.opacity(0.25), radius: 8, y: 4)
                         }
-                        .disabled(isLoading)
-
-                        // Continue Free Button (Right)
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            onSkip()
-                        }) {
-                            VStack(spacing: 3) {
-                                Text("Continue")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                Text("Free")
-                                    .font(.caption2)
-                                    .opacity(0.8)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.white)
-                            .foregroundColor(HeirloomColors.primaryText)
-                            .cornerRadius(14)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                            )
-                            .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
-                        }
-                        .disabled(isLoading)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(HeirloomColors.tomato)
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                        .shadow(color: HeirloomColors.tomato.opacity(0.25), radius: 8, y: 4)
                     }
+                    .disabled(isLoading)
 
                     // Error Message
                     if let error = errorMessage {
@@ -218,8 +208,16 @@ struct OnboardingSubscriptionScreen: View {
 
                     Text("Welcome to Heirloom!")
                         .font(HeirloomFonts.title2)
-                        .foregroundColor(.white)
+                        .foregroundColor(HeirloomColors.primaryText)
                 }
+                .padding(.horizontal, 48)
+                .padding(.vertical, 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
+                )
+                .scaleEffect(flourishScale)
                 .opacity(flourishOpacity)
                 .transition(.opacity)
             }
@@ -241,6 +239,23 @@ struct OnboardingSubscriptionScreen: View {
                 // Products already loaded
                 isLoadingProducts = false
             }
+        }
+        .confirmationDialog(
+            "Sign Out?",
+            isPresented: $showSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Sign Out", role: .destructive) {
+                do {
+                    try firebaseAuth.signOut()
+                    Log.info("User signed out from subscription screen", category: .auth)
+                } catch {
+                    Log.error("Failed to sign out from subscription screen", category: .auth, error: error)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Sign out to return to the sign-in screen.")
         }
     }
 
@@ -315,7 +330,7 @@ struct OnboardingSubscriptionScreen: View {
     private func planTrialText(for plan: ProductIdentifier) -> String {
         switch plan {
         case .annual, .monthly:
-            return "7-day free trial"
+            return "14-day free trial"
         case .lifetime:
             return "No subscription"
         }
@@ -445,9 +460,9 @@ struct OnboardingSubscriptionScreen: View {
                 onStartTrial()
 
             case .cancelled:
-                Log.info("Purchase cancelled during onboarding", category: .store)
+                // User cancelled - stay on screen so they can try again
+                Log.info("Purchase cancelled during onboarding - staying on screen", category: .store)
                 isLoading = false
-                onSkip()
 
             case .pending:
                 Log.info("Purchase pending", category: .store)

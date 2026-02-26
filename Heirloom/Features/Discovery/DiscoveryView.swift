@@ -15,7 +15,12 @@ struct DiscoveryView: View {
         ServiceContainer.shared.resolve(AnalyticsService.self)
     }
 
+    private var themeUnlockTracker: ThemeUnlockTracker {
+        ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+    }
+
     @State private var selectedTab: DiscoveryTab = .trending
+    @State private var showThemePacks = false
     @State private var trendingRecipes: [PublicRecipe] = []
     @State private var newRecipes: [PublicRecipe] = []
     @State private var popularRecipes: [PublicRecipe] = []
@@ -111,6 +116,9 @@ struct DiscoveryView: View {
             .sheet(isPresented: $showPublishingRules) {
                 PublishingRulesSheet()
             }
+            .sheet(isPresented: $showThemePacks) {
+                ThemePacksSheet()
+            }
         }
     }
 
@@ -173,6 +181,11 @@ struct DiscoveryView: View {
     private var feedContent: some View {
         ScrollView {
             LazyVStack(spacing: HeirloomSpacing.md) {
+                // Theme packs banner (when not searching)
+                if !isSearching {
+                    themePacksBanner
+                }
+
                 ForEach(currentContent, id: \.id) { recipe in
                     PublicRecipeCard(
                         recipe: recipe,
@@ -286,6 +299,61 @@ struct DiscoveryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(HeirloomSpacing.xl)
+    }
+
+    // MARK: - Theme Packs Banner
+
+    private var themePacksBanner: some View {
+        Button {
+            showThemePacks = true
+        } label: {
+            HStack(spacing: 14) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [HeirloomColors.tomato, HeirloomColors.tomato.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 52, height: 52)
+
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.white)
+                }
+
+                // Text content
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Heritage Themes")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Curated recipes from vanished eras")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
+                Spacer()
+
+                // Action indicator
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(HeirloomColors.tomato)
+            }
+            .padding(HeirloomSpacing.md)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(12)
+            .shadow(
+                color: HeirloomShadows.card.color,
+                radius: HeirloomShadows.card.radius,
+                x: HeirloomShadows.card.x,
+                y: HeirloomShadows.card.y
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Computed Properties

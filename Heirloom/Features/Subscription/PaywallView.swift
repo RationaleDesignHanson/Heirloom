@@ -14,7 +14,7 @@ struct PaywallView: View {
     @State private var storeManager: StoreManager
     @State private var subscriptionManager: SubscriptionManager
     @State private var paywallManager: PaywallManager
-    @State private var selectedProduct: ProductIdentifier = .annual
+    @State private var selectedProduct: ProductIdentifier = .monthly
     @State private var isPurchasing = false
     @State private var purchaseStatusMessage = "Processing..."
     @State private var showError = false
@@ -37,8 +37,8 @@ struct PaywallView: View {
         _subscriptionManager = State(initialValue: subManager)
         _paywallManager = State(initialValue: container.resolve(PaywallManager.self))
 
-        // Default to Annual plan (especially for upgraders)
-        _selectedProduct = State(initialValue: .annual)
+        // Default to Monthly plan (lower barrier to entry)
+        _selectedProduct = State(initialValue: .monthly)
     }
 
     var body: some View {
@@ -159,19 +159,25 @@ struct PaywallView: View {
                             badge: "ONE-TIME PAYMENT"
                         )
                     } else {
-                        // New users: Show all plans
+                        // Explanatory header for new users
+                        Text("Choose your plan — free for 14 days")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
+                            .padding(.bottom, 4)
+
+                        // New users: Show all plans (monthly first as default)
+                        planOption(
+                            productID: .monthly,
+                            price: "$6.99/month",
+                            trial: "14-day free trial",
+                            badge: nil
+                        )
+
                         planOption(
                             productID: .annual,
                             price: "$39.99/year",
                             trial: "14-day free trial",
                             badge: "BEST VALUE"
-                        )
-
-                        planOption(
-                            productID: .monthly,
-                            price: "$6.99/month",
-                            trial: "7-day free trial",
-                            badge: nil
                         )
 
                         planOption(
@@ -345,10 +351,7 @@ struct PaywallView: View {
 
         Button {
             selectedProduct = productID
-            // Adjust trial if needed
-            if productID.isSubscription {
-                subscriptionManager.adjustTrialForPlan(productID)
-            }
+            // NOTE: Local trial adjustment removed - Apple trials are fixed 14 days
         } label: {
             HStack(spacing: HeirloomSpacing.md) {
                 // Radio Button
@@ -474,7 +477,7 @@ struct PaywallView: View {
         case .annual:
             return "Start 14-Day Free Trial"
         case .monthly:
-            return "Start 7-Day Free Trial"
+            return "Start 14-Day Free Trial"
         case .lifetime:
             return "Buy Lifetime Access"
         }

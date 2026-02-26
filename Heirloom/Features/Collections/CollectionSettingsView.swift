@@ -178,7 +178,7 @@ struct CollectionSettingsView: View {
                 creditsStoreContent
             }
             .sheet(isPresented: $showPaywall) {
-                PaywallView(trigger: .urlImport)
+                PaywallView()
             }
         }
     }

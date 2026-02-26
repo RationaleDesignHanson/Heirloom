@@ -289,7 +289,7 @@ struct RecipeListView: View {
                     }
                 }
                 .sheet(isPresented: $showPaywall) {
-                    PaywallView(trigger: .urlImport)
+                    PaywallView()
                 }
                 // TODO: Re-enable for Phase A3
                 // .sheet(isPresented: $showHeritageUnlock) {

@@ -609,7 +609,7 @@ struct CollectionDetailView: View {
             }
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView(trigger: .urlImport)
+            PaywallView()
         }
         .confirmationDialog(
             "Add Recipe",

@@ -162,7 +162,7 @@ final class HeirloomDataExporter {
         }
 
         // Theme progress (always include if user has selected themes)
-        let themeProgressData = exportThemeProgress()
+        let themeProgressData = exportThemeProgress(context: context)
 
         // Get current user ID
         let userId = try? await profileService.fetchCurrentUserProfile().userId
@@ -1367,8 +1367,8 @@ final class HeirloomDataExporter {
 
     // MARK: - Theme Progress Export/Import
 
-    /// Export theme unlock progress from UserDefaults
-    private func exportThemeProgress() -> ThemeProgressExportData? {
+    /// Export theme unlock progress from UserDefaults and SwiftData
+    private func exportThemeProgress(context: ModelContext) -> ThemeProgressExportData? {
         let userDefaults = UserDefaults.standard
 
         // Check if user has selected themes
@@ -1389,17 +1389,33 @@ final class HeirloomDataExporter {
         let days = calendar.dateComponents([.day], from: trialStartDate, to: Date()).day ?? 0
         let currentTrialDay = min(max(days + 1, 1), 15)
 
+        // Get per-theme addedDates from SwiftData (new Discovery tab model)
+        var themeAddedDates: [String: String] = [:]
+        let formatter = ISO8601DateFormatter()
+
+        // Fetch RecipeTheme objects to get their addedDate values
+        let themeDescriptor = FetchDescriptor<RecipeTheme>()
+        if let themes = try? context.fetch(themeDescriptor) {
+            for theme in themes {
+                if let addedDate = theme.addedDate {
+                    themeAddedDates[theme.firebaseId] = formatter.string(from: addedDate)
+                }
+            }
+        }
+
         Log.info("Exporting theme progress", category: .storage, metadata: [
             "selectedThemes": selectedThemeIds.count,
             "currentDay": currentTrialDay,
-            "lastUnlockDay": lastUnlockDay
+            "lastUnlockDay": lastUnlockDay,
+            "themeAddedDatesCount": themeAddedDates.count
         ])
 
         return ThemeProgressExportData(
             selectedThemeIds: selectedThemeIds,
             trialStartDate: trialStartDate.iso8601,
             lastUnlockDay: lastUnlockDay,
-            currentTrialDay: currentTrialDay
+            currentTrialDay: currentTrialDay,
+            themeAddedDates: themeAddedDates.isEmpty ? nil : themeAddedDates
         )
     }
 
@@ -1419,11 +1435,22 @@ final class HeirloomDataExporter {
         userDefaults.set(trialStartDate, forKey: "theme_trial_start_date")
         userDefaults.set(data.lastUnlockDay, forKey: "last_unlock_day")
 
+        // Store per-theme addedDates for later application to RecipeTheme objects
+        // (themes may not be loaded yet, so store in UserDefaults temporarily)
+        if let themeAddedDates = data.themeAddedDates, !themeAddedDates.isEmpty {
+            // Store as dictionary of date strings - will be parsed when applied
+            userDefaults.set(themeAddedDates, forKey: "restored_theme_added_dates")
+            Log.info("Stored theme added dates for restoration", category: .storage, metadata: [
+                "count": themeAddedDates.count
+            ])
+        }
+
         Log.info("Restored theme progress", category: .storage, metadata: [
             "selectedThemes": data.selectedThemeIds.count,
             "trialStartDate": data.trialStartDate,
             "lastUnlockDay": data.lastUnlockDay,
-            "originalDay": data.currentTrialDay
+            "originalDay": data.currentTrialDay,
+            "themeAddedDatesCount": data.themeAddedDates?.count ?? 0
         ])
 
         // Notify ThemeUnlockTracker to reload state
