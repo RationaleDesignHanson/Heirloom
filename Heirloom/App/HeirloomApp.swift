@@ -2241,8 +2241,8 @@ struct ContentView: View {
                         hasCompletedOnboarding = true
 
                         // Start demo social behavior service after onboarding
+                        // Note: onOnboardingComplete() is already called inside OnboardingContainerView
                         DemoSocialBehaviorService.shared.start()
-                        DemoSocialBehaviorService.shared.onOnboardingComplete()
                     }
                 )
                 .environmentObject(notificationService)
@@ -2311,9 +2311,7 @@ struct ContentView: View {
                     hasCompletedOnboarding = true
                     isCheckingReturningUser = false  // dismiss overlay immediately
 
-                    // Start services for existing users
-                    DemoSocialBehaviorService.shared.start()
-                    DemoSocialBehaviorService.shared.onOnboardingComplete()
+                    // Demo social service will start via .onAppear when hasCompletedOnboarding becomes true
 
                     // Theme sync in background — non-blocking
                     Task { @MainActor in
@@ -2352,9 +2350,7 @@ struct ContentView: View {
                         isDownloadingHeritageAfterSignIn = false  // dismiss overlay immediately
                         isCheckingReturningUser = false
 
-                        // Start services for existing users
-                        DemoSocialBehaviorService.shared.start()
-                        DemoSocialBehaviorService.shared.onOnboardingComplete()
+                        // Demo social service will start via .onAppear when hasCompletedOnboarding becomes true
 
                         // Theme sync in background — non-blocking
                         Task { @MainActor in

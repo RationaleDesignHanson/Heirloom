@@ -431,11 +431,16 @@ final class DemoSocialBehaviorService: ObservableObject {
             return
         }
 
-        // Prevent duplicate sends if called multiple times in same session
+        // Prevent duplicate sends if called multiple times in same session.
+        // Set flag SYNCHRONOUSLY before async work — onOnboardingComplete() is called
+        // from multiple sites nearly simultaneously (OnboardingContainerView.onComplete,
+        // HeirloomApp onComplete closure, HeirloomApp .onAppear) and the async Firebase
+        // check would allow all calls through before any completes.
         if hasSentProactiveRequestThisSession {
             Log.debug("Proactive demo request already sent this session, skipping", category: .social)
             return
         }
+        hasSentProactiveRequestThisSession = true
 
         Log.info("scheduleProactiveDemoRequest: Starting Firebase check for existing demo connections", category: .social, metadata: [
             "userId": userId
@@ -536,9 +541,6 @@ final class DemoSocialBehaviorService: ObservableObject {
                 .collection("connections")
                 .document(connectionId)
                 .setData(userConnection)
-
-            // Mark as sent for this session (Firebase is source of truth for future sessions)
-            hasSentProactiveRequestThisSession = true
 
             Log.info("Demo user sent proactive connection request", category: .social, metadata: [
                 "demoUserId": demoUserId,
