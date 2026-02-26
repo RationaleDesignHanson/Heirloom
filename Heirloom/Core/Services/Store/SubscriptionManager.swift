@@ -214,8 +214,8 @@ final class SubscriptionManager {
         // Listen for sign-out to reset state
         setupSignOutObserver()
 
-        // Initialize trial if first launch
-        initializeTrialIfNeeded()
+        // NOTE: Local trial initialization removed - trials are now managed by Apple/RevenueCat
+        // Users must subscribe (with 14-day free trial) during onboarding
     }
 
     /// Listen for sign-out notification to reset all subscription state
@@ -231,10 +231,12 @@ final class SubscriptionManager {
         }
     }
 
-    /// Reset all in-memory subscription state (called on sign-out)
+    /// Reset all subscription state (called on sign-out)
+    /// CRITICAL: Must clear BOTH in-memory AND UserDefaults to prevent stale data on next sign-in
     private func resetAllState() {
         logger.log("Resetting all subscription state for sign-out", category: .store, level: .info, metadata: nil)
 
+        // Clear in-memory state
         status = .none
         trialExpiryDate = nil
         subscriptionExpiryDate = nil
@@ -243,7 +245,11 @@ final class SubscriptionManager {
         isRefreshing = false
         demoAccountHasPurchased = false
 
-        logger.log("Subscription state reset complete", category: .store, level: .info, metadata: nil)
+        // CRITICAL: Also clear UserDefaults cache to prevent stale data on next sign-in
+        // Without this, sandbox users who cleared purchases would still see old subscription status
+        clearCache()
+
+        logger.log("Subscription state reset complete (including UserDefaults cache)", category: .store, level: .info, metadata: nil)
     }
 
     // MARK: - Status Management
@@ -372,34 +378,8 @@ final class SubscriptionManager {
             }
         }
 
-        // Tester account check: Force trial status for fresh user experience
-        // This ignores any sandbox subscription data from shared Apple ID
-        // UNLESS the user has made a purchase in this session (currentProductID is set)
-        if isTesterAccountConfigured {
-            // If tester has purchased, honor that purchase
-            if let cachedProduct = currentProductID {
-                let cachedStatus: HeirloomSubscriptionStatus
-                switch cachedProduct {
-                case .monthly: cachedStatus = .monthly
-                case .annual: cachedStatus = .annual
-                case .lifetime: cachedStatus = .lifetime
-                }
-                logger.log("Tester account has purchased - using cached product: \(cachedProduct.displayName)", category: .store, level: .info, metadata: nil)
-                DeviceLogger.shared.log("🧪 [Tester] User purchased: \(cachedProduct.displayName)", level: .info)
-                updateStatus(cachedStatus)
-                isRefreshing = false
-                return
-            }
-
-            // No purchase - force trial status (ignore sandbox data)
-            logger.log("Tester account forcing trial status - ignoring sandbox subscription", category: .store, level: .info, metadata: nil)
-            DeviceLogger.shared.log("🧪 [Tester] Forcing trial status - ignoring sandbox", level: .info)
-            updateStatus(.trial)
-            isRefreshing = false
-            return
-        }
-
         // Try RevenueCat first (preferred method)
+        // Note: Tester accounts (tester01-05@) are treated as normal users - no special handling
         // Pass force to invalidate RevenueCat cache when needed (e.g., after manage subscription)
         // For demo accounts, pass isDemoAccount to prefer session purchase over stale sandbox data
         if let subscriptionInfo = await storeManager.getSubscriptionInfo(forceRefresh: force, isDemoAccount: isDemoAccountConfigured) {
@@ -408,9 +388,12 @@ final class SubscriptionManager {
             // CRITICAL: Don't let a slow refresh overwrite a recent purchase
             // This prevents race conditions where a refresh started before purchase
             // returns stale data after the purchase has already set the correct status
+            // EXCEPTION: If RevenueCat detects a TRIAL, always use that - it's more accurate
+            // than the product-based status we set from the purchase notification
             if let purchaseTime = lastPurchaseNotificationTime,
                Date().timeIntervalSince(purchaseTime) < purchaseProtectionWindow,
-               status.isPremium {
+               status.isPremium,
+               subscriptionInfo.status != .trial {  // Allow trial status to update
                 logger.log("Skipping status update - recent purchase notification takes precedence", category: .store, level: .info, metadata: nil)
                 isRefreshing = false
                 return
@@ -420,6 +403,14 @@ final class SubscriptionManager {
             updateStatus(subscriptionInfo.status)
             subscriptionExpiryDate = subscriptionInfo.expiryDate
             willRenew = subscriptionInfo.willRenew
+
+            // CRITICAL: For Apple-managed trials, set trialExpiryDate from RevenueCat
+            // This ensures the trial countdown displays correctly in Settings
+            if subscriptionInfo.status == .trial, let expiryDate = subscriptionInfo.expiryDate {
+                trialExpiryDate = expiryDate
+                UserDefaults.standard.set(expiryDate, forKey: Keys.trialExpiryDate)
+                logger.log("Apple trial expiry set from RevenueCat: \(expiryDate)", category: .store, level: .info, metadata: nil)
+            }
 
             // Cache the product ID based on status
             let productID: ProductIdentifier?
@@ -538,28 +529,14 @@ final class SubscriptionManager {
         }
     }
 
-    /// Handle trial status (no active purchase)
+    /// Handle status when no active subscription found
+    /// With Apple-managed trials, if user hasn't subscribed, they're on the free tier
     private func handleTrialStatus() {
-        guard UserDefaults.standard.object(forKey: Keys.firstLaunchDate) as? Date != nil else {
-            // No first launch date - not in trial
-            updateStatus(.none)
-            return
-        }
-
-        guard let trialExpiry = trialExpiryDate else {
-            // No trial expiry - not in trial
-            updateStatus(.none)
-            return
-        }
-
-        if Date() < trialExpiry {
-            // In trial
-            updateStatus(.trial)
-            calculateDaysRemaining()
-        } else {
-            // Trial expired
-            updateStatus(.expired)
-        }
+        // No active subscription from RevenueCat - user is on free tier
+        // NOTE: Local trial system removed. Trial status now only comes from RevenueCat
+        // when user has subscribed with Apple's introductory offer (14-day free trial)
+        logger.log("No active subscription - user is on free tier", category: .store, level: .info, metadata: nil)
+        updateStatus(.none)
     }
 
     /// Update subscription status
@@ -611,117 +588,41 @@ final class SubscriptionManager {
         )
     }
 
-    // MARK: - Trial Management
+    // MARK: - Trial Management (DEPRECATED - Now Apple/RevenueCat Managed)
+    //
+    // NOTE: Local trial system has been removed. Trials are now managed by Apple via
+    // introductory offers configured in App Store Connect. RevenueCat reads trial status
+    // from Apple and reports it via customerInfo.entitlements["premium"].periodType == .trial
+    //
+    // Users must subscribe (with 14-day free trial) during onboarding. The trial is tied
+    // to their Apple ID and cannot be reset by reinstalling or restoring backups.
 
-    /// Initialize trial when blind boxes are revealed (forces trial to start)
+    /// DEPRECATED: Local trial initialization removed
+    /// Trials are now started via Apple introductory offers when user subscribes
     func initializeTrialOnBlindBoxReveal() {
-        // Check if already initialized
-        if UserDefaults.standard.object(forKey: Keys.firstLaunchDate) != nil {
-            return
-        }
-
-        // Start trial now
-        let now = Date()
-        UserDefaults.standard.set(now, forKey: Keys.firstLaunchDate)
-
-        // Default to annual trial (14 days)
-        let trialExpiry = Calendar.current.date(byAdding: .day, value: trialDaysAnnual, to: now)!
-        UserDefaults.standard.set(trialExpiry, forKey: Keys.trialExpiryDate)
-
-        trialExpiryDate = trialExpiry
-        updateStatus(.trial)
-        calculateDaysRemaining()
-
-        logger.log(
-            "Trial started on blind box reveal: \(trialDaysAnnual) days",
-            category: .store,
-            level: .info,
-            metadata: nil
-        )
-
-        analytics.track(event: .trialStarted, properties: [
-            "trial_days": trialDaysAnnual,
-            "expiry_date": trialExpiry.ISO8601Format(),
-            "trigger": "blind_box_reveal"
-        ])
+        logger.log("initializeTrialOnBlindBoxReveal() called but local trials are disabled - use Apple trial via subscription", category: .store, level: .warning, metadata: nil)
+        // No-op: Trials are managed by Apple/RevenueCat
     }
 
-    /// Initialize trial on first launch
+    /// DEPRECATED: Local trial initialization removed
     private func initializeTrialIfNeeded() {
-        // Skip trial initialization if in debug non-premium mode
-        let debugForceNonPremium = UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? false
-        if debugForceNonPremium {
-            return
-        }
-
-        // Skip trial initialization if demo account was configured for App Store Review
-        // This prevents re-creating trial after configureForAppStoreReview() clears it
-        if UserDefaults.standard.bool(forKey: Keys.demoAccountConfigured) {
-            logger.log("Skipping trial initialization - demo account configured for App Store Review", category: .store, level: .info, metadata: nil)
-            return
-        }
-
-        // Check if already initialized
-        if UserDefaults.standard.object(forKey: Keys.firstLaunchDate) != nil {
-            return
-        }
-
-        // First launch - start trial
-        let now = Date()
-        UserDefaults.standard.set(now, forKey: Keys.firstLaunchDate)
-
-        // Default to annual trial (14 days) - user can choose monthly later
-        let trialExpiry = Calendar.current.date(byAdding: .day, value: trialDaysAnnual, to: now)!
-        UserDefaults.standard.set(trialExpiry, forKey: Keys.trialExpiryDate)
-
-        trialExpiryDate = trialExpiry
-        updateStatus(.trial)
-
-        logger.log(
-            "Trial started: \(trialDaysAnnual) days",
-            category: .store,
-            level: .info,
-            metadata: nil
-        )
-
-        analytics.track(event: .trialStarted, properties: [
-            "trial_days": trialDaysAnnual,
-            "expiry_date": trialExpiry.ISO8601Format()
-        ])
+        // No-op: Trials are managed by Apple/RevenueCat
     }
 
-    /// Adjust trial period when user selects a plan
-    /// Call this when user interacts with paywall and selects monthly vs annual
-    func adjustTrialForPlan(_ productID: ProductIdentifier) {
-        // Only adjust if in trial
-        guard status == .trial else { return }
-
-        // Only adjust if not already purchased
-        let trialDays = productID == .monthly ? trialDaysMonthly : trialDaysAnnual
-
-        guard let firstLaunch = UserDefaults.standard.object(forKey: Keys.firstLaunchDate) as? Date else {
-            return
+    /// DEPRECATED: Local trial after restore removed
+    /// After restore, user's subscription status comes from RevenueCat (tied to Apple ID)
+    func ensureTrialAfterRestore() {
+        logger.log("ensureTrialAfterRestore() called - refreshing status from RevenueCat instead", category: .store, level: .info, metadata: nil)
+        // Refresh from RevenueCat to get actual subscription/trial status
+        Task {
+            await refreshStatus(force: true)
         }
+    }
 
-        let newExpiry = Calendar.current.date(byAdding: .day, value: trialDays, to: firstLaunch)!
-
-        // Only update if different
-        guard newExpiry != trialExpiryDate else { return }
-
-        trialExpiryDate = newExpiry
-        UserDefaults.standard.set(newExpiry, forKey: Keys.trialExpiryDate)
-
-        logger.log(
-            "Trial adjusted: \(trialDays) days for \(productID.displayName)",
-            category: .store,
-            level: .info,
-            metadata: nil
-        )
-
-        analytics.track(event: .trialAdjusted, properties: [
-            "plan": productID.rawValue,
-            "trial_days": trialDays
-        ])
+    /// DEPRECATED: Local trial adjustment removed
+    /// Apple trials are fixed duration (14 days) set in App Store Connect
+    func adjustTrialForPlan(_ productID: ProductIdentifier) {
+        // No-op: Apple trial duration is fixed in App Store Connect
     }
 
     // MARK: - Days Remaining
@@ -842,21 +743,37 @@ final class SubscriptionManager {
                     // Track when we received this purchase notification to prevent race conditions
                     self.lastPurchaseNotificationTime = Date()
 
-                    // Update status directly from the purchased product
-                    let newStatus: HeirloomSubscriptionStatus
-                    switch productID {
-                    case .monthly: newStatus = .monthly
-                    case .annual: newStatus = .annual
-                    case .lifetime: newStatus = .lifetime
-                    }
-
                     // Cache the product ID (only after demo account check passes)
                     UserDefaults.standard.set(productID.rawValue, forKey: Keys.cachedProductID)
 
-                    // Update status
-                    self.updateStatus(newStatus)
+                    // CRITICAL: Check RevenueCat for trial period BEFORE setting status
+                    // The product ID alone doesn't tell us if user is in free trial
+                    if let subscriptionInfo = await self.storeManager.getSubscriptionInfo(forceRefresh: true, isDemoAccount: self.isDemoAccountConfigured) {
+                        // Use RevenueCat's actual status (which includes trial detection)
+                        self.updateStatus(subscriptionInfo.status)
 
-                    self.logger.log("Subscription updated directly from purchase: \(newStatus.displayName)", category: .store, level: .info, metadata: nil)
+                        // Set expiry dates
+                        if subscriptionInfo.status == .trial, let expiryDate = subscriptionInfo.expiryDate {
+                            self.trialExpiryDate = expiryDate
+                            UserDefaults.standard.set(expiryDate, forKey: Keys.trialExpiryDate)
+                        } else if let expiryDate = subscriptionInfo.expiryDate {
+                            self.subscriptionExpiryDate = expiryDate
+                            UserDefaults.standard.set(expiryDate, forKey: Keys.subscriptionExpiryDate)
+                        }
+
+                        self.willRenew = subscriptionInfo.willRenew
+                        self.logger.log("Subscription updated from RevenueCat after purchase: \(subscriptionInfo.status.displayName)", category: .store, level: .info, metadata: nil)
+                    } else {
+                        // Fallback: set status from product ID (no trial detection)
+                        let newStatus: HeirloomSubscriptionStatus
+                        switch productID {
+                        case .monthly: newStatus = .monthly
+                        case .annual: newStatus = .annual
+                        case .lifetime: newStatus = .lifetime
+                        }
+                        self.updateStatus(newStatus)
+                        self.logger.log("Subscription updated from product ID (fallback): \(newStatus.displayName)", category: .store, level: .info, metadata: nil)
+                    }
                 } else {
                     // No product ID in notification - this is a background transaction update
                     // For demo accounts, ignore background updates to maintain "expired" status

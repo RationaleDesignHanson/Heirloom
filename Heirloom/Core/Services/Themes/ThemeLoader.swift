@@ -15,7 +15,11 @@ actor ThemeLoader {
     private let firestore = Firestore.firestore()
 
     /// Fetch all available themes from Firebase and save to local database
-    func loadThemes(into context: ModelContext) async throws -> [RecipeTheme] {
+    /// - Parameters:
+    ///   - context: The SwiftData model context
+    ///   - clearUserState: If true, clears user-specific fields (isSelected, addedDate) on existing themes.
+    ///                     Use this on sign-in/onboarding to prevent stale data from previous sessions.
+    func loadThemes(into context: ModelContext, clearUserState: Bool = false) async throws -> [RecipeTheme] {
         let snapshot = try await firestore
             .collection("themes")
             .order(by: "sortOrder")
@@ -34,6 +38,13 @@ actor ThemeLoader {
                 if let existing = try? context.fetch(descriptor).first {
                     // Update existing
                     updateTheme(existing, from: theme)
+
+                    // Clear user-specific state if requested (prevents stale data from prior sessions)
+                    if clearUserState && (existing.isSelected || existing.addedDate != nil) {
+                        existing.isSelected = false
+                        existing.addedDate = nil
+                    }
+
                     themes.append(existing)
                 } else {
                     // Insert new

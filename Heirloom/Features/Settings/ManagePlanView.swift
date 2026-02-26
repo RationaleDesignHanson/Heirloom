@@ -24,7 +24,11 @@ struct ManagePlanView: View {
     @State private var restoreMessage = ""
 
     private var currentPlanName: String {
-        subscriptionManager.currentPlanName ?? "Free"
+        // For Apple-managed trials, show "Premium Trial" instead of "Free"
+        if subscriptionManager.isInTrial {
+            return "Premium Trial"
+        }
+        return subscriptionManager.currentPlanName ?? "Free"
     }
 
     // MARK: - Price Helpers
@@ -493,7 +497,7 @@ struct ManagePlanView: View {
         case .monthly:
             return "Monthly subscription with all premium features"
         case .trial:
-            return "Exploring Heirloom with limited features"
+            return "Full premium access during your free trial"
         default:
             return "Upgrade to unlock all features"
         }
@@ -503,9 +507,16 @@ struct ManagePlanView: View {
         guard subscriptionManager.isPremiumActual,
               subscriptionManager.status != .lifetime else { return nil }
 
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+
+        // For trials, show trial end date
+        if subscriptionManager.isInTrial, let date = subscriptionManager.trialExpiryDate {
+            return "Trial ends \(formatter.string(from: date))"
+        }
+
+        // For regular subscriptions, show renewal date
         if let date = subscriptionManager.subscriptionExpiryDate {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
             return "Renews \(formatter.string(from: date))"
         }
         return nil

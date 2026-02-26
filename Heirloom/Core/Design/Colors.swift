@@ -28,7 +28,7 @@ enum HeirloomColors {
     static let secondaryText = Color(light: warmGray, dark: Color(hex: "A0A0A0"))
     static let accent = tomato
     static let success = Color(hex: "4A9B4A")
-    static let warning = Color(hex: "E5A54B")
+    static let warning = Color(hex: "C65D3D") // Rusty orange (was E5A54B yellow)
     static let error = tomato
 
     // MARK: - Conflict Resolution Colors (v2.0+)

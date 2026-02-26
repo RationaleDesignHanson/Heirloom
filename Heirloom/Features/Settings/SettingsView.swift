@@ -6,6 +6,7 @@ import FirebaseStorage
 import FirebaseCrashlytics
 
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
@@ -38,6 +39,9 @@ struct SettingsView: View {
     // Visual style configuration for AI-generated images
     @ObservedObject private var visualStyleConfig: VisualStyleConfiguration = ServiceContainer.shared.resolve(VisualStyleConfiguration.self)
 
+    // Account deletion service — dismiss settings when deletion starts
+    private var accountDeletionService = ServiceContainer.shared.resolve(AccountDeletionService.self)
+
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var showSignIn = false
@@ -51,6 +55,8 @@ struct SettingsView: View {
     @State private var developerPassword = ""
     @State private var showDeveloperPasswordAlert = false
     @State private var showManagePlan = false
+    @State private var isResendingVerification = false
+    @State private var verificationEmailSent = false
 
     var body: some View {
         NavigationStack {
@@ -126,6 +132,11 @@ struct SettingsView: View {
                 // Also watch for user changes (different account sign-in)
                 authStateChanged.toggle()
             }
+            .onChange(of: accountDeletionService.isDeleting) { _, isDeleting in
+                if isDeleting {
+                    dismiss()
+                }
+            }
             .overlay {
                 if isClearingData {
                     ZStack {
@@ -173,7 +184,7 @@ struct SettingsView: View {
 
                 // Plan badge
                 if subscriptionManager.isPremium {
-                    Text(subscriptionManager.currentPlanName ?? "Premium")
+                    Text(subscriptionManager.isInTrial ? "Trial" : (subscriptionManager.currentPlanName ?? "Premium"))
                         .font(HeirloomFonts.caption1.weight(.medium))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
@@ -183,8 +194,8 @@ struct SettingsView: View {
                 }
             }
 
-            // Trial countdown (for free users)
-            if !subscriptionManager.isPremium, subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining {
+            // Trial countdown (for users in Apple-managed free trial)
+            if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining {
                 HStack {
                     Image(systemName: "clock.fill")
                         .font(HeirloomFonts.caption1)
@@ -275,6 +286,11 @@ struct SettingsView: View {
                     SettingsProfileRow()
                 }
 
+                // Email verification banner (only for email/password users)
+                if firebaseAuth.isEmailUser && !firebaseAuth.isEmailVerified {
+                    emailVerificationBanner
+                }
+
                 // Sign Out button
                 Button(role: .destructive) {
                     showSignOutConfirmation = true
@@ -304,6 +320,63 @@ struct SettingsView: View {
                 Text("Your recipes are stored locally. Sign in to enable cloud sync and sharing.")
             }
         }
+    }
+
+    // MARK: - Email Verification Banner
+
+    private var emailVerificationBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "envelope.badge")
+                .font(.title3)
+                .foregroundStyle(HeirloomColors.warning)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Verify your email")
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Text(verificationEmailSent ? "Check your inbox" : "Required for password reset")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            Spacer()
+
+            if isResendingVerification {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else if verificationEmailSent {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(HeirloomColors.success)
+            } else {
+                Button("Resend") {
+                    Task {
+                        await resendVerificationEmail()
+                    }
+                }
+                .font(HeirloomFonts.caption1Bold)
+                .foregroundStyle(HeirloomColors.tomato)
+            }
+        }
+        .padding(.vertical, 8)
+        .onAppear {
+            // Refresh verification status when view appears
+            Task {
+                await firebaseAuth.refreshEmailVerificationStatus()
+            }
+        }
+    }
+
+    private func resendVerificationEmail() async {
+        isResendingVerification = true
+        do {
+            try await firebaseAuth.resendVerificationEmail()
+            verificationEmailSent = true
+            toastManager.show(type: .success, title: "Verification email sent!")
+        } catch {
+            toastManager.show(type: .error, title: "Failed to send email")
+        }
+        isResendingVerification = false
     }
 
     // MARK: - App Info Section

@@ -129,10 +129,26 @@ struct SoftWallView: View {
 
     // MARK: - Dynamic Text
 
+    /// Whether user's subscription/trial has expired (vs never subscribed)
+    private var isExpiredUser: Bool {
+        subscriptionManager.status == .expired
+    }
+
     private var headlineText: String {
+        // Expired users get different messaging acknowledging their previous status
+        if isExpiredUser {
+            switch trigger {
+            case .cookbookScan:
+                return "Your trial has ended"
+            case .sync:
+                return "Your trial has ended"
+            default:
+                return "Your trial has ended"
+            }
+        }
+
+        // Non-expired users (never subscribed)
         switch trigger {
-        case .urlImport:
-            return "Import from URL requires Heirloom Premium"
         case .cookbookScan:
             return "Recipe scanning requires Heirloom Premium"
         case .sync:
@@ -143,15 +159,22 @@ struct SoftWallView: View {
     }
 
     private var subtitleText: String {
-        "You can still add recipes manually by typing them in."
+        if isExpiredUser {
+            switch trigger {
+            case .cookbookScan:
+                return "Subscribe to continue scanning cookbooks and importing recipes automatically."
+            case .sync:
+                return "Subscribe to sync your recipes across all your devices."
+            default:
+                return "Subscribe to continue using premium features like this one."
+            }
+        }
+
+        return "You can still add recipes manually by typing them in."
     }
 }
 
 // MARK: - Preview
-
-#Preview("URL Import") {
-    SoftWallView(trigger: .urlImport)
-}
 
 #Preview("Cookbook Scan") {
     SoftWallView(trigger: .cookbookScan)

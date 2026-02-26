@@ -49,16 +49,22 @@ struct FirebaseSignInView: View {
                         .frame(width: imageSize, height: imageSize)
                         .shadow(color: Color(red: 0.2, green: 0.15, blue: 0.1).opacity(0.3), radius: 12, x: 0, y: 6)
 
-                    // Title - Emotional hook
+                    // App name - prominent branding (largest text on screen)
+                    Text("Heirloom")
+                        .font(HeirloomFonts.largeTitle)
+                        .foregroundColor(HeirloomColors.primaryText)
+                        .padding(.top, compact ? 8 : 12)
+
+                    // Tagline - Emotional hook (smaller than app name)
                     VStack(spacing: HeirloomSpacing.sm) {
                         Text("Your family's recipes deserve a home")
-                            .font(HeirloomFonts.title1)
+                            .font(HeirloomFonts.title3)
                             .foregroundColor(HeirloomColors.primaryText)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text("Scattered across screenshots, texts, and fading cards — until now.")
-                            .font(HeirloomFonts.body)
+                            .font(HeirloomFonts.callout)
                             .foregroundColor(HeirloomColors.secondaryText)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -284,26 +290,6 @@ struct FirebaseSignInView: View {
 
     private var emailSignInView: some View {
         VStack(spacing: 20) {
-            // Back button
-            HStack {
-                Button {
-                    showEmailSignIn = false
-                    email = ""
-                    password = ""
-                    confirmPassword = ""
-                    isCreatingAccount = false
-                } label: {
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                    .font(HeirloomFonts.body)
-                    .foregroundColor(HeirloomColors.tomato)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 40)
-
             // Title
             Text(isCreatingAccount ? "Create Account" : "Sign In")
                 .font(HeirloomFonts.title2)
@@ -388,10 +374,20 @@ struct FirebaseSignInView: View {
                 }
             }
 
-            // Forgot password
-            if !isCreatingAccount {
-                HStack {
-                    Spacer()
+            // Forgot password + Create account row (above the submit button)
+            HStack {
+                Button {
+                    isCreatingAccount.toggle()
+                    confirmPassword = ""
+                } label: {
+                    Text(isCreatingAccount ? "Already have an account?" : "Create an account")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
+                }
+
+                Spacer()
+
+                if !isCreatingAccount {
                     Button {
                         showForgotPassword = true
                     } label: {
@@ -402,32 +398,43 @@ struct FirebaseSignInView: View {
                 }
             }
 
-            // Submit button
-            Button {
-                performSignIn()
-            } label: {
-                Text(isCreatingAccount ? "Create Account" : "Sign In")
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(HeirloomColors.buttonTextLight)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
-                    .cornerRadius(12)
-            }
-            .disabled(!canSubmit)
-            .opacity(canSubmit ? 1.0 : 0.5)
-            .animation(.easeInOut(duration: 0.2), value: isCreatingAccount)
+            // Cancel + Submit buttons
+            HStack(spacing: 12) {
+                Button {
+                    showEmailSignIn = false
+                    email = ""
+                    password = ""
+                    confirmPassword = ""
+                    isCreatingAccount = false
+                } label: {
+                    Text("Cancel")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color(hex: "#F8F8F8"))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
+                        )
+                }
 
-            // Toggle create/sign in
-            Button {
-                isCreatingAccount.toggle()
-                // Clear confirm password when switching modes
-                confirmPassword = ""
-            } label: {
-                Text(isCreatingAccount ? "Already have an account? Sign in" : "Don't have an account? Create one")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundColor(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
+                Button {
+                    performSignIn()
+                } label: {
+                    Text(isCreatingAccount ? "Create Account" : "Sign In")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
+                        .cornerRadius(12)
+                }
+                .disabled(!canSubmit)
+                .opacity(canSubmit ? 1.0 : 0.5)
             }
+            .animation(.easeInOut(duration: 0.2), value: isCreatingAccount)
         }
         .padding(.horizontal, 40)
         .padding(.bottom, 40) // Extra padding for home indicator

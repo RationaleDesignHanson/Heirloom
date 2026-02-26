@@ -13,6 +13,7 @@ import FirebaseAuth
 import GoogleSignIn
 import CryptoKit
 import os.log
+import RevenueCat
 
 /// Firebase authentication service with Sign in with Apple and Google
 @MainActor
@@ -54,6 +55,12 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             isAuthenticated = true
             hasCheckedInitialAuthState = true
             logger.log("Restored auth session: \(user.uid)", category: .auth, level: .info, metadata: nil)
+
+            // CRITICAL: Link RevenueCat to Firebase user ID on session restore
+            // This ensures subscription state is tied to the correct user
+            Task {
+                await self.linkRevenueCatUser(userId: user.uid)
+            }
         }
 
         // Listen for auth state changes
@@ -89,6 +96,10 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
                 if let user = user {
                     self.logger.log("User signed in: \(user.uid)", category: .auth, level: .info, metadata: nil)
+
+                    // CRITICAL: Link RevenueCat to Firebase user ID
+                    // This ensures subscription state persists across sign-out/sign-in
+                    await self.linkRevenueCatUser(userId: user.uid)
 
                     // NOTE: Do NOT sync profile here on sign-in!
                     // For returning users, local state (hasCompletedOnboarding, selectedThemeIds) is empty
@@ -291,11 +302,48 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             }
             logger.log("Successfully created account: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
             authError = nil
+
+            // Send verification email (soft enforcement - don't block on failure)
+            do {
+                try await authResult.user.sendEmailVerification()
+                logger.log("Verification email sent to \(email)", category: .auth, level: .info, metadata: nil)
+            } catch {
+                logger.log("Failed to send verification email: \(error.localizedDescription)", category: .auth, level: .warning, metadata: nil)
+                // Don't throw - account creation succeeded, verification email is nice-to-have
+            }
         } catch {
             logger.log("Account creation failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
             authError = error
             throw error
         }
+    }
+
+    /// Check if current user's email is verified
+    var isEmailVerified: Bool {
+        currentUser?.isEmailVerified ?? true // Default true for Apple/Google sign-in (always verified)
+    }
+
+    /// Resend verification email
+    func resendVerificationEmail() async throws {
+        guard let user = currentUser else {
+            throw AuthError.notAuthenticated
+        }
+
+        // Apple/Google users don't need verification
+        guard isEmailUser else {
+            logger.log("Skipping verification - not an email user", category: .auth, level: .debug, metadata: nil)
+            return
+        }
+
+        try await user.sendEmailVerification()
+        logger.log("Verification email resent", category: .auth, level: .info, metadata: nil)
+    }
+
+    /// Refresh user to check if email was verified
+    func refreshEmailVerificationStatus() async {
+        try? await currentUser?.reload()
+        // Update currentUser reference after reload
+        currentUser = configuration.auth.currentUser
     }
 
     /// Send password reset email
@@ -455,12 +503,26 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         UserDefaults.standard.removeObject(forKey: "demo_account_purchased_this_session")
         logger.log("✅ Cleared subscription and account state", category: .auth, level: .info, metadata: nil)
 
-        // NOTE: Theme unlock state is NOT cleared on sign-out
-        // Theme state (selected_theme_ids, trial dates) is managed per-user through:
-        // 1. Onboarding flow for new users
-        // 2. configureForDemoAccount() for demo@
-        // 3. configureForDeletionTest() for deletetest@
-        // Clearing theme state here would break multi-account usage on same device
+        // Clear theme unlock state — now synced from Firebase per-user
+        // Each user's theme selections are stored in Firebase and restored on login
+        UserDefaults.standard.removeObject(forKey: "selected_theme_ids")
+        UserDefaults.standard.removeObject(forKey: "theme_trial_start_date")
+        logger.log("✅ Cleared theme selection state", category: .auth, level: .info, metadata: nil)
+
+        // Clear paywall/soft wall trigger states — these are per-user engagement metrics
+        UserDefaults.standard.removeObject(forKey: "soft_wall_dismiss_count")
+        UserDefaults.standard.removeObject(forKey: "paywall_recipe_count")
+        UserDefaults.standard.removeObject(forKey: "has_triggered_first_recipe")
+        UserDefaults.standard.removeObject(forKey: "has_triggered_five_recipes")
+        UserDefaults.standard.removeObject(forKey: "has_triggered_day_13")
+        UserDefaults.standard.removeObject(forKey: "first_recipe_trigger_date")
+        UserDefaults.standard.removeObject(forKey: "five_recipes_trigger_date")
+        logger.log("✅ Cleared paywall trigger states", category: .auth, level: .info, metadata: nil)
+
+        // Clear UI state flags that are user-specific
+        UserDefaults.standard.removeObject(forKey: "hasShownTrialExpiredView")
+        UserDefaults.standard.removeObject(forKey: "hasSeenThemeCommitmentExplanation")
+        logger.log("✅ Cleared user-specific UI flags", category: .auth, level: .info, metadata: nil)
 
         // Post notification for app to clear SwiftData
         // (We can't access ModelContext directly from this service)
@@ -475,7 +537,44 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             object: nil
         )
 
+        // CRITICAL: Log out of RevenueCat to unlink subscription from this user
+        // This ensures the next sign-in gets fresh subscription state for the new user
+        // Without this, subscriptions "stick" to the anonymous RevenueCat ID
+        Task {
+            do {
+                _ = try await Purchases.shared.logOut()
+                Log.info("✅ RevenueCat: Logged out user", category: .auth)
+            } catch {
+                Log.warning("RevenueCat logout failed: \(error.localizedDescription)", category: .auth)
+            }
+        }
+
         logger.log("✅ Local user data clear requested", category: .auth, level: .info, metadata: nil)
+    }
+
+    /// Link RevenueCat user ID to Firebase user ID
+    /// CRITICAL: This ensures subscription state persists across sign-out/sign-in
+    private func linkRevenueCatUser(userId: String) async {
+        do {
+            let (customerInfo, created) = try await Purchases.shared.logIn(userId)
+            let hasPremium = customerInfo.entitlements["premium"]?.isActive == true
+            let periodType = customerInfo.entitlements["premium"]?.periodType
+
+            logger.log("✅ RevenueCat: Linked to Firebase user", category: .auth, level: .info, metadata: [
+                "userId": userId,
+                "created": created,
+                "hasPremium": hasPremium,
+                "periodType": periodType?.rawValue ?? 0
+            ])
+
+            // Trigger subscription status refresh now that RevenueCat knows the user
+            NotificationCenter.default.post(
+                name: .subscriptionStatusChanged,
+                object: nil
+            )
+        } catch {
+            logger.log("⚠️ RevenueCat: Failed to link user - \(error.localizedDescription)", category: .auth, level: .warning, metadata: nil)
+        }
     }
 }
 

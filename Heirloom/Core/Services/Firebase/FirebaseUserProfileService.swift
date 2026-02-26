@@ -173,6 +173,46 @@ class FirebaseUserProfileService {
         Log.info("Cleared user profile cache", category: .auth)
     }
 
+    /// Sync a single theme's added date to Firebase
+    /// Called when user adds a theme from ThemePacksSheet
+    func syncThemeAddedDate(themeId: String, addedDate: Date) async throws {
+        guard let userId = auth.currentUser?.uid else {
+            Log.warning("Cannot sync theme added date - no authenticated user", category: .auth)
+            return
+        }
+
+        // Get existing theme added dates or start fresh
+        let profileDocRef = db.collection("users").document(userId)
+            .collection("profile").document("data")
+
+        let doc = try? await profileDocRef.getDocument()
+        var themeAddedDates = doc?.data()?["themeAddedDates"] as? [String: Timestamp] ?? [:]
+
+        // Add/update this theme's date
+        themeAddedDates[themeId] = Timestamp(date: addedDate)
+
+        // Also update selectedThemeIds array
+        var selectedThemeIds = doc?.data()?["selectedThemeIds"] as? [String] ?? []
+        if !selectedThemeIds.contains(themeId) {
+            selectedThemeIds.append(themeId)
+        }
+
+        try await profileDocRef.setData([
+            "themeAddedDates": themeAddedDates,
+            "selectedThemeIds": selectedThemeIds,
+            "updatedAt": Timestamp(date: Date())
+        ], merge: true)
+
+        Log.info("Synced theme added date to Firebase", category: .auth, metadata: [
+            "themeId": themeId,
+            "addedDate": addedDate.description
+        ])
+    }
+
+    /// Get theme added dates that were restored from Firebase
+    /// Used by syncThemeDataOnLogin to apply dates to RecipeTheme objects
+    private(set) var restoredThemeAddedDates: [String: Date] = [:]
+
     /// Restore theme selections from Firebase profile (for returning users)
     /// Returns true if theme data was restored
     @discardableResult
@@ -238,6 +278,16 @@ class FirebaseUserProfileService {
                 }
             }
 
+            // Restore per-theme added dates (new Discovery tab model)
+            if let themeAddedDates = data["themeAddedDates"] as? [String: Timestamp] {
+                restoredThemeAddedDates = themeAddedDates.mapValues { $0.dateValue() }
+                Log.info("Restored theme added dates from Firebase", category: .auth, metadata: [
+                    "themeCount": restoredThemeAddedDates.count,
+                    "themes": restoredThemeAddedDates.keys.joined(separator: ", ")
+                ])
+                restored = true
+            }
+
             // Force synchronize UserDefaults to ensure values are persisted immediately
             UserDefaults.standard.synchronize()
 
@@ -259,6 +309,29 @@ class FirebaseUserProfileService {
                 "userId": userId
             ])
             return false
+        }
+    }
+
+    /// Fetch theme added dates directly from Firebase (for just-in-time sync)
+    /// Returns empty dictionary if user has no theme selections
+    func fetchThemeAddedDatesFromFirebase() async -> [String: Date] {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            return [:]
+        }
+
+        do {
+            let doc = try await db.collection("users").document(userId)
+                .collection("profile").document("data").getDocument()
+
+            guard let data = doc.data(),
+                  let themeAddedDates = data["themeAddedDates"] as? [String: Timestamp] else {
+                return [:]
+            }
+
+            return themeAddedDates.mapValues { $0.dateValue() }
+        } catch {
+            Log.error("Failed to fetch theme dates from Firebase", category: .theme, error: error)
+            return [:]
         }
     }
 

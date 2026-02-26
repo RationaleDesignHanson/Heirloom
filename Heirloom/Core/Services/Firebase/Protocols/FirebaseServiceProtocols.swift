@@ -467,6 +467,12 @@ protocol FirebaseAuthServiceProtocol: ObservableObject {
     /// Authentication error if any
     var authError: Error? { get }
 
+    /// Whether user signed in with email/password
+    var isEmailUser: Bool { get }
+
+    /// Whether current user's email is verified (always true for Apple/Google)
+    var isEmailVerified: Bool { get }
+
     /// Sign in with Apple
     func signInWithApple() async throws
 
@@ -487,4 +493,10 @@ protocol FirebaseAuthServiceProtocol: ObservableObject {
 
     /// Delete account
     func deleteAccount() async throws
+
+    /// Resend verification email (for email/password users)
+    func resendVerificationEmail() async throws
+
+    /// Refresh email verification status from server
+    func refreshEmailVerificationStatus() async
 }

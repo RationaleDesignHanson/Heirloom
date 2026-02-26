@@ -53,7 +53,7 @@ struct OnboardingTransformationScreen: View {
                                     .lineSpacing(2)
                                     .kerning(-0.5)
 
-                                Text("AI reads, understands, and organizes — automatically.")
+                                Text("Heirloom reads, understands, and organizes — automatically.")
                                     .font(HeirloomFonts.body)
                                     .foregroundColor(HeirloomColors.secondaryText)
                                     .multilineTextAlignment(.center)

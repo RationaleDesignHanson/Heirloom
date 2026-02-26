@@ -394,6 +394,17 @@ final class RevenueCatPurchaseService: PurchaseServiceProtocol {
                 return (.expired, entitlement.expirationDate, false)
             }
 
+            // CRITICAL: Check if user is in Apple-managed free trial period
+            // periodType == .trial indicates the user started a subscription with a free trial
+            // and hasn't been charged yet. This takes precedence over product type.
+            if entitlement.periodType == .trial {
+                logger.log("RevenueCat: User is in Apple-managed free trial period", category: .store, level: .info, metadata: [
+                    "product": entitlement.productIdentifier,
+                    "expirationDate": entitlement.expirationDate?.description ?? "nil"
+                ])
+                return (.trial, entitlement.expirationDate, entitlement.willRenew)
+            }
+
             // CRITICAL FIX: Check activeSubscriptions to find the highest-tier subscription
             // When user upgrades from monthly to annual then restores, entitlement.productIdentifier
             // may incorrectly return the old (monthly) product instead of the upgraded (annual) product.
@@ -491,6 +502,36 @@ final class RevenueCatPurchaseService: PurchaseServiceProtocol {
             throw StoreError.verificationFailed
         case .verified(let safe):
             return safe
+        }
+    }
+
+    // MARK: - User Identity
+
+    /// Link RevenueCat to Firebase user ID
+    /// CRITICAL: Must be called when user signs into Firebase to preserve subscription across sessions
+    func logIn(userId: String) async {
+        do {
+            let (customerInfo, created) = try await Purchases.shared.logIn(userId)
+            self.customerInfo = customerInfo
+            logger.log("RevenueCat: Logged in user", category: .store, level: .info, metadata: [
+                "userId": userId,
+                "created": created,
+                "hasPremium": customerInfo.entitlements[premiumEntitlementID]?.isActive == true
+            ])
+        } catch {
+            logger.log("RevenueCat: Failed to log in user - \(error.localizedDescription)", category: .store, level: .error, metadata: nil)
+        }
+    }
+
+    /// Unlink RevenueCat user on sign out
+    /// Returns to anonymous user ID
+    func logOut() async {
+        do {
+            let customerInfo = try await Purchases.shared.logOut()
+            self.customerInfo = customerInfo
+            logger.log("RevenueCat: Logged out user, now anonymous", category: .store, level: .info, metadata: nil)
+        } catch {
+            logger.log("RevenueCat: Failed to log out - \(error.localizedDescription)", category: .store, level: .warning, metadata: nil)
         }
     }
 }

@@ -1436,50 +1436,9 @@ struct RootView: View {
                         // For now, deletetest@ goes through normal onboarding to test restore from backup
                         Log.info("Deletion test account detected - self-healing DISABLED, using normal onboarding", category: .theme)
                         DeviceLogger.shared.log("🧪 [DeletionTest] Deletion test account sign-in - self-healing DISABLED")
-                    } else if subscriptionManager.isTesterAccount(email: authService.currentUserEmail) {
-                        // Tester account: Configure for fresh user experience
-                        // This account should go through full onboarding and start as a trial user
-                        // Ignores sandbox subscription data from shared Apple ID
-                        Log.info("Tester account detected - configuring for fresh user experience", category: .store)
-                        DeviceLogger.shared.log("🧪 [Tester] Tester account sign-in - fresh user flow")
-
-                        // DON'T skip onboarding for tester account - they should experience full onboarding
-                        // Only clear demo/deletion test flags
-                        subscriptionManager.clearDemoAccountConfiguration()
-
-                        // Configure tester account (forces trial status, ignores sandbox subscription)
-                        subscriptionManager.configureForTesterAccount()
-
-                        // Create UserCredits for tester account so trial credits show immediately
-                        if let userId = authService.currentUserId {
-                            Task { @MainActor in
-                                do {
-                                    let modelContext = modelContainer.mainContext
-                                    var descriptor = FetchDescriptor<UserCredits>()
-                                    descriptor.predicate = #Predicate<UserCredits> { credits in
-                                        credits.userId == userId
-                                    }
-
-                                    if try modelContext.fetch(descriptor).first == nil {
-                                        let newCredits = UserCredits(userId: userId)
-                                        // Trial tier is default, which gives 50 credits
-                                        modelContext.insert(newCredits)
-                                        try modelContext.save()
-                                        Log.info("Created UserCredits for tester account", category: .store, metadata: [
-                                            "userId": userId,
-                                            "tierType": newCredits.tierType,
-                                            "availableCredits": newCredits.availableCredits
-                                        ])
-                                        DeviceLogger.shared.log("🧪 [Tester] Created UserCredits with \(newCredits.availableCredits) trial credits", level: .info)
-                                    }
-                                } catch {
-                                    Log.error("Failed to create UserCredits for tester account: \(error)", category: .store)
-                                }
-                            }
-                        }
-
-                        DeviceLogger.shared.log("🧪 [Tester] Configured: trial status, full onboarding", level: .info)
                     } else {
+                        // Tester accounts (tester01-05@) are treated as normal users
+                        // They experience the full new user flow including paywall and Apple-managed trials
                         // Non-demo user: clear any demo/tester account configuration
                         // This restores normal trial behavior if device was previously used for App Store Review testing
                         if subscriptionManager.isDemoAccountConfigured {
@@ -2051,12 +2010,20 @@ struct ContentView: View {
     @ObservedObject var notificationService: FirebaseNotificationService
 
     // Badge service for connection requests
-    @ObservedObject private var badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+    @ObservedObject var badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+
+    // Account deletion service (singleton, @Observable)
+    var accountDeletionService = ServiceContainer.shared.resolve(AccountDeletionService.self)
 
     // Daily unlock celebration state
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @State private var showUnlockCelebration = false
     @State private var newUnlockInfo: (count: Int, themes: [String]) = (0, [])
+
+    // Trial expired sheet state
+    @State private var showTrialExpiredSheet = false
+    @AppStorage("hasShownTrialExpiredView") private var hasShownTrialExpiredView = false
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     var body: some View {
         Group {
@@ -2192,6 +2159,11 @@ struct ContentView: View {
                     } else {
                         // New user - proceed with normal onboarding flow
                         Log.info("New user detected - seeding heritage and showing onboarding", category: .auth)
+
+                        // CRITICAL: Clear stale theme data from SwiftData before onboarding
+                        // This prevents "3 of 3 active" bug when device had themes from previous test sessions
+                        await clearStaleThemeSelections()
+
                         await seedHeritageRecipesAfterAuth()
                         needsHeritageSeeding = false
                         isDownloadingHeritageAfterSignIn = false
@@ -2226,6 +2198,9 @@ struct ContentView: View {
         .overlay {
             if isDownloadingHeritageAfterSignIn {
                 heritageDownloadLoadingScreen
+            }
+            if accountDeletionService.isDeleting {
+                accountDeletionLoadingOverlay
             }
         }
     }
@@ -2406,6 +2381,14 @@ struct ContentView: View {
         //         }
         //     )
         // }
+        // Trial expired sheet - shown once when trial/subscription expires
+        .sheet(isPresented: $showTrialExpiredSheet) {
+            TrialExpiredView()
+                .onDisappear {
+                    // Mark as shown so we don't show again
+                    hasShownTrialExpiredView = true
+                }
+        }
         .overlay {
             if deepLinkCoordinator.isExtractingImageRecipes {
                 imageExtractionLoadingOverlay
@@ -2440,6 +2423,8 @@ struct ContentView: View {
             // Check for daily unlocks
             checkForDailyUnlock()
 
+            // Check if trial/subscription has expired and show TrialExpiredView once
+            checkForTrialExpired()
         }
     }
 
@@ -2488,6 +2473,29 @@ struct ContentView: View {
         themeUnlockTracker.markUnlocksAsSeen()
     }
 
+    // MARK: - Trial Expired Check
+
+    /// Check if trial/subscription has expired and show TrialExpiredView once
+    /// This gives users clear options after their trial ends
+    private func checkForTrialExpired() {
+        // Only show once
+        guard !hasShownTrialExpiredView else { return }
+
+        // Check if subscription status is expired
+        guard subscriptionManager.status == .expired else { return }
+
+        // Don't show if user has never been a subscriber (no entitlement history)
+        // This prevents showing to brand new free users
+        // The expired status means they HAD a subscription/trial that ended
+        Log.info("Trial/subscription expired - showing TrialExpiredView", category: .store)
+        DeviceLogger.shared.log("📋 [Store] Showing TrialExpiredView for expired subscription")
+
+        // Slight delay for better UX (let the main content load first)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
+            showTrialExpiredSheet = true
+        }
+    }
 
     // MARK: - Premium Unlock Observer
 
@@ -2598,6 +2606,45 @@ struct ContentView: View {
                 "themeCount": themes.count
             ])
 
+            // Step 1.5: Clear and restore theme selections
+            // IMPORTANT: ALWAYS clear all theme selections to remove stale data from previous sessions
+            // RecipeTheme objects persist in SwiftData across sign-out (unlike Recipe/RecipeCollection),
+            // so we must reset user-specific data before applying any Firebase-restored values.
+            // This fixes the bug where theme counter shows "3 of 3 active" instead of "1 of 3"
+            // after switching accounts or fresh sign-in.
+
+            // Always clear existing theme selections first
+            var clearedCount = 0
+            for theme in themes {
+                if theme.addedDate != nil || theme.isSelected {
+                    theme.addedDate = nil
+                    theme.isSelected = false
+                    clearedCount += 1
+                }
+            }
+            if clearedCount > 0 {
+                Log.info("Cleared stale theme selections on sign-in", category: .theme, metadata: [
+                    "clearedCount": clearedCount
+                ])
+            }
+
+            // Now apply restored values from Firebase (if any)
+            if let profileService = ServiceContainer.shared.resolveOptional(FirebaseUserProfileService.self),
+               !profileService.restoredThemeAddedDates.isEmpty {
+                for theme in themes {
+                    if let addedDate = profileService.restoredThemeAddedDates[theme.firebaseId] {
+                        theme.addedDate = addedDate
+                        theme.isSelected = true
+                        Log.info("Restored theme addedDate", category: .theme, metadata: [
+                            "themeId": theme.firebaseId,
+                            "addedDate": addedDate.description
+                        ])
+                    }
+                }
+            }
+
+            try modelContext.save()
+
             // Step 2: Download theme recipes for selected themes
             // Read directly from UserDefaults to ensure we get freshly restored values
             // (themeUnlockTracker.selectedThemeIds is a computed property but may have caching)
@@ -2635,6 +2682,40 @@ struct ContentView: View {
 
         } catch {
             Log.error("Failed to sync themes on login", category: .theme, error: error)
+        }
+    }
+
+    /// Clear stale theme selections from SwiftData
+    /// Called for new users to prevent "3 of 3 active" bug from previous test sessions
+    private func clearStaleThemeSelections() async {
+        guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+            Log.warning("Cannot clear themes - ModelContainer not ready", category: .theme)
+            return
+        }
+
+        let modelContext = modelContainer.mainContext
+
+        do {
+            let descriptor = FetchDescriptor<RecipeTheme>()
+            let themes = try modelContext.fetch(descriptor)
+
+            var clearedCount = 0
+            for theme in themes {
+                if theme.addedDate != nil || theme.isSelected {
+                    theme.addedDate = nil
+                    theme.isSelected = false
+                    clearedCount += 1
+                }
+            }
+
+            if clearedCount > 0 {
+                try modelContext.save()
+                Log.info("Cleared stale theme selections for new user", category: .theme, metadata: [
+                    "clearedCount": clearedCount
+                ])
+            }
+        } catch {
+            Log.error("Failed to clear stale theme selections", category: .theme, error: error)
         }
     }
 
@@ -2801,6 +2882,40 @@ struct ContentView: View {
 
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.3)
+            }
+            .padding(40)
+        }
+    }
+
+    /// Blocking overlay shown during account deletion
+    /// Fully opaque to hide underlying UI (user cannot interact during deletion)
+    @ViewBuilder
+    private var accountDeletionLoadingOverlay: some View {
+        ZStack {
+            // Fully opaque background - hides underlying UI completely
+            HeirloomColors.appBackground
+                .ignoresSafeArea()
+
+            VStack(spacing: HeirloomSpacing.lg) {
+                Image(systemName: "person.crop.circle.badge.minus")
+                    .font(.system(size: 56))
+                    .foregroundStyle(.red)
+
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Text(accountDeletionService.progress.currentStep.displayText)
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .multilineTextAlignment(.center)
+
+                    Text("Please don't close the app")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: HeirloomColors.tomato))
                     .scaleEffect(1.3)
             }
             .padding(40)
