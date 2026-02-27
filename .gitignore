@@ -103,3 +103,8 @@ ui-debug.log
 # Simulator recordings
 recordings/*.mp4
 recordings/*.mov
+
+# Scratch/context dump files
+fbaudit.txt
+firebase-context-dump.md
+heirloom-context-dump.md
