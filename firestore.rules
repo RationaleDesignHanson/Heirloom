@@ -467,6 +467,37 @@ service cloud.firestore {
       // Only owner can delete
       allow delete: if isAuthenticated() &&
                        request.auth.uid == resource.data.ownerId;
+
+      // Shared recipes in the kitchen table
+      match /recipes/{shareId} {
+        // Members can read and write shared recipes
+        allow read: if isAuthenticated() &&
+                       request.auth.uid in get(/databases/$(database)/documents/kitchenTables/$(tableId)).data.memberIds;
+        allow write: if isAuthenticated() &&
+                        request.auth.uid in get(/databases/$(database)/documents/kitchenTables/$(tableId)).data.memberIds;
+      }
+
+      // Kitchen table members
+      match /members/{memberId} {
+        // Members can read the member list
+        allow read: if isAuthenticated() &&
+                       request.auth.uid in get(/databases/$(database)/documents/kitchenTables/$(tableId)).data.memberIds;
+        // Only owner can write (add/remove members)
+        allow write: if isAuthenticated() &&
+                        request.auth.uid == get(/databases/$(database)/documents/kitchenTables/$(tableId)).data.ownerId;
+      }
+
+      // Kitchen table invites
+      match /invites/{inviteId} {
+        // Invited user can read their invite
+        allow read: if isAuthenticated() &&
+                       request.auth.uid == resource.data.invitedUserId;
+        // Members can create invites
+        allow create: if isAuthenticated() &&
+                         request.auth.uid in get(/databases/$(database)/documents/kitchenTables/$(tableId)).data.memberIds;
+        // No update/delete from client (managed by Cloud Functions or owner via parent)
+        allow update, delete: if false;
+      }
     }
 
     // ========================================

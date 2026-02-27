@@ -78,6 +78,11 @@ enum Feature: String, CaseIterable, Codable {
     /// User onboarding flow
     case onboarding = "onboarding"
 
+    // MARK: - Upcoming Features
+
+    /// Card customization with stickers (gated until sticker assets are verified)
+    case cardCustomization = "card_customization"
+
     // MARK: - Developer Tools
 
     /// Debug menu and developer tools
@@ -109,6 +114,7 @@ extension Feature {
         case .shoppingLists: return "Shopping Lists"
         case .stats: return "Stats"
         case .onboarding: return "Onboarding"
+        case .cardCustomization: return "Card Customization"
         case .debugMenu: return "Debug Menu"
         }
     }
@@ -135,6 +141,7 @@ extension Feature {
         case .shoppingLists: return "Generate shopping lists from recipes"
         case .stats: return "View recipe statistics and insights"
         case .onboarding: return "First-time user onboarding flow"
+        case .cardCustomization: return "Sticker decorations on recipe cards"
         case .debugMenu: return "Developer tools and debugging features"
         }
     }
@@ -162,6 +169,8 @@ extension Feature {
             return .social
         case .shoppingLists, .stats, .onboarding:
             return .utility
+        case .cardCustomization:
+            return .core
         case .debugMenu:
             return .developer
         }

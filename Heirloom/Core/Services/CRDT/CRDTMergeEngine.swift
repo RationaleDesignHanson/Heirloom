@@ -34,8 +34,13 @@ class CRDTMergeEngine {
             return true
         }
 
-        // Allow array access patterns: ingredients[0], instructions[1]
-        if fieldPath.starts(with: "ingredients[") || fieldPath.starts(with: "instructions[") {
+        // Allow sticker field paths: stickers, stickers[N]
+        if fieldPath == "stickers" {
+            return true
+        }
+
+        // Allow array access patterns: ingredients[0], instructions[1], stickers[0]
+        if fieldPath.starts(with: "ingredients[") || fieldPath.starts(with: "instructions[") || fieldPath.starts(with: "stickers[") {
             // Extract and validate the index
             let components = fieldPath.split(separator: "[")
             guard components.count == 2,
@@ -260,6 +265,10 @@ class CRDTMergeEngine {
             break
         case .addCustomization, .modifyCustomization, .deleteCustomization, .reorderCustomizations:
             // Customization operations are handled separately
+            break
+        case .addSticker, .removeSticker, .moveSticker:
+            // Sticker operations are handled by CardCustomizationService
+            // (gated by .cardCustomization feature flag)
             break
         }
     }

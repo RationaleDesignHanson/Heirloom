@@ -155,6 +155,12 @@ final class RecipeOperation: Codable, Identifiable {
             return "\(userName) deleted a customization"
         case .reorderCustomizations:
             return "\(userName) reordered customizations"
+        case .addSticker:
+            return "\(userName) added a sticker"
+        case .removeSticker:
+            return "\(userName) removed a sticker"
+        case .moveSticker:
+            return "\(userName) moved a sticker"
         }
     }
 
@@ -194,6 +200,11 @@ enum OperationType: String, Codable {
     case modifyCustomization   // Customization modified (position, size, rotation, etc.)
     case deleteCustomization   // Customization soft-deleted
     case reorderCustomizations // Z-index reordering of multiple customizations
+
+    // MARK: - Sticker Operations (gated by .cardCustomization feature flag)
+    case addSticker            // Sticker placed on recipe card
+    case removeSticker         // Sticker removed from recipe card
+    case moveSticker           // Sticker repositioned/resized on recipe card
 }
 
 // MARK: - Operation Value
