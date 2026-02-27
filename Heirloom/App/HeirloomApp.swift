@@ -7,6 +7,7 @@ import os.log
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseCrashlytics
+import FirebaseAppCheck
 import RevenueCat
 
 // Device-visible logging
@@ -189,6 +190,14 @@ struct HeirloomApp: App {
 
             // Only configure if not already configured
             if FirebaseApp.app() == nil {
+                // App Check must be set BEFORE FirebaseApp.configure()
+                #if DEBUG
+                let providerFactory = AppCheckDebugProviderFactory()
+                #else
+                let providerFactory = DeviceCheckProviderFactory()
+                #endif
+                AppCheck.setAppCheckProviderFactory(providerFactory)
+
                 DeviceLogger.shared.log("📝 [Heirloom] Calling FirebaseApp.configure()...")
                 FirebaseApp.configure()
                 DeviceLogger.shared.log("✅ [Heirloom] FirebaseApp.configure() completed")

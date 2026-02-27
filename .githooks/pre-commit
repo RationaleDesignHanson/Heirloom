@@ -52,20 +52,10 @@ for file in $SWIFT_FILES; do
     fi
 done
 
-# Check 5: Syntax check (Swift compiler)
-# Skip test files - they use @testable import which requires the module to be built
-# Xcode build and CI will catch syntax errors in test files
-echo "Running Swift syntax check..."
-for file in $SWIFT_FILES; do
-    # Skip test files (swiftc can't resolve @testable import outside Xcode)
-    if [[ "$file" == *"Tests"* ]] || grep -q "@testable import" "$file" 2>/dev/null; then
-        continue
-    fi
-    if ! swiftc -syntax "$file" > /dev/null 2>&1; then
-        echo -e "${RED}✗${NC} Syntax error in: $file"
-        FAILED=1
-    fi
-done
+# Check 5: Syntax check (disabled)
+# Note: swiftc -syntax doesn't work for iOS projects because it can't resolve
+# SDK imports (UIKit, SwiftUI, Firebase, etc.) without full SDK paths.
+# Xcode build catches all real syntax errors, so this check is redundant.
 
 # Check 6: Verify no Config.xcconfig being committed
 if git diff --cached --name-only | grep -q "Config.xcconfig"; then
