@@ -76,9 +76,14 @@ service firebase.storage {
     match /publicRecipes/{recipeId}/{imageFile} {
       // Public read - these are community-shared recipes
       allow read: if true;
-      // Only authenticated users can upload (when publishing)
-      allow write: if request.auth != null;
-      allow delete: if request.auth != null;
+      // Upload: user must set ownerId metadata matching their auth UID
+      // Overwrite: existing file's ownerId must also match (prevents hijacking)
+      allow write: if request.auth != null &&
+                      request.resource.metadata['ownerId'] == request.auth.uid &&
+                      (resource == null || resource.metadata['ownerId'] == request.auth.uid);
+      // Delete: only the original uploader can delete
+      allow delete: if request.auth != null &&
+                       resource.metadata['ownerId'] == request.auth.uid;
     }
 
     // ========================================
