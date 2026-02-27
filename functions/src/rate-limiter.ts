@@ -31,39 +31,42 @@ export async function checkRateLimit(userId: string, operation: keyof typeof RAT
   const now = Date.now();
 
   const docRef = db.collection('rateLimits').doc(key);
-  const doc = await docRef.get();
-  const data = doc.data();
 
-  // Check if limit exceeded
-  if (data && data.count >= config.limit) {
-    const resetAt = data.resetAt.toMillis();
-    if (now < resetAt) {
-      const hoursUntilReset = Math.ceil((resetAt - now) / (60 * 60 * 1000));
+  await db.runTransaction(async (transaction) => {
+    const doc = await transaction.get(docRef);
+    const data = doc.data();
 
-      functions.logger.warn('Rate limit exceeded', { userId, operation, count: data.count, limit: config.limit });
+    // Check if limit exceeded
+    if (data && data.count >= config.limit) {
+      const resetAt = data.resetAt.toMillis();
+      if (now < resetAt) {
+        const hoursUntilReset = Math.ceil((resetAt - now) / (60 * 60 * 1000));
 
-      throw new functions.https.HttpsError(
-        'resource-exhausted',
-        `Rate limit exceeded. You can make ${config.limit} ${operation} requests per day. Try again in ${hoursUntilReset} hours.`
-      );
+        functions.logger.warn('Rate limit exceeded', { userId, operation, count: data.count, limit: config.limit });
+
+        throw new functions.https.HttpsError(
+          'resource-exhausted',
+          `Rate limit exceeded. You can make ${config.limit} ${operation} requests per day. Try again in ${hoursUntilReset} hours.`
+        );
+      }
     }
-  }
 
-  // Increment or reset counter
-  if (!data || now >= data.resetAt.toMillis()) {
-    // Start new window
-    await docRef.set({
-      count: 1,
-      resetAt: new Date(now + config.windowMs),
-      lastRequest: admin.firestore.FieldValue.serverTimestamp(),
-    });
-  } else {
-    // Increment existing window
-    await docRef.update({
-      count: admin.firestore.FieldValue.increment(1),
-      lastRequest: admin.firestore.FieldValue.serverTimestamp(),
-    });
-  }
+    // Increment or reset counter (atomic with the read above)
+    if (!data || now >= data.resetAt.toMillis()) {
+      // Start new window
+      transaction.set(docRef, {
+        count: 1,
+        resetAt: new Date(now + config.windowMs),
+        lastRequest: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } else {
+      // Increment existing window
+      transaction.update(docRef, {
+        count: data.count + 1,
+        lastRequest: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+  });
 }
 
 /**
