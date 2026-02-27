@@ -146,6 +146,12 @@ class SnapshotTestCase: XCTestCase {
     var mockSync: MockSnapshotSync!
     var mockLineage: MockSnapshotLineage!
 
+    // Shared @EnvironmentObject instances resolved from ServiceContainer.
+    // Views like RecipeListView, RecipeDetailView, and RecipeImportView
+    // require these injected via .environmentObject().
+    var notificationService: FirebaseNotificationService!
+    var tabCoordinator: TabNavigationCoordinator!
+
     /// Set via SNAPSHOT_RECORD=true environment variable to record golden images
     var isRecording: Bool {
         ProcessInfo.processInfo.environment["SNAPSHOT_RECORD"] == "true"
@@ -174,6 +180,10 @@ class SnapshotTestCase: XCTestCase {
         // Without this, any view instantiation triggers fatalError.
         ServiceContainer.shared.registerProductionServices()
 
+        // VideoProcessingJobManager is referenced in a comment in ServiceRegistration.swift
+        // but not actually registered. Register it here so RecipeListView can resolve it.
+        ServiceContainer.shared.register(VideoProcessingJobManager.self, instance: VideoProcessingJobManager())
+
         // In-memory SwiftData container with models used by snapshot views.
         // RecipeGenerationJob and SyncJob are excluded due to @Model visibility
         // issues across test target boundaries.
@@ -195,6 +205,10 @@ class SnapshotTestCase: XCTestCase {
         mockAuth = MockSnapshotAuth.signedOut()
         mockSync = MockSnapshotSync()
         mockLineage = MockSnapshotLineage()
+
+        // Resolve shared @EnvironmentObject instances from the now-populated container.
+        notificationService = ServiceContainer.shared.resolve(FirebaseNotificationService.self)
+        tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
     }
 
     override func tearDown() async throws {
@@ -204,12 +218,15 @@ class SnapshotTestCase: XCTestCase {
         mockAuth = nil
         mockSync = nil
         mockLineage = nil
+        notificationService = nil
+        tabCoordinator = nil
         try await super.tearDown()
     }
 
     // MARK: - Snapshot Helpers
 
     /// Wraps a SwiftUI view with common environment dependencies and snapshots at both device sizes.
+    /// Injects: modelContainer, mock auth/sync/lineage, notificationService, tabCoordinator.
     func assertBothDevices<V: View>(
         _ view: V,
         named name: String,
@@ -222,6 +239,8 @@ class SnapshotTestCase: XCTestCase {
             .environment(\.firebaseAuth, mockAuth)
             .environment(\.firebaseSync, mockSync)
             .environment(\.firebaseLineage, mockLineage)
+            .environmentObject(notificationService!)
+            .environmentObject(tabCoordinator!)
 
         let iPhone16VC = UIHostingController(rootView: wrapped)
         assertSnapshot(

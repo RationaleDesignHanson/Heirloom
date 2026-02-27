@@ -7,41 +7,15 @@ import XCTest
 @MainActor
 final class RecipeListSnapshotTests: SnapshotTestCase {
 
-    // MARK: - Setup
-    //
-    // RecipeListView resolves many services from ServiceContainer:
-    //   ImageStorageService, ToastManager, MilestoneManager,
-    //   RecipeImageGeneratorProtocol, AnalyticsService, CRDTMergeEngine,
-    //   BackendConfig, SubscriptionManager
-    //
-    // It also requires TabNavigationCoordinator as @EnvironmentObject.
-    //
-    // Register all required services in setUp below.
-
-    private var tabCoordinator: TabNavigationCoordinator!
-
     override func setUp() async throws {
         try await super.setUp()
         mockAuth = MockSnapshotAuth.authenticated()
-        tabCoordinator = TabNavigationCoordinator()
-
-        // NOTE: Register additional ServiceContainer dependencies here
-        // if the view init crashes. Known dependencies listed in header comment.
-    }
-
-    override func tearDown() async throws {
-        tabCoordinator = nil
-        try await super.tearDown()
     }
 
     // MARK: - Empty State
 
     func testRecipeList_empty() {
         let view = RecipeListView()
-            .environmentObject(tabCoordinator!)
-            .environment(\.firebaseAuth, mockAuth)
-            .environment(\.firebaseSync, mockSync)
-            .environment(\.firebaseLineage, mockLineage)
 
         assertBothDevices(view, named: "recipeList_empty")
     }
@@ -70,10 +44,6 @@ final class RecipeListSnapshotTests: SnapshotTestCase {
         try saveContext()
 
         let view = RecipeListView()
-            .environmentObject(tabCoordinator!)
-            .environment(\.firebaseAuth, mockAuth)
-            .environment(\.firebaseSync, mockSync)
-            .environment(\.firebaseLineage, mockLineage)
 
         assertBothDevices(view, named: "recipeList_threeRecipes")
     }

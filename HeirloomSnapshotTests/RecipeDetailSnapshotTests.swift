@@ -7,30 +7,9 @@ import XCTest
 @MainActor
 final class RecipeDetailSnapshotTests: SnapshotTestCase {
 
-    // MARK: - Setup
-    //
-    // RecipeDetailView(recipe:) resolves services from ServiceContainer:
-    //   RecipeImageGeneratorProtocol, BackendConfig, RecipeExportService,
-    //   ToastManager, AnalyticsService, CommentService, RecipeLineageService
-    //
-    // It also requires FirebaseNotificationService as @EnvironmentObject.
-
-    private var notificationService: FirebaseNotificationService!
-    private let logger: LoggingService = HeirloomLogger()
-
     override func setUp() async throws {
         try await super.setUp()
         mockAuth = MockSnapshotAuth.authenticated()
-
-        let config = FirebaseConfiguration(logger: logger)
-        notificationService = FirebaseNotificationService(
-            configuration: config, logger: logger
-        )
-    }
-
-    override func tearDown() async throws {
-        notificationService = nil
-        try await super.tearDown()
     }
 
     // MARK: - Full Recipe
@@ -66,7 +45,7 @@ final class RecipeDetailSnapshotTests: SnapshotTestCase {
 
         // Add instructions
         recipe.instructions = [
-            "Preheat oven to 425°F (220°C).",
+            "Preheat oven to 425\u{00B0}F (220\u{00B0}C).",
             "Peel, core, and slice the apples into thin wedges.",
             "Toss apples with sugar, flour, cinnamon, nutmeg, and lemon juice.",
             "Line a 9-inch pie dish with one crust.",
@@ -79,9 +58,6 @@ final class RecipeDetailSnapshotTests: SnapshotTestCase {
         try saveContext()
 
         let view = RecipeDetailView(recipe: recipe)
-            .environmentObject(notificationService!)
-            .environment(\.firebaseAuth, mockAuth)
-            .environment(\.firebaseSync, mockSync)
 
         assertBothDevices(view, named: "recipeDetail_full")
     }
@@ -103,9 +79,6 @@ final class RecipeDetailSnapshotTests: SnapshotTestCase {
         try saveContext()
 
         let view = RecipeDetailView(recipe: recipe)
-            .environmentObject(notificationService!)
-            .environment(\.firebaseAuth, mockAuth)
-            .environment(\.firebaseSync, mockSync)
 
         assertBothDevices(view, named: "recipeDetail_cardBack")
     }
