@@ -3,45 +3,46 @@
  * Secure proxy for handwriting OCR requests
  */
 
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
 const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
 
 const getGoogleVisionKey = (): string => {
-  return functions.config().google?.vision_key || process.env.GOOGLE_VISION_KEY || '';
+  return process.env.GOOGLE_VISION_KEY || '';
 };
 
 /**
  * Google Vision OCR for handwritten recipes
  * Maps to: GoogleVisionService in iOS app
  */
-export const googleVisionOCR = functions.https.onCall(async (data, context) => {
+export const googleVisionOCR = onCall(async (request) => {
   // 1. Verify authentication
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     // 2. Rate limiting check
     await checkRateLimit(userId, 'google_vision');
 
     // 3. Validate input
-    const { imageBase64 } = data;
+    const { imageBase64 } = request.data;
 
     if (!imageBase64 || typeof imageBase64 !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid image data');
+      throw new HttpsError('invalid-argument', 'Invalid image data');
     }
 
     // 4. Get API key
     const apiKey = getGoogleVisionKey();
     if (!apiKey) {
-      throw new functions.https.HttpsError('failed-precondition', 'Google Vision API not configured');
+      throw new HttpsError('failed-precondition', 'Google Vision API not configured');
     }
 
     // 5. Call Google Vision API
@@ -72,8 +73,8 @@ export const googleVisionOCR = functions.https.onCall(async (data, context) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      functions.logger.error('Google Vision API Error', { status: response.status, error: errorText });
-      throw new functions.https.HttpsError('internal', 'Google Vision API request failed');
+      logger.error('Google Vision API Error', { status: response.status, error: errorText });
+      throw new HttpsError('internal', 'Google Vision API request failed');
     }
 
     const result = await response.json();
@@ -91,7 +92,7 @@ export const googleVisionOCR = functions.https.onCall(async (data, context) => {
         outputTokens: 0,
         totalTokens: 0,
       });
-    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+    } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       text: fullText,
@@ -99,12 +100,12 @@ export const googleVisionOCR = functions.https.onCall(async (data, context) => {
       locale: result.responses?.[0]?.textAnnotations?.[0]?.locale,
     };
   } catch (error: any) {
-    functions.logger.error('Google Vision OCR Error', { userId, error: error.message });
+    logger.error('Google Vision OCR Error', { userId, error: error.message });
 
-    if (error instanceof functions.https.HttpsError) {
+    if (error instanceof HttpsError) {
       throw error;
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to process OCR request');
+    throw new HttpsError('internal', 'Failed to process OCR request');
   }
 });

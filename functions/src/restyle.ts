@@ -3,7 +3,9 @@
  * Cloud Functions for batch recipe image restyling with credit transactions
  */
 
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { logAIUsage } from './rate-limiter';
 
@@ -17,32 +19,32 @@ const MAX_RESTYLE_RECIPES = 500;
  * Create a restyle job — validates credits and atomically deducts them
  * Maps to: RestyleService.createJob() in iOS app
  */
-export const createRestyleJob = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const createRestyleJob = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
-    const { recipeIds, stylePreset } = data;
+    const { recipeIds, stylePreset } = request.data;
 
     if (!recipeIds || !Array.isArray(recipeIds) || recipeIds.length === 0) {
-      throw new functions.https.HttpsError('invalid-argument', 'recipeIds must be a non-empty array');
+      throw new HttpsError('invalid-argument', 'recipeIds must be a non-empty array');
     }
 
     if (recipeIds.length > MAX_RESTYLE_RECIPES) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'invalid-argument',
         `Cannot restyle more than ${MAX_RESTYLE_RECIPES} recipes at once`
       );
     }
 
     if (!stylePreset || typeof stylePreset !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid stylePreset');
+      throw new HttpsError('invalid-argument', 'Invalid stylePreset');
     }
 
     const creditsRequired = recipeIds.length;
@@ -55,7 +57,7 @@ export const createRestyleJob = functions.https.onCall(async (data, context) => 
       const currentCredits = creditsDoc.data()?.balance ?? 0;
 
       if (currentCredits < creditsRequired) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           'failed-precondition',
           `Not enough credits. Required: ${creditsRequired}, available: ${currentCredits}`
         );
@@ -90,17 +92,17 @@ export const createRestyleJob = functions.https.onCall(async (data, context) => 
         outputTokens: 0,
         totalTokens: 0,
       });
-    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+    } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
     return { jobId, creditsRemaining };
   } catch (error: any) {
-    functions.logger.error('Create Restyle Job Error', { userId, error: error.message });
+    logger.error('Create Restyle Job Error', { userId, error: error.message });
 
-    if (error instanceof functions.https.HttpsError) {
+    if (error instanceof HttpsError) {
       throw error;
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to create restyle job');
+    throw new HttpsError('internal', 'Failed to create restyle job');
   }
 });
 
@@ -108,10 +110,13 @@ export const createRestyleJob = functions.https.onCall(async (data, context) => 
  * Process restyle queue — triggered when a new restyle job is created
  * TODO: Full implementation in Stage 12 — will call image generation APIs
  */
-export const processRestyleQueue = functions.firestore
-  .document('users/{userId}/restyleJobs/{jobId}')
-  .onCreate(async (snapshot, context) => {
-    const { userId, jobId } = context.params;
+export const processRestyleQueue = onDocumentCreated(
+  'users/{userId}/restyleJobs/{jobId}',
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) return;
+
+    const { userId, jobId } = event.params;
     const jobRef = snapshot.ref;
 
     try {
@@ -139,9 +144,9 @@ export const processRestyleQueue = functions.firestore
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      functions.logger.info('Restyle job completed (stub)', { userId, jobId, totalRecipes });
+      logger.info('Restyle job completed (stub)', { userId, jobId, totalRecipes });
     } catch (error: any) {
-      functions.logger.error('Process Restyle Queue Error', { userId, jobId, error: error.message });
+      logger.error('Process Restyle Queue Error', { userId, jobId, error: error.message });
 
       await jobRef.update({
         status: 'failed',
@@ -149,40 +154,41 @@ export const processRestyleQueue = functions.firestore
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
-  });
+  }
+);
 
 /**
  * Apply restyle results — swaps staged images into recipes
  * TODO: Full implementation will atomic-swap staged images into recipes
  */
-export const applyRestyleResults = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const applyRestyleResults = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
-    const { jobId } = data;
+    const { jobId } = request.data;
 
     if (!jobId || typeof jobId !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid jobId');
+      throw new HttpsError('invalid-argument', 'Invalid jobId');
     }
 
     const jobRef = db.collection('users').doc(userId).collection('restyleJobs').doc(jobId);
     const jobDoc = await jobRef.get();
 
     if (!jobDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Restyle job not found');
+      throw new HttpsError('not-found', 'Restyle job not found');
     }
 
     const jobData = jobDoc.data();
 
     if (jobData?.status !== 'completed') {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'failed-precondition',
         `Cannot apply results for job with status: ${jobData?.status}`
       );
@@ -200,38 +206,38 @@ export const applyRestyleResults = functions.https.onCall(async (data, context) 
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    functions.logger.info('Restyle results applied (stub)', { userId, jobId });
+    logger.info('Restyle results applied (stub)', { userId, jobId });
 
     return { success: true };
   } catch (error: any) {
-    functions.logger.error('Apply Restyle Results Error', { userId, error: error.message });
+    logger.error('Apply Restyle Results Error', { userId, error: error.message });
 
-    if (error instanceof functions.https.HttpsError) {
+    if (error instanceof HttpsError) {
       throw error;
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to apply restyle results');
+    throw new HttpsError('internal', 'Failed to apply restyle results');
   }
 });
 
 /**
  * Refund credits for a failed restyle job
  */
-export const refundRestyleCredits = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const refundRestyleCredits = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
-    const { jobId } = data;
+    const { jobId } = request.data;
 
     if (!jobId || typeof jobId !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid jobId');
+      throw new HttpsError('invalid-argument', 'Invalid jobId');
     }
 
     const jobRef = db.collection('users').doc(userId).collection('restyleJobs').doc(jobId);
@@ -241,13 +247,13 @@ export const refundRestyleCredits = functions.https.onCall(async (data, context)
       const jobDoc = await transaction.get(jobRef);
 
       if (!jobDoc.exists) {
-        throw new functions.https.HttpsError('not-found', 'Restyle job not found');
+        throw new HttpsError('not-found', 'Restyle job not found');
       }
 
       const jobData = jobDoc.data();
 
       if (jobData?.status !== 'failed') {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           'failed-precondition',
           `Can only refund failed jobs. Current status: ${jobData?.status}`
         );
@@ -256,7 +262,7 @@ export const refundRestyleCredits = functions.https.onCall(async (data, context)
       const creditsToRefund = jobData.creditsCharged ?? 0;
 
       if (creditsToRefund <= 0) {
-        throw new functions.https.HttpsError('failed-precondition', 'No credits to refund');
+        throw new HttpsError('failed-precondition', 'No credits to refund');
       }
 
       const creditsDoc = await transaction.get(creditsRef);
@@ -275,16 +281,16 @@ export const refundRestyleCredits = functions.https.onCall(async (data, context)
       });
     });
 
-    functions.logger.info('Restyle credits refunded', { userId, jobId });
+    logger.info('Restyle credits refunded', { userId, jobId });
 
     return { success: true };
   } catch (error: any) {
-    functions.logger.error('Refund Restyle Credits Error', { userId, error: error.message });
+    logger.error('Refund Restyle Credits Error', { userId, error: error.message });
 
-    if (error instanceof functions.https.HttpsError) {
+    if (error instanceof HttpsError) {
       throw error;
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to refund credits');
+    throw new HttpsError('internal', 'Failed to refund credits');
   }
 });

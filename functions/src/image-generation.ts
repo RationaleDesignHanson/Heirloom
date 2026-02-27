@@ -3,47 +3,46 @@
  * Secure proxy for DALL-E 3 and Replicate image generation
  */
 
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions';
 import OpenAI from 'openai';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
 const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-});
+const getOpenAIClient = () => new OpenAI({ apiKey: process.env.OPENAI_KEY });
 
 const getReplicateToken = (): string => {
-  return functions.config().replicate?.api_token || process.env.REPLICATE_API_TOKEN || '';
+  return process.env.REPLICATE_API_TOKEN || '';
 };
 
 /**
  * Generate an image using OpenAI DALL-E 3
  * Maps to: FirebaseImageGenerationService.generateWithDALLE() in iOS app
  */
-export const dalleGenerateImage = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const dalleGenerateImage = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     await checkRateLimit(userId, 'image_generation');
 
-    const { prompt, size, quality } = data;
+    const { prompt, size, quality } = request.data;
 
     if (!prompt || typeof prompt !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid prompt');
+      throw new HttpsError('invalid-argument', 'Invalid prompt');
     }
 
     const imageSize = size || '1792x1024';
     const imageQuality = quality || 'standard';
 
-    const response = await openai.images.generate({
+    const response = await getOpenAIClient().images.generate({
       model: 'dall-e-3',
       prompt,
       size: imageSize as '1024x1024' | '1792x1024' | '1024x1792',
@@ -55,7 +54,7 @@ export const dalleGenerateImage = functions.https.onCall(async (data, context) =
     const revisedPrompt = response.data?.[0]?.revised_prompt;
 
     if (!imageUrl) {
-      throw new functions.https.HttpsError('internal', 'No image returned from DALL-E');
+      throw new HttpsError('internal', 'No image returned from DALL-E');
     }
 
     try {
@@ -66,27 +65,27 @@ export const dalleGenerateImage = functions.https.onCall(async (data, context) =
         outputTokens: 0,
         totalTokens: 0,
       });
-    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+    } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       imageUrl,
       revisedPrompt: revisedPrompt || prompt,
     };
   } catch (error: any) {
-    functions.logger.error('DALL-E Generate Error', { userId, error: error.message });
+    logger.error('DALL-E Generate Error', { userId, error: error.message });
 
-    if (error instanceof functions.https.HttpsError) {
+    if (error instanceof HttpsError) {
       throw error;
     }
 
     if (error.status === 429) {
-      throw new functions.https.HttpsError('resource-exhausted', 'OpenAI rate limit exceeded');
+      throw new HttpsError('resource-exhausted', 'OpenAI rate limit exceeded');
     }
     if (error.status === 400) {
-      throw new functions.https.HttpsError('invalid-argument', error.message || 'Invalid request to DALL-E');
+      throw new HttpsError('invalid-argument', error.message || 'Invalid request to DALL-E');
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to generate image');
+    throw new HttpsError('internal', 'Failed to generate image');
   }
 });
 
@@ -94,30 +93,30 @@ export const dalleGenerateImage = functions.https.onCall(async (data, context) =
  * Generate an image using Replicate (Flux model)
  * Maps to: FirebaseImageGenerationService.generateWithReplicate() in iOS app
  */
-export const replicateGenerateImage = functions
-  .runWith({ timeoutSeconds: 120 })
-  .https.onCall(async (data, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const replicateGenerateImage = onCall(
+  { timeoutSeconds: 120 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Must be logged in');
     }
-    if (ENFORCE_APP_CHECK && !context.app) {
-      throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+    if (ENFORCE_APP_CHECK && !request.app) {
+      throw new HttpsError('failed-precondition', 'App Check verification failed.');
     }
 
-    const userId = context.auth.uid;
+    const userId = request.auth.uid;
 
     try {
       await checkRateLimit(userId, 'image_generation');
 
-      const { prompt, aspectRatio, outputFormat, outputQuality } = data;
+      const { prompt, aspectRatio, outputFormat, outputQuality } = request.data;
 
       if (!prompt || typeof prompt !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid prompt');
+        throw new HttpsError('invalid-argument', 'Invalid prompt');
       }
 
       const token = getReplicateToken();
       if (!token) {
-        throw new functions.https.HttpsError('failed-precondition', 'Replicate API not configured');
+        throw new HttpsError('failed-precondition', 'Replicate API not configured');
       }
 
       // Create prediction using Replicate API
@@ -143,12 +142,12 @@ export const replicateGenerateImage = functions
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
-        functions.logger.error('Replicate API Error', { status: createResponse.status, error: errorText });
+        logger.error('Replicate API Error', { status: createResponse.status, error: errorText });
 
         if (createResponse.status === 429) {
-          throw new functions.https.HttpsError('resource-exhausted', 'Replicate rate limit exceeded');
+          throw new HttpsError('resource-exhausted', 'Replicate rate limit exceeded');
         }
-        throw new functions.https.HttpsError('internal', 'Replicate API request failed');
+        throw new HttpsError('internal', 'Replicate API request failed');
       }
 
       let prediction = await createResponse.json();
@@ -170,12 +169,12 @@ export const replicateGenerateImage = functions
       }
 
       if (prediction.status === 'failed') {
-        functions.logger.error('Replicate prediction failed', { error: prediction.error });
-        throw new functions.https.HttpsError('internal', 'Image generation failed');
+        logger.error('Replicate prediction failed', { error: prediction.error });
+        throw new HttpsError('internal', 'Image generation failed');
       }
 
       if (prediction.status !== 'succeeded') {
-        throw new functions.https.HttpsError('deadline-exceeded', 'Image generation timed out');
+        throw new HttpsError('deadline-exceeded', 'Image generation timed out');
       }
 
       // Flux returns output as an array of URLs or a single URL
@@ -183,7 +182,7 @@ export const replicateGenerateImage = functions
       const imageUrl = Array.isArray(output) ? output[0] : output;
 
       if (!imageUrl) {
-        throw new functions.https.HttpsError('internal', 'No image returned from Replicate');
+        throw new HttpsError('internal', 'No image returned from Replicate');
       }
 
       try {
@@ -194,16 +193,17 @@ export const replicateGenerateImage = functions
           outputTokens: 0,
           totalTokens: 0,
         });
-      } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+      } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
       return { imageUrl };
     } catch (error: any) {
-      functions.logger.error('Replicate Generate Error', { userId, error: error.message });
+      logger.error('Replicate Generate Error', { userId, error: error.message });
 
-      if (error instanceof functions.https.HttpsError) {
+      if (error instanceof HttpsError) {
         throw error;
       }
 
-      throw new functions.https.HttpsError('internal', 'Failed to generate image');
+      throw new HttpsError('internal', 'Failed to generate image');
     }
-  });
+  }
+);

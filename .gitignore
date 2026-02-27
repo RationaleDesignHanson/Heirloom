@@ -56,6 +56,11 @@ Config.xcconfig
 # Images stored in Documents (not tracked)
 RecipeImages/
 
+# Node modules (all locations)
+node_modules/
+functions/node_modules/
+functions/lib/
+
 # Backend (Firebase Functions)
 backend/node_modules/
 backend/functions/node_modules/
@@ -89,6 +94,11 @@ service-account-key.json
 
 build_output.txt
 PRODUCTION_READINESS_IMPLEMENTATION.md
+
+# Firebase emulator logs
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
 
 # Simulator recordings
 recordings/*.mp4

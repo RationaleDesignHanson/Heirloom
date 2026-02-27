@@ -3,50 +3,51 @@
  * Secure proxy for web recipe search requests
  */
 
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
 const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
 
 const getBraveSearchKey = (): string => {
-  return functions.config().brave?.search_key || process.env.BRAVE_SEARCH_KEY || '';
+  return process.env.BRAVE_SEARCH_KEY || '';
 };
 
 /**
  * Search web for recipes using Brave Search
  * Maps to: WebRecipeSearchService in iOS app
  */
-export const braveSearch = functions.https.onCall(async (data, context) => {
+export const braveSearch = onCall(async (request) => {
   // 1. Verify authentication
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     // 2. Rate limiting check
     await checkRateLimit(userId, 'brave_search');
 
     // 3. Validate input
-    const { query, count } = data;
+    const { query, count } = request.data;
 
     if (!query || typeof query !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid search query');
+      throw new HttpsError('invalid-argument', 'Invalid search query');
     }
 
     const searchCount = count || 10;
     if (searchCount > 20) {
-      throw new functions.https.HttpsError('invalid-argument', 'Maximum 20 results per request');
+      throw new HttpsError('invalid-argument', 'Maximum 20 results per request');
     }
 
     // 4. Get API key
     const apiKey = getBraveSearchKey();
     if (!apiKey) {
-      throw new functions.https.HttpsError('failed-precondition', 'Brave Search API not configured');
+      throw new HttpsError('failed-precondition', 'Brave Search API not configured');
     }
 
     // 5. Call Brave Search API
@@ -66,8 +67,8 @@ export const braveSearch = functions.https.onCall(async (data, context) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      functions.logger.error('Brave Search API Error', { status: response.status, error: errorText });
-      throw new functions.https.HttpsError('internal', 'Brave Search API request failed');
+      logger.error('Brave Search API Error', { status: response.status, error: errorText });
+      throw new HttpsError('internal', 'Brave Search API request failed');
     }
 
     const result = await response.json();
@@ -91,19 +92,19 @@ export const braveSearch = functions.https.onCall(async (data, context) => {
         outputTokens: 0,
         totalTokens: 0,
       });
-    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+    } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       results: searchResults,
       query: result.query?.original || query,
     };
   } catch (error: any) {
-    functions.logger.error('Brave Search Error', { userId, error: error.message });
+    logger.error('Brave Search Error', { userId, error: error.message });
 
-    if (error instanceof functions.https.HttpsError) {
+    if (error instanceof HttpsError) {
       throw error;
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to perform search');
+    throw new HttpsError('internal', 'Failed to perform search');
   }
 });

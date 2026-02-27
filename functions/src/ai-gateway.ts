@@ -3,21 +3,17 @@
  * All API keys stay server-side, clients use Firebase Auth tokens
  */
 
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
 const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
 
-// Initialize AI clients with server-side API keys from environment variables
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_KEY,
-});
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-});
+// Lazy-initialize AI clients (deferred so module loads without env vars during analysis)
+const getAnthropicClient = () => new Anthropic({ apiKey: process.env.ANTHROPIC_KEY });
+const getOpenAIClient = () => new OpenAI({ apiKey: process.env.OPENAI_KEY });
 
 // MARK: - Text Completion
 
@@ -25,30 +21,30 @@ const openai = new OpenAI({
  * Complete a text prompt with AI
  * Maps to: AIServiceProtocol.complete(prompt:options:)
  */
-export const aiComplete = functions.https.onCall(async (data, context) => {
+export const aiComplete = onCall(async (request) => {
   // 1. Verify authentication
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     // 2. Rate limiting check
     await checkRateLimit(userId, 'ai_complete');
 
     // 3. Validate input
-    const { prompt, provider, model, temperature, maxTokens, systemMessage } = data;
+    const { prompt, provider, model, temperature, maxTokens, systemMessage } = request.data;
 
     if (!prompt || typeof prompt !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid prompt');
+      throw new HttpsError('invalid-argument', 'Invalid prompt');
     }
 
     if (!provider || !['anthropic', 'openai'].includes(provider)) {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid provider');
+      throw new HttpsError('invalid-argument', 'Invalid provider');
     }
 
     // 4. Call appropriate AI service
@@ -78,7 +74,7 @@ export const aiComplete = functions.https.onCall(async (data, context) => {
         outputTokens: response.usage.output_tokens,
         totalTokens: response.usage.total_tokens,
       });
-    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+    } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
     // 6. Return response
     return {
@@ -88,17 +84,17 @@ export const aiComplete = functions.https.onCall(async (data, context) => {
       metadata: response.metadata,
     };
   } catch (error: any) {
-    functions.logger.error('AI Complete Error', { userId, error: error.message });
+    logger.error('AI Complete Error', { userId, error: error.message });
 
     // Handle specific errors
     if (error.status === 429) {
-      throw new functions.https.HttpsError('resource-exhausted', 'AI service rate limit exceeded');
+      throw new HttpsError('resource-exhausted', 'AI service rate limit exceeded');
     }
     if (error.status === 401) {
-      throw new functions.https.HttpsError('internal', 'AI service authentication failed');
+      throw new HttpsError('internal', 'AI service authentication failed');
     }
 
-    throw new functions.https.HttpsError('internal', 'Failed to complete AI request');
+    throw new HttpsError('internal', 'Failed to complete AI request');
   }
 });
 
@@ -108,23 +104,23 @@ export const aiComplete = functions.https.onCall(async (data, context) => {
  * Complete with structured JSON output
  * Maps to: AIServiceProtocol.completeStructured(prompt:schema:options:)
  */
-export const aiCompleteStructured = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const aiCompleteStructured = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     await checkRateLimit(userId, 'ai_complete');
 
-    const { prompt, provider, model, temperature, maxTokens, systemMessage } = data;
+    const { prompt, provider, model, temperature, maxTokens, systemMessage } = request.data;
 
     if (!prompt || typeof prompt !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid prompt');
+      throw new HttpsError('invalid-argument', 'Invalid prompt');
     }
 
     // Add JSON formatting instructions
@@ -160,7 +156,7 @@ export const aiCompleteStructured = functions.https.onCall(async (data, context)
         outputTokens: response.usage.output_tokens,
         totalTokens: response.usage.total_tokens,
       });
-    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+    } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       content: cleanedJSON,
@@ -168,8 +164,8 @@ export const aiCompleteStructured = functions.https.onCall(async (data, context)
       usage: response.usage,
     };
   } catch (error: any) {
-    functions.logger.error('AI Complete Structured Error', { userId, error: error.message });
-    throw new functions.https.HttpsError('internal', 'Failed to complete structured AI request');
+    logger.error('AI Complete Structured Error', { userId, error: error.message });
+    throw new HttpsError('internal', 'Failed to complete structured AI request');
   }
 });
 
@@ -179,32 +175,29 @@ export const aiCompleteStructured = functions.https.onCall(async (data, context)
  * Complete with vision (image + text prompt)
  * Maps to: AIServiceProtocol.completeWithVisionStructured(image:prompt:schema:options:)
  */
-export const aiCompleteWithVision = functions
-  .runWith({
-    memory: '1GB',
-    timeoutSeconds: 120,
-  })
-  .https.onCall(async (data, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const aiCompleteWithVision = onCall(
+  { memory: '1GiB', timeoutSeconds: 120 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Must be logged in');
     }
-    if (ENFORCE_APP_CHECK && !context.app) {
-      throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+    if (ENFORCE_APP_CHECK && !request.app) {
+      throw new HttpsError('failed-precondition', 'App Check verification failed.');
     }
 
-    const userId = context.auth.uid;
+    const userId = request.auth.uid;
 
     try {
       await checkRateLimit(userId, 'ai_vision');
 
-      const { imageBase64, prompt, provider, model, temperature, maxTokens, systemMessage, structured } = data;
+      const { imageBase64, prompt, provider, model, temperature, maxTokens, systemMessage, structured } = request.data;
 
       if (!imageBase64 || typeof imageBase64 !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid image data');
+        throw new HttpsError('invalid-argument', 'Invalid image data');
       }
 
       if (!prompt || typeof prompt !== 'string') {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid prompt');
+        throw new HttpsError('invalid-argument', 'Invalid prompt');
       }
 
       // Add structured formatting if requested
@@ -241,7 +234,7 @@ export const aiCompleteWithVision = functions
           outputTokens: response.usage.output_tokens,
           totalTokens: response.usage.total_tokens,
         });
-      } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
+      } catch (e) { logger.warn('logAIUsage failed', { error: e }); }
 
       return {
         content,
@@ -249,10 +242,11 @@ export const aiCompleteWithVision = functions
         usage: response.usage,
       };
     } catch (error: any) {
-      functions.logger.error('AI Vision Error', { userId, error: error.message });
-      throw new functions.https.HttpsError('internal', 'Failed to complete vision AI request');
+      logger.error('AI Vision Error', { userId, error: error.message });
+      throw new HttpsError('internal', 'Failed to complete vision AI request');
     }
-  });
+  }
+);
 
 // MARK: - Helper Functions
 
@@ -260,7 +254,7 @@ async function completeWithAnthropic(
   prompt: string,
   options: { model: string; temperature: number; maxTokens: number; systemMessage?: string }
 ): Promise<any> {
-  const response = await anthropic.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: options.model,
     max_tokens: options.maxTokens,
     temperature: options.temperature,
@@ -297,7 +291,7 @@ async function completeWithOpenAI(
 
   messages.push({ role: 'user', content: prompt });
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: options.model,
     messages,
     temperature: options.temperature,
@@ -326,7 +320,7 @@ async function completeWithAnthropicVision(
   prompt: string,
   options: { model: string; temperature: number; maxTokens: number; systemMessage?: string }
 ): Promise<any> {
-  const response = await anthropic.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: options.model,
     max_tokens: options.maxTokens,
     temperature: options.temperature,
@@ -374,7 +368,7 @@ async function completeWithOpenAIVision(
   prompt: string,
   options: { model: string; temperature: number; maxTokens: number }
 ): Promise<any> {
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: options.model,
     messages: [
       {

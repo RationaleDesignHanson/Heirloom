@@ -7,7 +7,7 @@
     "rules": "storage.rules"
   },
   "functions": {
-    "source": "firebase/functions"
+    "source": "functions"
   },
   "hosting": {
     "public": "public",

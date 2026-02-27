@@ -3,7 +3,8 @@
  * Uses Firestore for distributed rate limiting
  */
 
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
 const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
@@ -25,7 +26,7 @@ const RATE_LIMITS = {
 export async function checkRateLimit(userId: string, operation: keyof typeof RATE_LIMITS): Promise<void> {
   const config = RATE_LIMITS[operation];
   if (!config) {
-    functions.logger.warn('Unknown operation for rate limiting', { operation });
+    logger.warn('Unknown operation for rate limiting', { operation });
     return;
   }
 
@@ -44,9 +45,9 @@ export async function checkRateLimit(userId: string, operation: keyof typeof RAT
       if (now < resetAt) {
         const hoursUntilReset = Math.ceil((resetAt - now) / (60 * 60 * 1000));
 
-        functions.logger.warn('Rate limit exceeded', { userId, operation, count: data.count, limit: config.limit });
+        logger.warn('Rate limit exceeded', { userId, operation, count: data.count, limit: config.limit });
 
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           'resource-exhausted',
           `Rate limit exceeded. You can make ${config.limit} ${operation} requests per day. Try again in ${hoursUntilReset} hours.`
         );
@@ -113,7 +114,7 @@ export async function logAIUsage(
     { merge: true }
   );
 
-  functions.logger.info('AI usage logged', { userId, operation, cost, tokens: data.totalTokens });
+  logger.info('AI usage logged', { userId, operation, cost, tokens: data.totalTokens });
 }
 
 /**
@@ -165,19 +166,19 @@ function calculateCost(provider: string, model: string, inputTokens: number, out
 /**
  * Get user's rate limit status (for debugging/monitoring)
  */
-export const checkUserRateLimit = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const checkUserRateLimit = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
-  const { operation } = data;
+  const userId = request.auth.uid;
+  const { operation } = request.data;
 
   if (!operation || !RATE_LIMITS[operation as keyof typeof RATE_LIMITS]) {
-    throw new functions.https.HttpsError('invalid-argument', 'Invalid operation');
+    throw new HttpsError('invalid-argument', 'Invalid operation');
   }
 
   const key = `${userId}:${operation}`;
@@ -194,29 +195,29 @@ export const checkUserRateLimit = functions.https.onCall(async (data, context) =
     };
   }
 
-  const data_1 = doc.data();
+  const docData = doc.data();
   const config = RATE_LIMITS[operation as keyof typeof RATE_LIMITS];
 
   return {
-    count: data_1?.count || 0,
+    count: docData?.count || 0,
     limit: config.limit,
-    remaining: Math.max(0, config.limit - (data_1?.count || 0)),
-    resetAt: data_1?.resetAt?.toDate?.() || null,
+    remaining: Math.max(0, config.limit - (docData?.count || 0)),
+    resetAt: docData?.resetAt?.toDate?.() || null,
   };
 });
 
 /**
  * Get user's AI usage statistics
  */
-export const getUserUsageStats = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const getUserUsageStats = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in');
   }
-  if (ENFORCE_APP_CHECK && !context.app) {
-    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   const userCostRef = db.collection('userCosts').doc(userId);
   const doc = await userCostRef.get();
@@ -230,12 +231,12 @@ export const getUserUsageStats = functions.https.onCall(async (data, context) =>
     };
   }
 
-  const data_1 = doc.data();
+  const docData = doc.data();
 
   return {
-    totalCost: data_1?.totalCost || 0,
-    totalTokens: data_1?.totalTokens || 0,
-    operations: data_1?.operations || 0,
-    lastUpdated: data_1?.lastUpdated?.toDate?.() || null,
+    totalCost: docData?.totalCost || 0,
+    totalTokens: docData?.totalTokens || 0,
+    operations: docData?.operations || 0,
+    lastUpdated: docData?.lastUpdated?.toDate?.() || null,
   };
 });

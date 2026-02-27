@@ -32,5 +32,18 @@ export { dalleGenerateImage, replicateGenerateImage } from './image-generation';
 // Export restyle functions
 export { createRestyleJob, processRestyleQueue, applyRestyleResults, refundRestyleCredits } from './restyle';
 
+// Export OG profile function (hosting rewrite: /u/** -> ogProfile)
+export { ogProfile } from './ogProfile';
+
+// Export discovery & public recipe functions
+export {
+  syncUserToAlgolia,
+  syncPublicRecipeToAlgolia,
+  monitorPublicRecipeReports,
+  calculateTrendingScores,
+  incrementPublicRecipeView,
+  incrementPublicRecipeSave,
+} from './discovery';
+
 // Export utility functions
 export { checkUserRateLimit, getUserUsageStats } from './rate-limiter';
