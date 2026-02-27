@@ -45,8 +45,9 @@ service firebase.storage {
     match /users/{userId}/{allPaths=**} {
       // Authenticated users can read their own files or others' shared recipe images
       allow read: if request.auth != null;
-      // Only owner can write/delete
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // Only owner can write (10MB max)
+      allow write: if request.auth != null && request.auth.uid == userId
+                      && request.resource.size < 10 * 1024 * 1024;
       allow delete: if request.auth != null && request.auth.uid == userId;
       // Owner can list their folder contents (for account deletion)
       allow list: if request.auth != null && request.auth.uid == userId;
@@ -91,9 +92,12 @@ service firebase.storage {
       allow read: if true;
       // Upload: user must set ownerId metadata matching their auth UID
       // Overwrite: existing file's ownerId must also match (prevents hijacking)
+      // Max 10MB, images only
       allow write: if request.auth != null &&
                       request.resource.metadata['ownerId'] == request.auth.uid &&
-                      (resource == null || resource.metadata['ownerId'] == request.auth.uid);
+                      (resource == null || resource.metadata['ownerId'] == request.auth.uid) &&
+                      request.resource.size < 10 * 1024 * 1024 &&
+                      request.resource.contentType.matches('image/.*');
       // Delete: only the original uploader can delete
       allow delete: if request.auth != null &&
                        resource.metadata['ownerId'] == request.auth.uid;
@@ -112,7 +116,10 @@ service firebase.storage {
     // Temporary storage for user uploads
     // ========================================
     match /temp-uploads/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // 10MB max for temp uploads
+      allow write: if request.auth != null && request.auth.uid == userId
+                      && request.resource.size < 10 * 1024 * 1024;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
