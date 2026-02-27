@@ -138,7 +138,7 @@ final class SubscriptionTests: XCTestCase {
         let productId = ProductIdentifier.monthly
 
         // THEN: Should have correct raw value
-        XCTAssertEqual(productId.rawValue, "com.rationalestudio.heirloom.monthly")
+        XCTAssertEqual(productId.rawValue, "com.rationaledesign.heirloom.premium.monthly.v2")
     }
 
     /// Test 11: Annual product ID is correct
@@ -147,7 +147,7 @@ final class SubscriptionTests: XCTestCase {
         let productId = ProductIdentifier.annual
 
         // THEN: Should have correct raw value
-        XCTAssertEqual(productId.rawValue, "com.rationalestudio.heirloom.annual")
+        XCTAssertEqual(productId.rawValue, "com.rationaledesign.heirloom.premium.annual.v2")
     }
 
     /// Test 12: Lifetime product ID is correct
@@ -156,7 +156,7 @@ final class SubscriptionTests: XCTestCase {
         let productId = ProductIdentifier.lifetime
 
         // THEN: Should have correct raw value
-        XCTAssertEqual(productId.rawValue, "com.rationalestudio.heirloom.lifetime")
+        XCTAssertEqual(productId.rawValue, "com.rationaledesign.heirloom.premium.lifetime.v2")
     }
 
     // MARK: - Paywall Trigger Tests

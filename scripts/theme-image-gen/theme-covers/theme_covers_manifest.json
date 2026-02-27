@@ -1,6 +1,6 @@
 {
-  "total_themes": 14,
-  "covers_generated": 14,
+  "total_themes": 24,
+  "covers_generated": 24,
   "covers": [
     {
       "theme_id": "theme-01-automat-classics",
@@ -85,6 +85,66 @@
       "title": "American Foundation",
       "filename": "american-foundation-cover.webp",
       "era": "1700s-1800s"
+    },
+    {
+      "theme_id": "classic-literature",
+      "title": "Classic Literature & Historical Fiction",
+      "filename": "classic-literature-cover.webp",
+      "era": "Victorian-Edwardian"
+    },
+    {
+      "theme_id": "childrens-stories",
+      "title": "Children's & Young-Adult Stories",
+      "filename": "childrens-stories-cover.webp",
+      "era": "Timeless Storybook"
+    },
+    {
+      "theme_id": "fantasy-scifi",
+      "title": "Fantasy & Science Fiction",
+      "filename": "fantasy-scifi-cover.webp",
+      "era": "Fantasy & Future"
+    },
+    {
+      "theme_id": "crime-cult-classics",
+      "title": "Crime & Cult Classics",
+      "filename": "crime-cult-classics-cover.webp",
+      "era": "1970s-1990s Cinema"
+    },
+    {
+      "theme_id": "magical-realism",
+      "title": "Magical Realism & World Cuisine",
+      "filename": "magical-realism-cover.webp",
+      "era": "Contemporary World"
+    },
+    {
+      "theme_id": "romance-indulgence",
+      "title": "Romance & Indulgence",
+      "filename": "romance-indulgence-cover.webp",
+      "era": "Romantic Era"
+    },
+    {
+      "theme_id": "dystopian-fiction",
+      "title": "Dystopian & Speculative Fiction",
+      "filename": "dystopian-fiction-cover.webp",
+      "era": "Speculative Future"
+    },
+    {
+      "theme_id": "film-tv-favourites",
+      "title": "Film & Television Favourites",
+      "filename": "film-tv-favourites-cover.webp",
+      "era": "Pop Culture Era"
+    },
+    {
+      "theme_id": "feasts-banquets",
+      "title": "Feasts & Banquets",
+      "filename": "feasts-banquets-cover.webp",
+      "era": "Medieval-Renaissance"
+    },
+    {
+      "theme_id": "cocktails-confections",
+      "title": "Iconic Cocktails & Confections",
+      "filename": "cocktails-confections-cover.webp",
+      "era": "Art Deco & Fantasy"
     }
   ]
 }
