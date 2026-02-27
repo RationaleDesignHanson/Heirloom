@@ -8,6 +8,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
+const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
+
 // Initialize AI clients with server-side API keys from environment variables
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -27,6 +29,9 @@ export const aiComplete = functions.https.onCall(async (data, context) => {
   // 1. Verify authentication
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
   const userId = context.auth.uid;
@@ -107,6 +112,9 @@ export const aiCompleteStructured = functions.https.onCall(async (data, context)
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  }
 
   const userId = context.auth.uid;
 
@@ -179,6 +187,9 @@ export const aiCompleteWithVision = functions
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+    }
+    if (ENFORCE_APP_CHECK && !context.app) {
+      throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
     }
 
     const userId = context.auth.uid;

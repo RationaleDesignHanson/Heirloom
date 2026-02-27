@@ -7,6 +7,8 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { logAIUsage } from './rate-limiter';
 
+const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
+
 const db = admin.firestore();
 
 const MAX_RESTYLE_RECIPES = 500;
@@ -18,6 +20,9 @@ const MAX_RESTYLE_RECIPES = 500;
 export const createRestyleJob = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
   const userId = context.auth.uid;
@@ -154,6 +159,9 @@ export const applyRestyleResults = functions.https.onCall(async (data, context) 
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  }
 
   const userId = context.auth.uid;
 
@@ -212,6 +220,9 @@ export const applyRestyleResults = functions.https.onCall(async (data, context) 
 export const refundRestyleCredits = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
   const userId = context.auth.uid;

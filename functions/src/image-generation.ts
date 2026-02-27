@@ -7,6 +7,8 @@ import * as functions from 'firebase-functions';
 import OpenAI from 'openai';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
+const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
 });
@@ -22,6 +24,9 @@ const getReplicateToken = (): string => {
 export const dalleGenerateImage = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
   const userId = context.auth.uid;
@@ -94,6 +99,9 @@ export const replicateGenerateImage = functions
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+    }
+    if (ENFORCE_APP_CHECK && !context.app) {
+      throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
     }
 
     const userId = context.auth.uid;

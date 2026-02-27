@@ -6,6 +6,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
+const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
 const db = admin.firestore();
 
 // Rate limits per operation type
@@ -168,6 +169,9 @@ export const checkUserRateLimit = functions.https.onCall(async (data, context) =
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
+  }
 
   const userId = context.auth.uid;
   const { operation } = data;
@@ -207,6 +211,9 @@ export const checkUserRateLimit = functions.https.onCall(async (data, context) =
 export const getUserUsageStats = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
   const userId = context.auth.uid;

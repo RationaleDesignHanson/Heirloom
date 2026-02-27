@@ -6,6 +6,8 @@
 import * as functions from 'firebase-functions';
 import { checkRateLimit, logAIUsage } from './rate-limiter';
 
+const ENFORCE_APP_CHECK = process.env.ENFORCE_APP_CHECK === 'true';
+
 const getBraveSearchKey = (): string => {
   return functions.config().brave?.search_key || process.env.BRAVE_SEARCH_KEY || '';
 };
@@ -18,6 +20,9 @@ export const braveSearch = functions.https.onCall(async (data, context) => {
   // 1. Verify authentication
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  }
+  if (ENFORCE_APP_CHECK && !context.app) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check verification failed.');
   }
 
   const userId = context.auth.uid;
