@@ -215,12 +215,24 @@ service cloud.firestore {
       // Users can only read their own notifications
       allow read: if isOwner(userId);
 
-      // Any authenticated user can create notifications
-      // This allows:
-      // - Lineage tracking (descendants notify ancestors of modifications)
-      // - Connection requests (user A sends request to user B)
-      // - Kitchen Table invites
-      allow create: if isAuthenticated();
+      // Notification creation requires sender validation and a relationship
+      // - Own inbox: allowed (for demo flow where user creates demo notifications)
+      // - Other users: sender field must match auth.uid AND must be connected,
+      //   except connection requests (pre-connection) and lineage mods (cross-lineage chain)
+      allow create: if isAuthenticated() && (
+        // Users can create notifications in their own inbox (demo flow)
+        isOwner(userId) ||
+        // For other users' inboxes: validate sender AND check relationship
+        (
+          // Sender must identify themselves truthfully (prevents impersonation)
+          (request.resource.data.get('actorUserId', null) == request.auth.uid ||
+           request.resource.data.get('modifiedBy', null) == request.auth.uid) &&
+          // Must be connected, or sending a pre-connection/cross-lineage notification
+          (isConnectedTo(userId) ||
+           request.resource.data.type == 'connectionRequestReceived' ||
+           request.resource.data.type == 'lineage_modification')
+        )
+      );
 
       // Users can update their own (mark as read)
       allow update: if isOwner(userId);
