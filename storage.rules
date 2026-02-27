@@ -45,9 +45,10 @@ service firebase.storage {
     match /users/{userId}/{allPaths=**} {
       // Authenticated users can read their own files or others' shared recipe images
       allow read: if request.auth != null;
-      // Only owner can write (10MB max)
+      // Only owner can write (10MB max, images only)
       allow write: if request.auth != null && request.auth.uid == userId
-                      && request.resource.size < 10 * 1024 * 1024;
+                      && request.resource.size < 10 * 1024 * 1024
+                      && request.resource.contentType.matches('image/.*');
       allow delete: if request.auth != null && request.auth.uid == userId;
       // Owner can list their folder contents (for account deletion)
       allow list: if request.auth != null && request.auth.uid == userId;
