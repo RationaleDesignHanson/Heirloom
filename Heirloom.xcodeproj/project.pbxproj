@@ -87,6 +87,7 @@
 		A62B701D73D2B470E79D7C9E /* DinnerParty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3F6B3B13262475895146CE /* DinnerParty.swift */; };
 		A7992E0AC9A461294C0A01DB /* RecipeImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE5DEEE00455B0323C36CF40 /* RecipeImportService.swift */; };
 		A892587ADBCD4FCA80189C9E /* UIKitAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF1EACA4C4A419AA4737A1B /* UIKitAppearance.swift */; };
+		AA00010E2F5A00000000000E /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = AA0001022F5A000000000002 /* SnapshotTesting */; };
 		AD8BBACDBE7DE08D20E093CB /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F648661A8E5481059D02F626 /* RecipeDetailView.swift */; };
 		B257110A3DC8712C4CA232EA /* RecipeImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F7AAC5B4A2B1DCA484B56D /* RecipeImportView.swift */; };
 		B2C81AF6BEE1E3C6FB9AAE7E /* FlipCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21CBA388B8A9D35AA3F299CE /* FlipCard.swift */; };
@@ -502,6 +503,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		AA0001042F5A000000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A0A07447C00177730D773FFC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8C89A26D541EF27F051E6DC1;
+			remoteInfo = Heirloom;
+		};
 		C568873A2F057B02006EA0B1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A0A07447C00177730D773FFC /* Project object */;
@@ -612,6 +620,7 @@
 		9EB1DF238DC769D3352A447A /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		A331FB1CB826B99CAE24F0A3 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		A95905629C09BDBA60E1936A /* CookbookScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookbookScannerView.swift; sourceTree = "<group>"; };
+		AA00010D2F5A00000000000D /* HeirloomSnapshotTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HeirloomSnapshotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA5F8A9639984D54A46B8FD6 /* ScalingDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingDiagnostics.swift; sourceTree = "<group>"; };
 		AD3F97C739E686346152AEDB /* RecipeCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCollection.swift; sourceTree = "<group>"; };
 		AE5F87A8468038F3D3FDC4A0 /* HeirloomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomApp.swift; sourceTree = "<group>"; };
@@ -1019,6 +1028,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		AA0001092F5A000000000009 /* HeirloomSnapshotTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HeirloomSnapshotTests; sourceTree = "<group>"; };
 		C56887332F057B02006EA0B1 /* HeirloomShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C568873D2F057B02006EA0B1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HeirloomShareExtension; sourceTree = "<group>"; };
 		C58305202F0E06D30096478E /* HeirloomTestsV2 */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HeirloomTestsV2; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -1041,6 +1051,14 @@
 				C5EF779A2F3178A30097779E /* FirebaseFunctions in Frameworks */,
 				C508753E2F4E5C2B000F9BFC /* ZIPFoundation in Frameworks */,
 				C58316532F119F060096478E /* WhisperKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00010B2F5A00000000000B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00010E2F5A00000000000E /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1196,6 +1214,7 @@
 				7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */,
 				C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */,
 				C583051F2F0E06D30096478E /* HeirloomTestsV2.xctest */,
+				AA00010D2F5A00000000000D /* HeirloomSnapshotTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2591,6 +2610,7 @@
 				E2D5ED1318785436B81F724D /* Heirloom */,
 				C56887332F057B02006EA0B1 /* HeirloomShareExtension */,
 				C58305202F0E06D30096478E /* HeirloomTestsV2 */,
+				AA0001092F5A000000000009 /* HeirloomSnapshotTests */,
 				5BB257FBB97C951B5E07EF21 /* Products */,
 				C56F3E692F04A9E000D19743 /* Frameworks */,
 				C5E9553A2F056341006CD3C2 /* Config.xcconfig */,
@@ -2716,6 +2736,30 @@
 			productReference = 7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AA0001032F5A000000000003 /* HeirloomSnapshotTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0001082F5A000000000008 /* Build configuration list for PBXNativeTarget "HeirloomSnapshotTests" */;
+			buildPhases = (
+				AA00010A2F5A00000000000A /* Sources */,
+				AA00010B2F5A00000000000B /* Frameworks */,
+				AA00010C2F5A00000000000C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA0001052F5A000000000005 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA0001092F5A000000000009 /* HeirloomSnapshotTests */,
+			);
+			name = HeirloomSnapshotTests;
+			packageProductDependencies = (
+				AA0001022F5A000000000002 /* SnapshotTesting */,
+			);
+			productName = HeirloomSnapshotTests;
+			productReference = AA00010D2F5A00000000000D /* HeirloomSnapshotTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		C56887312F057B02006EA0B1 /* HeirloomShareExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C568873E2F057B02006EA0B1 /* Build configuration list for PBXNativeTarget "HeirloomShareExtension" */;
@@ -2798,6 +2842,7 @@
 				C5CE3F312F2D2C9200A2E62F /* XCRemoteSwiftPackageReference "algoliasearch-client-swift" */,
 				C5EE3A3C2F3C2DA200FC5136 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				C508753C2F4E5C2B000F9BFC /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				AA0001012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -2805,11 +2850,19 @@
 				8C89A26D541EF27F051E6DC1 /* Heirloom */,
 				C56887312F057B02006EA0B1 /* HeirloomShareExtension */,
 				C583051E2F0E06D30096478E /* HeirloomTestsV2 */,
+				AA0001032F5A000000000003 /* HeirloomSnapshotTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		AA00010C2F5A00000000000C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C56887302F057B02006EA0B1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3333,6 +3386,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA00010A2F5A00000000000A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C568872E2F057B02006EA0B1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3360,6 +3420,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		AA0001052F5A000000000005 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8C89A26D541EF27F051E6DC1 /* Heirloom */;
+			targetProxy = AA0001042F5A000000000004 /* PBXContainerItemProxy */;
+		};
 		C568873B2F057B02006EA0B1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C56887312F057B02006EA0B1 /* HeirloomShareExtension */;
@@ -3534,6 +3599,64 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		AA0001062F5A000000000006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 39;
+				DEVELOPMENT_TEAM = SF39D6367Y;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 2.6.6;
+				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomSnapshotTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Heirloom.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Heirloom";
+			};
+			name = Debug;
+		};
+		AA0001072F5A000000000007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 39;
+				DEVELOPMENT_TEAM = SF39D6367Y;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 2.6.6;
+				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomSnapshotTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Heirloom.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Heirloom";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
 		};
 		C568873F2F057B02006EA0B1 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -3725,6 +3848,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		AA0001082F5A000000000008 /* Build configuration list for PBXNativeTarget "HeirloomSnapshotTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0001062F5A000000000006 /* Debug */,
+				AA0001072F5A000000000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		C568873E2F057B02006EA0B1 /* Build configuration list for PBXNativeTarget "HeirloomShareExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -3752,6 +3884,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.6.0;
+			};
+		};
+		AA0001012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
 			};
 		};
 		C508753C2F4E5C2B000F9BFC /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
@@ -3805,6 +3945,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		AA0001022F5A000000000002 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0001012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
 		AD24944AB89F59A583DFAF0E /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 204269E1E7116A2340A554FF /* XCRemoteSwiftPackageReference "SwiftSoup" */;
