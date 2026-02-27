@@ -78,13 +78,15 @@ export const braveSearch = functions.https.onCall(async (data, context) => {
     }));
 
     // 7. Log usage
-    await logAIUsage(userId, 'brave_search', {
-      provider: 'brave',
-      model: 'search-api-v1',
-      inputTokens: 0,
-      outputTokens: 0,
-      totalTokens: 0,
-    });
+    try {
+      await logAIUsage(userId, 'brave_search', {
+        provider: 'brave',
+        model: 'search-api-v1',
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+      });
+    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       results: searchResults,

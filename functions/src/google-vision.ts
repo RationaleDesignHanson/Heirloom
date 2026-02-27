@@ -78,13 +78,15 @@ export const googleVisionOCR = functions.https.onCall(async (data, context) => {
     const fullText = textAnnotations?.[0]?.description || '';
 
     // 7. Log usage (estimate cost - $1.50 per 1000 images)
-    await logAIUsage(userId, 'google_vision_ocr', {
-      provider: 'google',
-      model: 'vision-api-v1',
-      inputTokens: 0, // Not token-based
-      outputTokens: 0,
-      totalTokens: 0,
-    });
+    try {
+      await logAIUsage(userId, 'google_vision_ocr', {
+        provider: 'google',
+        model: 'vision-api-v1',
+        inputTokens: 0, // Not token-based
+        outputTokens: 0,
+        totalTokens: 0,
+      });
+    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       text: fullText,

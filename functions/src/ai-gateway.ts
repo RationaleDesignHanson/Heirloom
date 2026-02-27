@@ -65,13 +65,15 @@ export const aiComplete = functions.https.onCall(async (data, context) => {
     }
 
     // 5. Log usage for billing/analytics
-    await logAIUsage(userId, 'ai_complete', {
-      provider,
-      model: response.model,
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      totalTokens: response.usage.total_tokens,
-    });
+    try {
+      await logAIUsage(userId, 'ai_complete', {
+        provider,
+        model: response.model,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        totalTokens: response.usage.total_tokens,
+      });
+    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
 
     // 6. Return response
     return {
@@ -142,13 +144,15 @@ export const aiCompleteStructured = functions.https.onCall(async (data, context)
     const cleanedJSON = cleanJSONFromMarkdown(response.content);
 
     // Log usage
-    await logAIUsage(userId, 'ai_complete_structured', {
-      provider,
-      model: response.model,
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      totalTokens: response.usage.total_tokens,
-    });
+    try {
+      await logAIUsage(userId, 'ai_complete_structured', {
+        provider,
+        model: response.model,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        totalTokens: response.usage.total_tokens,
+      });
+    } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
 
     return {
       content: cleanedJSON,
@@ -218,13 +222,15 @@ export const aiCompleteWithVision = functions
       const content = structured ? cleanJSONFromMarkdown(response.content) : response.content;
 
       // Log usage
-      await logAIUsage(userId, 'ai_vision', {
-        provider,
-        model: response.model,
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        totalTokens: response.usage.total_tokens,
-      });
+      try {
+        await logAIUsage(userId, 'ai_vision', {
+          provider,
+          model: response.model,
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+          totalTokens: response.usage.total_tokens,
+        });
+      } catch (e) { functions.logger.warn('logAIUsage failed', { error: e }); }
 
       return {
         content,
