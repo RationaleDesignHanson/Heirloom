@@ -26,5 +26,8 @@ export { googleVisionOCR } from './google-vision';
 // Export Brave Search functions
 export { braveSearch } from './brave-search';
 
+// Export image generation functions
+export { dalleGenerateImage, replicateGenerateImage } from './image-generation';
+
 // Export utility functions
 export { checkUserRateLimit, getUserUsageStats } from './rate-limiter';

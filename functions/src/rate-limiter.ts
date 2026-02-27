@@ -14,6 +14,7 @@ const RATE_LIMITS = {
   ai_vision: { limit: 400, windowMs: 24 * 60 * 60 * 1000 }, // 400 per day (doubled for cookbook testing - multi-page analyzer uses this too)
   google_vision: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 }, // 1000 OCR per day (increased for development)
   brave_search: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 }, // 1000 searches per day (increased for development)
+  image_generation: { limit: 100, windowMs: 24 * 60 * 60 * 1000 }, // 100 image generations per day
 };
 
 /**
