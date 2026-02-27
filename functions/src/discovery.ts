@@ -309,48 +309,55 @@ export const incrementPublicRecipeView = onCall(async (request) => {
     }
 
     const recipeRef = db.collection('publicRecipes').doc(recipeId);
-    const recipeDoc = await recipeRef.get();
 
-    if (!recipeDoc.exists) {
-      throw new HttpsError('not-found', 'Public recipe not found');
-    }
-
-    // Rate limiting: Check if authenticated user has viewed recently
-    if (request.auth) {
-      const userId = request.auth.uid;
-      const rateLimitRef = recipeRef.collection('viewRateLimits').doc(userId);
-      const rateLimitDoc = await rateLimitRef.get();
-
-      if (rateLimitDoc.exists) {
-        const lastView = rateLimitDoc.data()?.lastView?.toMillis();
-        if (lastView) {
-          const hoursSinceLastView = (Date.now() - lastView) / (1000 * 60 * 60);
-
-          if (hoursSinceLastView < 24) {
-            return {
-              success: true,
-              viewCount: recipeDoc.data()?.viewCount || 0,
-              rateLimited: true,
-            };
-          }
-        }
+    // Rate-limited view increment wrapped in a transaction to prevent
+    // concurrent requests from bypassing the per-user 24-hour cooldown.
+    const result = await db.runTransaction(async (transaction) => {
+      const recipeSnap = await transaction.get(recipeRef);
+      if (!recipeSnap.exists) {
+        throw new HttpsError('not-found', 'Public recipe not found');
       }
 
-      await rateLimitRef.set({ lastView: admin.firestore.Timestamp.now() }, { merge: true });
-    }
+      if (request.auth) {
+        const userId = request.auth.uid;
+        const rateLimitRef = recipeRef.collection('viewRateLimits').doc(userId);
+        const rateLimitDoc = await transaction.get(rateLimitRef);
 
-    // Atomically increment view count
-    await recipeRef.update({
-      viewCount: admin.firestore.FieldValue.increment(1),
-      updatedAt: admin.firestore.Timestamp.now(),
+        if (rateLimitDoc.exists) {
+          const lastView = rateLimitDoc.data()?.lastView?.toMillis();
+          if (lastView) {
+            const hoursSinceLastView = (Date.now() - lastView) / (1000 * 60 * 60);
+
+            if (hoursSinceLastView < 24) {
+              return {
+                success: true as const,
+                viewCount: recipeSnap.data()?.viewCount || 0,
+                rateLimited: true as const,
+              };
+            }
+          }
+        }
+
+        transaction.set(rateLimitRef, { lastView: admin.firestore.Timestamp.now() }, { merge: true });
+      }
+
+      transaction.update(recipeRef, {
+        viewCount: admin.firestore.FieldValue.increment(1),
+        updatedAt: admin.firestore.Timestamp.now(),
+      });
+
+      return {
+        success: true as const,
+        viewCount: (recipeSnap.data()?.viewCount || 0) + 1,
+        rateLimited: false as const,
+      };
     });
 
-    const updatedDoc = await recipeRef.get();
-    const newViewCount = updatedDoc.data()?.viewCount || 0;
+    if (!result.rateLimited) {
+      logger.info(`Incremented view count for recipe ${recipeId} to ${result.viewCount}`);
+    }
 
-    logger.info(`Incremented view count for recipe ${recipeId} to ${newViewCount}`);
-
-    return { success: true, viewCount: newViewCount, rateLimited: false };
+    return result;
   } catch (error: any) {
     logger.error('Error incrementing view count:', error);
     if (error instanceof HttpsError) throw error;
