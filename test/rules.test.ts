@@ -463,3 +463,270 @@ describe('Storage: Restyle staging', () => {
     await assertFails(ref.put(data, { contentType: 'application/pdf' }));
   });
 });
+
+// ========================================
+// FIRESTORE: Recipe subcollection reads (P0 Security)
+// Verifies subcollections inherit parent recipe access control
+// ========================================
+describe('Firestore: Recipe subcollection reads', () => {
+  const ownerUid = 'user_owner';
+  const connectedUid = 'user_connected';
+  const strangerUid = 'user_stranger';
+  const demoUid = 'demo_testuser';
+
+  const subcollections = ['ingredients', 'instructions', 'comments', 'cardBack', 'operations'];
+
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      // Create recipe and subcollection docs
+      await db.doc(`users/${ownerUid}/recipes/recipe1`).set({ title: 'Test Recipe' });
+      for (const sub of subcollections) {
+        await db.doc(`users/${ownerUid}/recipes/recipe1/${sub}/doc1`).set({ data: 'test' });
+      }
+      // Create demo recipe and subcollection docs
+      await db.doc(`users/${demoUid}/recipes/recipe1`).set({ title: 'Demo Recipe' });
+      for (const sub of subcollections) {
+        await db.doc(`users/${demoUid}/recipes/recipe1/${sub}/doc1`).set({ data: 'test' });
+      }
+      // Create connection between owner and connected user
+      await db.doc(`users/${ownerUid}/connections/${connectedUid}`).set({
+        connectedUserId: connectedUid,
+        status: 'accepted',
+      });
+      await db.doc(`users/${connectedUid}/connections/${ownerUid}`).set({
+        connectedUserId: ownerUid,
+        status: 'accepted',
+      });
+    });
+  });
+
+  for (const sub of subcollections) {
+    test(`owner CAN read ${sub}`, async () => {
+      const db = testEnv.authenticatedContext(ownerUid).firestore();
+      await assertSucceeds(db.doc(`users/${ownerUid}/recipes/recipe1/${sub}/doc1`).get());
+    });
+  }
+
+  // Test one subcollection for connected user (representative)
+  test('connected user CAN read ingredients', async () => {
+    const db = testEnv.authenticatedContext(connectedUid).firestore();
+    await assertSucceeds(db.doc(`users/${ownerUid}/recipes/recipe1/ingredients/doc1`).get());
+  });
+
+  test('connected user CAN read instructions', async () => {
+    const db = testEnv.authenticatedContext(connectedUid).firestore();
+    await assertSucceeds(db.doc(`users/${ownerUid}/recipes/recipe1/instructions/doc1`).get());
+  });
+
+  for (const sub of subcollections) {
+    test(`stranger CANNOT read ${sub}`, async () => {
+      const db = testEnv.authenticatedContext(strangerUid).firestore();
+      await assertFails(db.doc(`users/${ownerUid}/recipes/recipe1/${sub}/doc1`).get());
+    });
+  }
+
+  // Test one subcollection for unauth (representative)
+  test('unauthenticated CANNOT read ingredients', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc(`users/${ownerUid}/recipes/recipe1/ingredients/doc1`).get());
+  });
+
+  test('unauthenticated CANNOT read operations', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc(`users/${ownerUid}/recipes/recipe1/operations/doc1`).get());
+  });
+
+  // Demo subcollection reads
+  test('any authenticated user CAN read demo user ingredients', async () => {
+    const db = testEnv.authenticatedContext(strangerUid).firestore();
+    await assertSucceeds(db.doc(`users/${demoUid}/recipes/recipe1/ingredients/doc1`).get());
+  });
+
+  test('any authenticated user CAN read demo user instructions', async () => {
+    const db = testEnv.authenticatedContext(strangerUid).firestore();
+    await assertSucceeds(db.doc(`users/${demoUid}/recipes/recipe1/instructions/doc1`).get());
+  });
+});
+
+// ========================================
+// FIRESTORE: Share reads (P0 Security)
+// Shares require authentication (UUIDs are bearer tokens)
+// ========================================
+describe('Firestore: Share reads', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc('shares/share-uuid-123').set({
+        shareId: 'share-uuid-123',
+        recipeId: 'recipe1',
+        ownerId: 'user_a',
+        ownerName: 'User A',
+      });
+    });
+  });
+
+  test('authenticated user CAN read share', async () => {
+    const db = testEnv.authenticatedContext('user_b').firestore();
+    await assertSucceeds(db.doc('shares/share-uuid-123').get());
+  });
+
+  test('unauthenticated user CANNOT read share', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('shares/share-uuid-123').get());
+  });
+});
+
+// ========================================
+// FIRESTORE: Public recipe reads (P0 Security)
+// Public recipes require authentication
+// ========================================
+describe('Firestore: Public recipe reads', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc('publicRecipes/pub1').set({
+        title: 'Community Recipe',
+        ownerId: 'user_a',
+      });
+    });
+  });
+
+  test('authenticated user CAN read public recipe', async () => {
+    const db = testEnv.authenticatedContext('user_b').firestore();
+    await assertSucceeds(db.doc('publicRecipes/pub1').get());
+  });
+
+  test('unauthenticated user CANNOT read public recipe', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('publicRecipes/pub1').get());
+  });
+});
+
+// ========================================
+// FIRESTORE: Demo flag protection (P0 Security)
+// isDemoUser checks server-side UID pattern, not client fields
+// ========================================
+describe('Firestore: Demo flag protection', () => {
+  test('non-demo user CANNOT create recipe for another non-demo user', async () => {
+    const db = testEnv.authenticatedContext('user_attacker').firestore();
+    await assertFails(
+      db.doc('users/user_victim/recipes/recipe1').set({
+        title: 'Injected Recipe',
+        isDemoRecipe: true,
+      })
+    );
+  });
+
+  test('any authenticated user CAN create recipe for demo user', async () => {
+    const db = testEnv.authenticatedContext('user_a').firestore();
+    await assertSucceeds(
+      db.doc('users/demo_friend1/recipes/recipe1').set({
+        title: 'Demo Recipe',
+      })
+    );
+  });
+
+  test('isDemoConnection field does NOT bypass connection rules for non-demo users', async () => {
+    const db = testEnv.authenticatedContext('user_attacker').firestore();
+    await assertFails(
+      db.doc('users/user_victim/connections/conn1').set({
+        connectedUserId: 'user_other',
+        status: 'accepted',
+        isDemoConnection: true,
+      })
+    );
+  });
+});
+
+// ========================================
+// FIRESTORE: Unauthenticated access (P0 Security)
+// All user-scoped collections deny unauthenticated access
+// ========================================
+describe('Firestore: Unauthenticated access denied', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await db.doc('users/user_a').set({ displayName: 'User A' });
+      await db.doc('users/user_a/recipes/recipe1').set({ title: 'Secret Recipe' });
+      await db.doc('users/user_a/notifications/notif1').set({ type: 'test', read: false });
+      await db.doc('users/user_a/settings/prefs').set({ theme: 'dark' });
+      await db.doc('users/user_a/collections/coll1').set({ name: 'Favorites' });
+    });
+  });
+
+  test('unauthenticated CANNOT read user document', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('users/user_a').get());
+  });
+
+  test('unauthenticated CANNOT read recipes', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('users/user_a/recipes/recipe1').get());
+  });
+
+  test('unauthenticated CANNOT read notifications', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('users/user_a/notifications/notif1').get());
+  });
+
+  test('unauthenticated CANNOT read settings', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('users/user_a/settings/prefs').get());
+  });
+
+  test('unauthenticated CANNOT read collections', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.doc('users/user_a/collections/coll1').get());
+  });
+});
+
+// ========================================
+// STORAGE: Read restrictions (P0 Security)
+// Owner-only for recipe images, any-auth for profile images
+// ========================================
+describe('Storage: Read restrictions', () => {
+  test('owner CAN read their own recipe images', async () => {
+    // First upload a file as owner
+    const ownerStorage = testEnv.authenticatedContext('user_a').storage();
+    const ref = ownerStorage.ref('users/user_a/recipes/image.jpg');
+    const data = new Uint8Array(1024);
+    await assertSucceeds(ref.put(data, { contentType: 'image/jpeg' }));
+    // Owner can read it back
+    await assertSucceeds(ref.getDownloadURL());
+  });
+
+  test('non-owner CANNOT read other user recipe images', async () => {
+    // Upload as owner
+    const ownerStorage = testEnv.authenticatedContext('user_a').storage();
+    const ref = ownerStorage.ref('users/user_a/recipes/image.jpg');
+    const data = new Uint8Array(1024);
+    await ref.put(data, { contentType: 'image/jpeg' });
+    // Try to read as non-owner
+    const otherStorage = testEnv.authenticatedContext('user_b').storage();
+    const otherRef = otherStorage.ref('users/user_a/recipes/image.jpg');
+    await assertFails(otherRef.getDownloadURL());
+  });
+
+  test('any authenticated user CAN read profile images', async () => {
+    // Upload profile image as owner
+    const ownerStorage = testEnv.authenticatedContext('user_a').storage();
+    const ref = ownerStorage.ref('users/user_a/profile/avatar.jpg');
+    const data = new Uint8Array(1024);
+    await ref.put(data, { contentType: 'image/jpeg' });
+    // Other user can read profile images
+    const otherStorage = testEnv.authenticatedContext('user_b').storage();
+    const otherRef = otherStorage.ref('users/user_a/profile/avatar.jpg');
+    await assertSucceeds(otherRef.getDownloadURL());
+  });
+
+  test('unauthenticated CANNOT read any user storage files', async () => {
+    // Upload as owner first
+    const ownerStorage = testEnv.authenticatedContext('user_a').storage();
+    const ref = ownerStorage.ref('users/user_a/recipes/image.jpg');
+    const data = new Uint8Array(1024);
+    await ref.put(data, { contentType: 'image/jpeg' });
+    // Try unauthenticated read
+    const unauthStorage = testEnv.unauthenticatedContext().storage();
+    const unauthRef = unauthStorage.ref('users/user_a/recipes/image.jpg');
+    await assertFails(unauthRef.getDownloadURL());
+  });
+});

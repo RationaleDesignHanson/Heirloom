@@ -19,6 +19,13 @@ service cloud.firestore {
       return userId.matches('demo_.*');
     }
 
+    // Check if the caller can read a user's recipes (owner, connected, or demo)
+    function canReadRecipe(userId) {
+      return isOwner(userId) ||
+             (isAuthenticated() && isConnectedTo(userId)) ||
+             (isAuthenticated() && isDemoUser(userId));
+    }
+
     // ========================================
     // HELPER FUNCTIONS FOR RECIPE ACCESS
     // ========================================
@@ -54,11 +61,9 @@ service cloud.firestore {
     // ========================================
     match /users/{userId}/recipes/{recipeId} {
       // Owner, connected users, or demo users can read recipes
-      // Share preview for non-connected recipients uses /shares/{shareId} metadata (publicly readable)
+      // Share preview for non-connected recipients uses /shares/{shareId} metadata (requires auth)
       // Write access is still restricted to owners only
-      allow read: if isOwner(userId) ||
-                     (isAuthenticated() && isConnectedTo(userId)) ||
-                     (isAuthenticated() && isDemoUser(userId));
+      allow read: if canReadRecipe(userId);
 
       // Users can create their own recipes
       // Exception: Any authenticated user can create recipes for demo users (TestFlight demo experience)
@@ -74,31 +79,31 @@ service cloud.firestore {
 
       // Ingredients subcollection
       match /ingredients/{ingredientId} {
-        allow read: if isAuthenticated();
+        allow read: if canReadRecipe(userId);
         allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Instructions subcollection
       match /instructions/{instructionId} {
-        allow read: if isAuthenticated();
+        allow read: if canReadRecipe(userId);
         allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Comments subcollection
       match /comments/{commentId} {
-        allow read: if isAuthenticated();
+        allow read: if canReadRecipe(userId);
         allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Card back subcollection
       match /cardBack/{document=**} {
-        allow read: if isAuthenticated();
+        allow read: if canReadRecipe(userId);
         allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Operations subcollection (for CRDT)
       match /operations/{operationId} {
-        allow read: if isAuthenticated();
+        allow read: if canReadRecipe(userId);
         allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
     }
@@ -123,10 +128,9 @@ service cloud.firestore {
     // SHARES (Top-Level)
     // ========================================
     match /shares/{shareId} {
-      // Anyone with link can read (no authentication required)
-      // This allows share recipients to view share metadata before accepting
-      // Share IDs are UUIDs and not guessable, so this is secure
-      allow read: if true;
+      // Authenticated users with the share link can read
+      // Share IDs are UUIDs (bearer tokens) — auth + UUID is sufficient security
+      allow read: if isAuthenticated();
 
       // Only owner can create shares, with proper validation
       // Exception: Demo shares can be created by any authenticated user when ownerId is a demo user
@@ -522,8 +526,8 @@ service cloud.firestore {
     // Stored at: publicRecipes/{publicRecipeId}
     // ========================================
     match /publicRecipes/{recipeId} {
-      // Anyone can read public recipes (no authentication required for discovery)
-      allow read: if true;
+      // Authenticated users can read public recipes
+      allow read: if isAuthenticated();
 
       // Only authenticated users can publish recipes
       // Must set ownerId to match their auth.uid (prevents impersonation)
