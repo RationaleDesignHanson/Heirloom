@@ -4,6 +4,7 @@ import SwiftData
 import XCTest
 import Combine
 import FirebaseAuth
+import FirebaseCore
 @testable import Heirloom
 
 // MARK: - Device Configurations
@@ -152,6 +153,19 @@ class SnapshotTestCase: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
+        // Configure Firebase so concrete Firebase service types (e.g. FirebaseUserProfileService,
+        // FirebaseSyncService) can be instantiated without crashing. Firebase.configure() is
+        // idempotent-safe: the guard ensures it runs only once per test process.
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+
+        // Register ALL production services in ServiceContainer. Views resolve many
+        // concrete types via ServiceContainer.shared.resolve() in their property
+        // initialisers, and every EnvironmentKey defaultValue also calls resolve().
+        // Without this, any view instantiation triggers fatalError.
+        ServiceContainer.shared.registerProductionServices()
+
         // In-memory SwiftData container with models used by snapshot views.
         // RecipeGenerationJob and SyncJob are excluded due to @Model visibility
         // issues across test target boundaries.
@@ -173,9 +187,6 @@ class SnapshotTestCase: XCTestCase {
         mockAuth = MockSnapshotAuth.signedOut()
         mockSync = MockSnapshotSync()
         mockLineage = MockSnapshotLineage()
-
-        // Register commonly needed services in ServiceContainer
-        ServiceContainer.shared.register(ToastManager.self, instance: ToastManager())
     }
 
     override func tearDown() async throws {
