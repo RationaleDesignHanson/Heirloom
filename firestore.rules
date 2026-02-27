@@ -129,14 +129,14 @@ service cloud.firestore {
       allow read: if true;
 
       // Only owner can create shares, with proper validation
-      // Exception: Demo shares can be created by any authenticated user (for TestFlight demo experience)
+      // Exception: Demo shares can be created by any authenticated user when ownerId is a demo user
       allow create: if isAuthenticated() &&
                        request.resource.data.keys().hasAll(['shareId', 'recipeId', 'ownerId', 'ownerName']) &&
                        (
                          // Normal shares: user must be the owner
                          request.auth.uid == request.resource.data.ownerId ||
-                         // Demo shares: allow if marked as demo share (for TestFlight experience)
-                         request.resource.data.isDemoShare == true
+                         // Demo shares: allow if the owner is a demo user (server-side UID check)
+                         isDemoUser(request.resource.data.ownerId)
                        );
 
       // Restricted update: Owner can update all fields OR recipient can add themselves to acceptedBy OR anyone can increment viewCount
@@ -167,7 +167,7 @@ service cloud.firestore {
       allow delete: if isAuthenticated() &&
                        (request.auth.uid == resource.data.ownerId ||
                         (request.auth.uid in resource.data.recipientUserIds &&
-                         resource.data.isDemoShare == true));
+                         isDemoUser(resource.data.ownerId)));
     }
 
     // ========================================
@@ -387,19 +387,19 @@ service cloud.firestore {
       // This allows User A to create connection docs in both:
       // - users/A/connections/{id} (where connectedUserId = B)
       // - users/B/connections/{id} (where connectedUserId = A)
-      // Exception: Demo connections can be created for TestFlight experience
+      // Exception: Demo connections allowed when either party is a demo user (server-side UID check)
       allow create: if isAuthenticated() &&
                        (request.auth.uid == userId ||
                         request.auth.uid == request.resource.data.connectedUserId ||
-                        request.resource.data.isDemoConnection == true);
+                        isDemoUser(userId) || isDemoUser(request.resource.data.connectedUserId));
 
       // Users can update their own connections or connections where they are the connected user
       // (for accepting requests, updating status, adding notes)
-      // Exception: Demo connections can be updated for TestFlight experience
+      // Exception: Demo connections can be updated when either party is a demo user (server-side UID check)
       allow update: if isAuthenticated() &&
                        (request.auth.uid == userId ||
                         request.auth.uid == resource.data.connectedUserId ||
-                        resource.data.isDemoConnection == true);
+                        isDemoUser(userId) || isDemoUser(resource.data.connectedUserId));
 
       // Users can delete their own connections OR connections where they are the connectedUserId
       // This allows User A to delete reciprocal connection from User B's collection
