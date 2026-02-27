@@ -5,6 +5,7 @@ import XCTest
 import Combine
 import FirebaseAuth
 import FirebaseCore
+import RevenueCat
 @testable import Heirloom
 
 // MARK: - Device Configurations
@@ -158,6 +159,13 @@ class SnapshotTestCase: XCTestCase {
         // idempotent-safe: the guard ensures it runs only once per test process.
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
+        }
+
+        // Configure RevenueCat before registerProductionServices() so that any service
+        // or view that accesses Purchases.shared doesn't hit the fatal assertion.
+        // The dummy key won't make real network calls during snapshot tests.
+        if !Purchases.isConfigured {
+            Purchases.configure(withAPIKey: "test_api_key_not_real")
         }
 
         // Register ALL production services in ServiceContainer. Views resolve many
