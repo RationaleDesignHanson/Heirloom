@@ -23,14 +23,13 @@ service cloud.firestore {
     // HELPER FUNCTIONS FOR RECIPE ACCESS
     // ========================================
 
-    // NOTE: Recipe read access is currently open to all authenticated users
-    // This is necessary for share acceptance to work (users need to read recipes before accepting)
-    // Security is enforced by:
-    // 1. Share IDs are UUIDs (hard to guess)
-    // 2. Write access is restricted to owners only
+    // Recipe read access is restricted to:
+    // 1. Recipe owner
+    // 2. Users connected to the owner (via isConnectedTo helper)
+    // 3. Demo users (for TestFlight experience)
     //
-    // TODO: Implement more granular read access control using acceptedShares index
-    // when we have time to properly test the architecture
+    // Share preview for non-connected recipients uses /shares/{shareId} metadata
+    // (publicly readable). Full recipe copy happens at acceptance via app logic.
 
     // ========================================
     // USER DOCUMENT (Parent Document)
@@ -54,10 +53,12 @@ service cloud.firestore {
     // USER RECIPES (User-Scoped)
     // ========================================
     match /users/{userId}/recipes/{recipeId} {
-      // Any authenticated user can read recipes (for accepting shares)
-      // Shares are access-controlled via share IDs (UUIDs that are hard to guess)
+      // Owner, connected users, or demo users can read recipes
+      // Share preview for non-connected recipients uses /shares/{shareId} metadata (publicly readable)
       // Write access is still restricted to owners only
-      allow read: if isAuthenticated();
+      allow read: if isOwner(userId) ||
+                     (isAuthenticated() && isConnectedTo(userId)) ||
+                     (isAuthenticated() && isDemoUser(userId));
 
       // Users can create their own recipes
       // Exception: Any authenticated user can create recipes for demo users (TestFlight demo experience)
