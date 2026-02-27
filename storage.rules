@@ -130,9 +130,10 @@ service firebase.storage {
     // ========================================
     match /temp-uploads/{userId}/{allPaths=**} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      // 10MB max for temp uploads
+      // 10MB max, images only
       allow write: if request.auth != null && request.auth.uid == userId
-                      && request.resource.size < 10 * 1024 * 1024;
+                      && request.resource.size < 10 * 1024 * 1024
+                      && request.resource.contentType.matches('image/.*');
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
