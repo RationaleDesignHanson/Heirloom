@@ -86,12 +86,13 @@ export const aiComplete = onCall(async (request) => {
   } catch (error: any) {
     logger.error('AI Complete Error', { userId, error: error.message });
 
-    // Handle specific errors
+    if (error instanceof HttpsError) throw error;
+
     if (error.status === 429) {
       throw new HttpsError('resource-exhausted', 'AI service rate limit exceeded');
     }
-    if (error.status === 401) {
-      throw new HttpsError('internal', 'AI service authentication failed');
+    if (error.status === 400) {
+      throw new HttpsError('invalid-argument', error.message || 'Invalid request to AI service');
     }
 
     throw new HttpsError('internal', 'Failed to complete AI request');
@@ -165,6 +166,16 @@ export const aiCompleteStructured = onCall(async (request) => {
     };
   } catch (error: any) {
     logger.error('AI Complete Structured Error', { userId, error: error.message });
+
+    if (error instanceof HttpsError) throw error;
+
+    if (error.status === 429) {
+      throw new HttpsError('resource-exhausted', 'AI service rate limit exceeded');
+    }
+    if (error.status === 400) {
+      throw new HttpsError('invalid-argument', error.message || 'Invalid request to AI service');
+    }
+
     throw new HttpsError('internal', 'Failed to complete structured AI request');
   }
 });
@@ -243,6 +254,16 @@ export const aiCompleteWithVision = onCall(
       };
     } catch (error: any) {
       logger.error('AI Vision Error', { userId, error: error.message });
+
+      if (error instanceof HttpsError) throw error;
+
+      if (error.status === 429) {
+        throw new HttpsError('resource-exhausted', 'AI service rate limit exceeded');
+      }
+      if (error.status === 400) {
+        throw new HttpsError('invalid-argument', error.message || 'Invalid request to AI service');
+      }
+
       throw new HttpsError('internal', 'Failed to complete vision AI request');
     }
   }

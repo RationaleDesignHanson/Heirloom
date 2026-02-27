@@ -369,6 +369,12 @@ export const incrementPublicRecipeView = onCall(async (request) => {
  * Increment save count for a public recipe (requires authentication)
  */
 export const incrementPublicRecipeSave = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Authentication required to save recipes');
+  }
+
+  const userId = request.auth.uid;
+
   try {
     const { recipeId } = request.data;
 
@@ -376,31 +382,28 @@ export const incrementPublicRecipeSave = onCall(async (request) => {
       throw new HttpsError('invalid-argument', 'Invalid recipeId parameter');
     }
 
-    if (!request.auth) {
-      throw new HttpsError('unauthenticated', 'Authentication required to save recipes');
-    }
-
     const recipeRef = db.collection('publicRecipes').doc(recipeId);
-    const recipeDoc = await recipeRef.get();
 
-    if (!recipeDoc.exists) {
-      throw new HttpsError('not-found', 'Public recipe not found');
-    }
+    // Atomic save count increment via transaction
+    const newSaveCount = await db.runTransaction(async (transaction) => {
+      const recipeSnap = await transaction.get(recipeRef);
+      if (!recipeSnap.exists) {
+        throw new HttpsError('not-found', 'Public recipe not found');
+      }
 
-    // Atomically increment save count
-    await recipeRef.update({
-      saveCount: admin.firestore.FieldValue.increment(1),
-      updatedAt: admin.firestore.Timestamp.now(),
+      transaction.update(recipeRef, {
+        saveCount: admin.firestore.FieldValue.increment(1),
+        updatedAt: admin.firestore.Timestamp.now(),
+      });
+
+      return (recipeSnap.data()?.saveCount || 0) + 1;
     });
 
-    const updatedDoc = await recipeRef.get();
-    const newSaveCount = updatedDoc.data()?.saveCount || 0;
-
-    logger.info(`Incremented save count for recipe ${recipeId} to ${newSaveCount} by user ${request.auth.uid}`);
+    logger.info(`Incremented save count for recipe ${recipeId} to ${newSaveCount} by user ${userId}`);
 
     return { success: true, saveCount: newSaveCount };
   } catch (error: any) {
-    logger.error('Error incrementing save count:', error);
+    logger.error('Error incrementing save count:', { userId, error: error.message });
     if (error instanceof HttpsError) throw error;
     throw new HttpsError('internal', 'Failed to increment save count');
   }

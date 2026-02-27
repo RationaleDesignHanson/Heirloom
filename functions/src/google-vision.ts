@@ -74,6 +74,14 @@ export const googleVisionOCR = onCall(async (request) => {
     if (!response.ok) {
       const errorText = await response.text();
       logger.error('Google Vision API Error', { status: response.status, error: errorText });
+
+      if (response.status === 429) {
+        throw new HttpsError('resource-exhausted', 'Google Vision API quota exceeded');
+      }
+      if (response.status === 400) {
+        throw new HttpsError('invalid-argument', 'Invalid image data for OCR');
+      }
+
       throw new HttpsError('internal', 'Google Vision API request failed');
     }
 

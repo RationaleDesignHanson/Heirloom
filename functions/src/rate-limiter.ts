@@ -175,35 +175,44 @@ export const checkUserRateLimit = onCall(async (request) => {
   }
 
   const userId = request.auth.uid;
-  const { operation } = request.data;
 
-  if (!operation || !RATE_LIMITS[operation as keyof typeof RATE_LIMITS]) {
-    throw new HttpsError('invalid-argument', 'Invalid operation');
-  }
+  try {
+    const { operation } = request.data;
 
-  const key = `${userId}:${operation}`;
-  const docRef = db.collection('rateLimits').doc(key);
-  const doc = await docRef.get();
+    if (!operation || !RATE_LIMITS[operation as keyof typeof RATE_LIMITS]) {
+      throw new HttpsError('invalid-argument', 'Invalid operation');
+    }
 
-  if (!doc.exists) {
+    const key = `${userId}:${operation}`;
+    const docRef = db.collection('rateLimits').doc(key);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      const config = RATE_LIMITS[operation as keyof typeof RATE_LIMITS];
+      return {
+        count: 0,
+        limit: config.limit,
+        remaining: config.limit,
+        resetAt: null,
+      };
+    }
+
+    const docData = doc.data();
     const config = RATE_LIMITS[operation as keyof typeof RATE_LIMITS];
+
     return {
-      count: 0,
+      count: docData?.count || 0,
       limit: config.limit,
-      remaining: config.limit,
-      resetAt: null,
+      remaining: Math.max(0, config.limit - (docData?.count || 0)),
+      resetAt: docData?.resetAt?.toDate?.() || null,
     };
+  } catch (error: any) {
+    logger.error('Check Rate Limit Error', { userId, error: error.message });
+
+    if (error instanceof HttpsError) throw error;
+
+    throw new HttpsError('internal', 'Failed to check rate limit');
   }
-
-  const docData = doc.data();
-  const config = RATE_LIMITS[operation as keyof typeof RATE_LIMITS];
-
-  return {
-    count: docData?.count || 0,
-    limit: config.limit,
-    remaining: Math.max(0, config.limit - (docData?.count || 0)),
-    resetAt: docData?.resetAt?.toDate?.() || null,
-  };
 });
 
 /**
@@ -219,24 +228,32 @@ export const getUserUsageStats = onCall(async (request) => {
 
   const userId = request.auth.uid;
 
-  const userCostRef = db.collection('userCosts').doc(userId);
-  const doc = await userCostRef.get();
+  try {
+    const userCostRef = db.collection('userCosts').doc(userId);
+    const doc = await userCostRef.get();
 
-  if (!doc.exists) {
+    if (!doc.exists) {
+      return {
+        totalCost: 0,
+        totalTokens: 0,
+        operations: 0,
+        lastUpdated: null,
+      };
+    }
+
+    const docData = doc.data();
+
     return {
-      totalCost: 0,
-      totalTokens: 0,
-      operations: 0,
-      lastUpdated: null,
+      totalCost: docData?.totalCost || 0,
+      totalTokens: docData?.totalTokens || 0,
+      operations: docData?.operations || 0,
+      lastUpdated: docData?.lastUpdated?.toDate?.() || null,
     };
+  } catch (error: any) {
+    logger.error('Get Usage Stats Error', { userId, error: error.message });
+
+    if (error instanceof HttpsError) throw error;
+
+    throw new HttpsError('internal', 'Failed to get usage stats');
   }
-
-  const docData = doc.data();
-
-  return {
-    totalCost: docData?.totalCost || 0,
-    totalTokens: docData?.totalTokens || 0,
-    operations: docData?.operations || 0,
-    lastUpdated: docData?.lastUpdated?.toDate?.() || null,
-  };
 });

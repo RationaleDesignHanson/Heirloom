@@ -148,11 +148,43 @@ export const processRestyleQueue = onDocumentCreated(
     } catch (error: any) {
       logger.error('Process Restyle Queue Error', { userId, jobId, error: error.message });
 
-      await jobRef.update({
-        status: 'failed',
-        error: error.message || 'Processing failed',
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      // Auto-refund credits on failure via atomic transaction
+      try {
+        const creditsRef = db.collection('users').doc(userId).collection('credits').doc('balance');
+        await db.runTransaction(async (transaction) => {
+          const jobDoc = await transaction.get(jobRef);
+          const jobData = jobDoc.data();
+          const creditsCharged = jobData?.creditsCharged ?? 0;
+
+          if (creditsCharged > 0) {
+            const creditsDoc = await transaction.get(creditsRef);
+            const currentBalance = creditsDoc.data()?.balance ?? 0;
+
+            transaction.set(creditsRef, {
+              balance: currentBalance + creditsCharged,
+              lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+            }, { merge: true });
+          }
+
+          transaction.update(jobRef, {
+            status: 'refunded',
+            error: error.message || 'Processing failed',
+            refundedCredits: creditsCharged > 0 ? creditsCharged : 0,
+            refundedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        logger.info('Auto-refunded credits for failed restyle job', { userId, jobId });
+      } catch (refundError: any) {
+        logger.error('Failed to auto-refund credits — manual refund needed', { userId, jobId, error: refundError.message });
+        // Still mark the job as failed even if refund fails
+        await jobRef.update({
+          status: 'failed',
+          error: error.message || 'Processing failed',
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
     }
   }
 );
@@ -251,6 +283,13 @@ export const refundRestyleCredits = onCall(async (request) => {
       }
 
       const jobData = jobDoc.data();
+
+      if (jobData?.status === 'refunded') {
+        throw new HttpsError(
+          'failed-precondition',
+          'Credits have already been refunded for this job'
+        );
+      }
 
       if (jobData?.status !== 'failed') {
         throw new HttpsError(
