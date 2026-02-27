@@ -270,6 +270,27 @@ service cloud.firestore {
     }
 
     // ========================================
+    // RESTYLE JOBS (User-Scoped)
+    // Batch image restyle job tracking
+    // Stored at: users/{userId}/restyleJobs/{jobId}
+    // ========================================
+    match /users/{userId}/restyleJobs/{jobId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // USER CREDITS (User-Scoped)
+    // Credit balance for restyle and other paid features
+    // Stored at: users/{userId}/credits/{document}
+    // ========================================
+    match /users/{userId}/credits/{document} {
+      allow read: if isOwner(userId);
+      // Write managed by Cloud Functions (credit purchase, deduction, refund)
+      allow write: if false;
+    }
+
+    // ========================================
     // THEME STATE (User-Scoped)
     // Tracks user theme selection and unlock progress
     // ========================================

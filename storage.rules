@@ -52,6 +52,19 @@ service firebase.storage {
       allow list: if request.auth != null && request.auth.uid == userId;
     }
 
+    // ========================================
+    // RESTYLE STAGING (User-Scoped)
+    // Temporary storage for restyled images before applying
+    // Stored as: users/{userId}/restyle-staging/{allPaths=**}
+    // ========================================
+    match /users/{userId}/restyle-staging/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId
+                      && request.resource.size < 10 * 1024 * 1024
+                      && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Note: User avatars (users/{userId}/profile/*) are covered by the
     // users/{userId}/{allPaths=**} rule above. Avatars are readable by
     // all authenticated users via that rule.

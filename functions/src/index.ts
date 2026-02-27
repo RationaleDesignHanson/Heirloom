@@ -29,5 +29,8 @@ export { braveSearch } from './brave-search';
 // Export image generation functions
 export { dalleGenerateImage, replicateGenerateImage } from './image-generation';
 
+// Export restyle functions
+export { createRestyleJob, processRestyleQueue, applyRestyleResults, refundRestyleCredits } from './restyle';
+
 // Export utility functions
 export { checkUserRateLimit, getUserUsageStats } from './rate-limiter';
